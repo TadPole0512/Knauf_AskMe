@@ -1,0 +1,1281 @@
+/* Admin */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\orderAdd.jsp *********** */
+
+
+676	// 주문상태 변경.
+677	function dataIn(obj, status, reqNo){
+678		$(obj).prop('disabled', true);
+679
+680		var postalCodeCheck = false;
+681		var params = {r_zipcd : $('input[name="m_zipcd"]').val()};
+682		$.ajax({
+683			async : false,
+684			url : '${url}/admin/order/getPostalCodeCount.lime',
+685			cache : false,
+686			type : 'POST',
+687			dataType: 'json',
+688			data : params,
+689			success : function(data){
+690				if(data.useFlag === 'Y') {
+691					postalCodeCheck = true;
+692				}
+693			},
+694			error : function(request,status,error){
+695			}
+696		});
+697
+698		if(!postalCodeCheck) {
+699			alert('해당 우편번호는 시스템에 존재하지 않습니다. 담당CS직원에게 문의해 주세요.');
+700			$(obj).prop('disabled', false);
+701			return;
+702		}
+703
+704		var ckflag = dataValidation();
+705		if(!ckflag){
+706			$(obj).prop('disabled', false);
+707			return;
+708		}
+709
+710		var insertFlag = true;
+711
+712		var confirmText = '주문접수 하시겠습니까?';
+713		if('99' == status){
+714			confirmText = '임시저장 하시겠습니까?';
+715			insertFlag = false;
+716		}
+717		if(reqNo){
+718			confirmText = '주문접수 상태 입니다.\n수정 하시겠습니까?';
+719			insertFlag = false;
+720		}
+721
+722		// 파레트 적재단위 수량 > 주문수량 경우 알림. => 리스트에 뿌려주는걸로.
+723		/*
+724		var trObj = $('#gridList > tbody > tr');
+725		$(trObj).each(function(i,e){
+726			if(0 != i){ // i==0 class="jqgfirstrow"로 실제 데이터가 아님.
+727				var pallet = Number($(e).find('input[name="c_itipallet"]').val());
+728				var quantity = Number($(e).find('input[name="m_quantity"]').val());
+729				var itemNm = $(e).find('.descClass').html();
+730				if(pallet > quantity){
+731					alert(escapeXss('품목 '+itemNm+'의 팔레트 구성수량은'+addComma(pallet)+'개 입니다.'));
+732				}
+733			}
+734		});
+735		*/
+736
+737		// 요청사항 행바꿈/엔터 제거.
+738		var m_remark = $('input[name="m_remark"]').val();
+739		if('' != m_remark){
+740			m_remark = m_remark.replace(/\n/g, ' '); // 행바꿈 제거
+741			m_remark = m_remark.replace(/\r/g, ' '); // 엔터 제거
+742			$('input[name="m_remark"]').val(m_remark);
+743		}
+744
+745		$('input[name="m_statuscd"]').val(status);
+746
+747		if(confirm(confirmText)){
+748			//var m_transty = $('input:radio[name="m_transty"]:checked').val();
+749			//if('AB' == m_transty){ //운송수단이 자차운송인 경우는 우편번호를 90000으로 픽스.
+750			//	$('input[name="m_zipcd"]').val('90000');
+751			//}
+752			$('#ajax_indicator').show().fadeIn('fast');
+753
+754			var trObj = $('#gridList > tbody > tr');
+755			var fireproofFlag = false;
+756			$(trObj).each(function(i,e){
+757				if(0 != i){ // i==0 class="jqgfirstrow"로 실제 데이터가 아님.
+758					var fireproofYn = $($(e).find('input[name="m_fireproof"]')[0]).val();
+759					if(fireproofYn=='Y'){
+760						fireproofFlag = true;
+761					}
+762				}
+763			});
+764
+765
+766			$('form[name="frm"]').ajaxSubmit({
+767				dataType : 'json',
+768				type : 'POST',
+769				url : '${url}/admin/order/insertCustOrderAjax.lime',
+770				//async : false, //사용x
+771				//data : param, //사용x
+772				success : function(data) {
+773					if(data.RES_CODE == '0000') {
+774						$('#m_reqNo').val(data.m_ohhreqno);
+775
+776						//접수버튼 QMS 입력 중 숨김
+777						$('.order-save-btn').css('display','none');
+778						//최초 오더접수 입력시에만 사전입력 진행
+779						if(insertFlag){
+780							$('form[name="frm"]').ajaxSubmit({
+781								dataType : 'json',
+782								type : 'POST',
+783								url : '${url}/admin/order/setQmsFirstOrderAjax.lime',
+784								success : function(data) {
+785									$('#m_qmsTempId').val(data.qmsTempId);
+786
+787									if(fireproofFlag){
+788										alert('선택하신 품목 중 내화구조 품목이 포함되어 있습니다.\rQMS 입력화면으로 이동합니다.');
+789										$('.qmspop-btn').css('display','block');
+790										// POST 팝업 열기.
+791										var widthPx = 1000;
+792										var heightPx = 800;
+793										var options = 'toolbar=no, location=no, status=no, directories=no, channelmode=no, menubar=no, scrollbars=yes, resizable=yes, width='+widthPx+', height='+heightPx;
+794										var popup = window.open('qmsOrderPrePop.lime?qmsTempId='+data.qmsTempId, 'qmsOrderPrePop', options);
+795										if(popup){
+796											popup.focus();
+797										}
+798										/* $.ajax({
+799											async : false,
+800											url : '${url}/admin/order/setQmsFirstOrderCancelAjax.lime',
+801											cache : false,
+802											type : 'POST',
+803											dataType: 'json',
+804											data : { 'qmsTempId' : data['qmsTempId'] },
+805											success : function(data){
+806												alert('내화구조 사전입력을 취소했습니다.');
+807											},
+808											error : function(request,status,error){
+809												alert('Error');
+810											}
+811										});	 */
+812									}else{
+813										moveOrderList();
+814									}
+815
+816								},error : function(request,status,error){
+817									alert('Error');
+818									$('#ajax_indicator').fadeOut();
+819								}
+820							});
+821						}else{
+822							moveOrderList();
+823						}
+824					}
+825					$('#ajax_indicator').fadeOut();
+826				},
+827				error : function(request,status,error){
+828					alert('Error');
+829					$(obj).prop('disabled', false);
+830					$('.qmspop-btn').css('display','none');
+831					$('.order-save-btn').css('display','inline-block');
+832					$('#ajax_indicator').fadeOut();
+833				}
+834
+835			});
+836
+837			$(obj).prop('disabled', false);
+838		}
+839		else{
+840			$(obj).prop('disabled', false);
+841		}
+842	}
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java *********** */
+
+
+139	/**
+140	 * OK.
+141	 * O_CUST_ORDER 임시저장(99) 및 주문접수(00) 처리 Ajax.
+142	 * @작성일 : 2020. 4. 1.
+143	 * @작성자 : kkyu
+144	 */
+145	@ResponseBody
+146	@PostMapping(value="insertCustOrderAjax")
+147	public Object insertCustOrderAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+148		params.put("where", "admin");
+149		return orderSvc.insertCustOrderTransaction(params, req, loginDto);
+150	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+508	/**
+509	 * O_CUST_ORDER 임시저장(99) 및 주문접수(00) 처리.
+510	 * @작성일 : 2020. 4. 1.
+511	 * @작성자 : kkyu
+512	 * @param where : admin=영업사원, front=거래처,납품처.
+513	 * @param authority by session : SH,SR,SM=내부영업사원, CO=거래처, CT=납품처.
+514	 */
+515	public Map<String, Object> insertCustOrderTransaction(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+516	//	Map<String, Object> svcMap = new HashMap<>();
+517
+518		String where = Converter.toStr(params.get("where"));
+519		String authority = loginDto.getAuthority();
+520
+521		String r_reqno = Converter.toStr(params.get("r_reqno")); // 주문번호. => 이미 임시저장이였던
+522		String m_statuscd = Converter.toStr(params.get("m_statuscd")); // 변경하려는 상태값.
+523		String m_custcd = Converter.toStr(params.get("m_custcd")); // 거래처 코드.
+524		String m_shiptocd = Converter.toStr(params.get("m_shiptocd"), "0"); // 납품처 코드.
+525		String m_transty = Converter.toStr(params.get("m_transty")); // 운송수단 AA=기본운송,AB=자차운송
+526		String m_reqno = ""; // 주문번호 정의.
+527		String m_ohhreqno = ""; // 주문이력 주문번호 정의.
+528		String m_zipcd = Converter.toStr(params.get("m_zipcd"));
+529
+530		String m_accessdevice = Converter.toStr(params.get("m_accessdevice"), "1"); // 1=PC웹, 2=모바일.
+531
+532		if(StringUtils.equals("00", m_statuscd) && StringUtils.equals("AB", m_transty)) { // 주문접수 상태로 변경시 운송수단이 자차운송(AB)인 경우, 우편번호 코드를 90000으로 변경.
+533			params.put("m_zipcd", "90000");
+534		}
+535
+536		// 공통 params 세팅.
+537		if(StringUtils.equals("front", where)) m_custcd =  loginDto.getCustCd();
+538		if(StringUtils.equals("CT", authority)) m_shiptocd =  loginDto.getShiptoCd();
+539
+540		params.put("m_custcd", m_custcd);
+541		params.put("m_shiptocd", m_shiptocd);
+542		params.put("m_userid", loginDto.getUserId());
+543		params.put("m_insertid", loginDto.getUserId());
+544		params.put("m_updateid", loginDto.getUserId());
+545
+546		// 현재  저장된 O_CUST_ORDER_H 가져오기.
+547		Map<String, Object> nOrder = null;
+548		if(!StringUtils.equals("", r_reqno)) {
+549			nOrder = this.getCustOrderHOne(r_reqno);
+550		}
+551
+552		// 임시저장.
+553		if(StringUtils.equals("99", m_statuscd)) {
+554			// 변경하려는 상태값이 임시저장(99)인 경우, 임시 주문번호 생성.
+555			// 임시저장 인서트 => 이미 임시저장 상태였던 건이 아닌, 처음으로 임시저장 상태로 인서트 하려는 경우에만 해당.
+556			if(StringUtils.equals("", r_reqno)) {
+557				m_reqno = this.createCustOrderTempReqNo("T");
+558				params.put("m_reqno", m_reqno);
+559				params.put("m_accessdevice", m_accessdevice);
+560
+561				// Insert O_CUST_ORDER_H.
+562				custOrderHDao.in(params);
+563
+564				// Insert O_CUST_ORDER_D;
+565				String[] mi_itemcd = req.getParameterValues("m_itemcd");
+566				String[] mi_unit = req.getParameterValues("m_unit");
+567				String[] mi_quantity = req.getParameterValues("m_quantity");
+568				if(!ArrayUtils.isEmpty(mi_itemcd)) {
+569					for(int i=0,j=mi_itemcd.length; i<j; i++) {
+570						params.put("m_lineno", (i+1)*1000);
+571						params.put("m_itemcd", mi_itemcd[i]);
+572						params.put("m_unit", mi_unit[i]);
+573						params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+574						params.put("m_price", 0);
+575						custOrderDDao.in(params);
+576					}
+577				}
+578
+579				m_ohhreqno = m_reqno; // 주문이력관리 저장할 주문번호 정의.
+580			}
+581			// 임시저장으로 업데이트.
+582			else {
+583				// 상태값 체크.
+584				//logger.debug("변경 전 상태값 : {}", nOrder.get("STATUS_CD"));
+585				//logger.debug("변경 하려는 상태값 : {}", m_statuscd);
+586				if(!StatusUtil.ORDER.statusCheck(Converter.toStr(nOrder.get("STATUS_CD")), m_statuscd)) throw new LimeBizException(MsgCode.DATA_STATUS_ERROR);
+587
+588				// Update O_CUST_ORDER_H.
+589				params.put("r_reqno", r_reqno);
+590				params.put("m_accessdevice", m_accessdevice);
+591
+592				custOrderHDao.up(params);
+593
+594				// Delete O_CUST_ORDER_D;
+595				params.put("r_reqno", r_reqno);
+596				custOrderDDao.del(params);
+597
+598				// Insert O_CUST_ORDER_D;
+599				String[] mi_itemcd = req.getParameterValues("m_itemcd");
+600				String[] mi_unit = req.getParameterValues("m_unit");
+601				String[] mi_quantity = req.getParameterValues("m_quantity");
+602				params.put("m_reqno", r_reqno);
+603				if(!ArrayUtils.isEmpty(mi_itemcd)) {
+604					for(int i=0,j=mi_itemcd.length; i<j; i++) {
+605						params.put("m_lineno", (i+1)*1000);
+606						params.put("m_itemcd", mi_itemcd[i]);
+607						params.put("m_unit", mi_unit[i]);
+608						params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+609						params.put("m_price", 0);
+610						custOrderDDao.in(params);
+611					}
+612				}
+613
+614				m_ohhreqno = r_reqno; // 주문이력관리 저장할 주문번호 정의.
+615			}
+616		}
+617		// 주문접수.
+618		else if(StringUtils.equals("00", m_statuscd)) {
+619			// 주문번호 생성.
+620			m_reqno = this.createCustOrderReqNo(m_custcd);
+621			params.put("m_reqno", m_reqno);
+622			params.put("m_accessdevice", m_accessdevice);
+623
+624			// 주문접수 인서트.
+625			if(StringUtils.equals("", r_reqno)) {
+626				// Insert O_CUST_ORDER_H.
+627				custOrderHDao.in(params);
+628
+629				// Insert O_CUST_ORDER_D;
+630				String[] mi_itemcd = req.getParameterValues("m_itemcd");
+631				String[] mi_unit = req.getParameterValues("m_unit");
+632				String[] mi_quantity = req.getParameterValues("m_quantity");
+633				params.put("m_reqno", m_reqno);
+634				if(!ArrayUtils.isEmpty(mi_itemcd)) {
+635					for(int i=0,j=mi_itemcd.length; i<j; i++) {
+636						params.put("m_lineno", (i+1)*1000);
+637						params.put("m_itemcd", mi_itemcd[i]);
+638						params.put("m_unit", mi_unit[i]);
+639						params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+640						params.put("m_price", 0);
+641						custOrderDDao.in(params);
+642					}
+643				}
+644			}
+645			// 주문접수로 업데이트.
+646			else {
+647				// 상태값 체크.
+648				String now_status_cd = Converter.toStr(nOrder.get("STATUS_CD"));
+649				if(!StatusUtil.ORDER.statusCheck(now_status_cd, m_statuscd)) throw new LimeBizException(MsgCode.DATA_STATUS_ERROR);
+650
+651				if(StringUtils.equals("00", now_status_cd)) {
+652					m_reqno = r_reqno;
+653				}
+654
+655				// Update O_CUST_ORDER_H.
+656				params.put("r_reqno", r_reqno);
+657				params.put("m_reqno", m_reqno);
+658				params.put("r_insertdt", "Y");
+659				custOrderHDao.up(params);
+660
+661				// Delete O_CUST_ORDER_D;
+662				params.put("r_reqno", r_reqno);
+663				custOrderDDao.del(params);
+664
+665				// Insert O_CUST_ORDER_D;
+666				String[] mi_itemcd = req.getParameterValues("m_itemcd");
+667				String[] mi_unit = req.getParameterValues("m_unit");
+668				String[] mi_quantity = req.getParameterValues("m_quantity");
+669				if(!ArrayUtils.isEmpty(mi_itemcd)) {
+670					for(int i=0,j=mi_itemcd.length; i<j; i++) {
+671						params.put("m_lineno", (i+1)*1000);
+672						params.put("m_itemcd", mi_itemcd[i]);
+673						params.put("m_unit", mi_unit[i]);
+674						params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+675						params.put("m_price", 0);
+676						custOrderDDao.in(params);
+677					}
+678				}
+679
+680				// 주문이력 변경 > Temp REQ_NO => Real REQ_NO 업데이트.
+681				if(StringUtils.equals("99", now_status_cd)) {
+682					this.updateOrderHeaderHistoryForReqNoRef(m_reqno, r_reqno, r_reqno, 0L, "");
+683				}
+684			}
+685
+686			m_ohhreqno = m_reqno; // 주문이력관리 저장할 주문번호 정의.
+687		}
+688
+689		// 주문이력 저장.
+690		// OrderHeaderHistory 인서트.
+691		this.insertOrderHeaderHistory(m_ohhreqno, m_statuscd, StatusUtil.ORDER.getValue(m_statuscd), loginDto.getUserId());
+692
+693		// 주소록 저장.
+694		String r_savebookmark = Converter.toStr(params.get("r_savebookmark"));
+695		logger.debug("주소록 저장여부 Y/N : {}", r_savebookmark);
+696		if(StringUtils.equals("Y", r_savebookmark)) {
+697			this.insertOrderAddressBookmark(loginDto.getUserId(), m_zipcd, Converter.toStr(params.get("m_add1")), Converter.toStr(params.get("m_add2"))
+698				, Converter.toStr(params.get("m_tel1")), Converter.toStr(params.get("m_tel2")), Converter.toStr(params.get("m_receiver")), loginDto.getUserId());
+699		}
+700		Map result = MsgCode.getResultMap(MsgCode.SUCCESS);
+701		result.put("m_ohhreqno", m_ohhreqno);
+702		return result;
+703	}
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 현재  저장된 O_CUST_ORDER_H 가져오기. *********** */
+
+92	/**
+93	 * Get O_CUST_ORDER_H One.
+94	 * @작성일 : 2020. 4. 2.
+95	 * @작성자 : kkyu
+96	 */
+97	public Map<String, Object> getCustOrderHOne(String req_no){
+98		Map<String, Object> svcMap = new HashMap<>();
+99		svcMap.put("r_reqno", req_no);
+100		return this.getCustOrderHOne(svcMap);
+101	}
+
+116	public Map<String, Object> getCustOrderHOne(Map<String, Object> svcMap){
+117		return custOrderHDao.one(svcMap);
+118	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderHDao.java *********** */
+
+
+31	public Map<String, Object> one(Map<String, Object> svcMap) {
+32		return sqlSession.selectOne("eorder.o_cust_order_h.one", svcMap);
+33	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml *********** */
+
+121	<select id="one" parameterType="hashmap" resultType="hashmap">
+122		SELECT COH.*
+123			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+124			, CU.CUST_NM
+125			, ST.SHIPTO_NM
+126			, ST.QUOTE_QT
+127			, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+128			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+129			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+130			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+131		FROM O_CUST_ORDER_H COH
+132			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+133			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+134			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+135		<where>
+136			<if test="r_userid != null and r_userid != '' ">AND RTRIM(COH.USERID) = RTRIM(#{r_userid})</if>
+137			<if test="r_reqno != null and r_reqno != '' ">AND COH.REQ_NO = #{r_reqno}</if>
+138			<if test="rl_reqno != null and rl_reqno != '' ">AND COH.REQ_NO LIKE '%' + #{rl_reqno} + '%'</if>
+139			<if test="r_custcd != null and r_custcd != '' ">AND COH.CUST_CD = #{r_custcd}</if>
+140			<if test="rl_custcd != null and rl_custcd != '' ">AND COH.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+141			<if test="r_custnm != null and r_custnm != '' ">AND CU.CUST_NM = #{r_custnm}</if>
+142			<if test="rl_custnm != null and rl_custnm != '' ">AND CU.CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+143			<if test="r_shiptocd != null and r_shiptocd != '' ">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+144			<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND US_SALES.USER_NM LIKE '%' + #{rl_salesusernm} + '%'</if>
+145			<if test="rl_receiver != null and rl_receiver != '' ">AND COH.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+146			<if test="r_csuserid != null and r_csuserid != '' ">
+147				AND US_SALES.USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_csuserid})
+148			</if>
+149			<if test="r_insdate != null and r_insdate != '' ">AND COH.INDATE <![CDATA[>=]]> CONVERT(DATE, #{r_insdate})</if>
+150			<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<=]]> CONVERT(DATE, #{r_inedate})</if>
+151			<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+152			<if test="ri_statuscd != null">
+153				AND COH.STATUS_CD IN <foreach collection="ri_statuscd" item="status_cd" separator="," open="(" close=")">#{status_cd}</foreach>
+154			</if>
+155
+156			<!-- 관리자 권한에 따른 조건절 -->
+157			<if test="r_adminauthority != null and r_adminauthority != '' ">
+158				<if test='"AD".equals(r_adminauthority)'>
+159				</if>
+160				<if test='"CS".equals(r_adminauthority)'>
+161					AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+162				</if>
+163				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+164					<if test='"SH".equals(r_adminauthority)'>
+165						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+166					</if>
+167					<if test='"SM".equals(r_adminauthority)'>
+168						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+169					</if>
+170					<if test='"SR".equals(r_adminauthority)'>
+171						AND CU.SALESREP_CD = #{r_adminuserid}
+172					</if>
+173				</if>
+174				<if test='"MK".equals(r_adminauthority)'>
+175				</if>
+176			</if>
+177		</where>
+178	</select>
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+/* *********** Insert O_CUST_ORDER_H *********** */
+
+
+554	// 변경하려는 상태값이 임시저장(99)인 경우, 임시 주문번호 생성.
+555	// 임시저장 인서트 => 이미 임시저장 상태였던 건이 아닌, 처음으로 임시저장 상태로 인서트 하려는 경우에만 해당.
+556	if(StringUtils.equals("", r_reqno)) {
+557		m_reqno = this.createCustOrderTempReqNo("T");
+558		params.put("m_reqno", m_reqno);
+559		params.put("m_accessdevice", m_accessdevice);
+560
+561		// Insert O_CUST_ORDER_H.
+562		custOrderHDao.in(params);
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderHDao.java *********** */
+
+15	public int in(Map<String, Object> svcMap) {
+16		return sqlSession.insert("eorder.o_cust_order_h.in", svcMap);
+17	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml *********** */
+
+4	<insert id="in" parameterType="hashmap">
+5		INSERT INTO O_CUST_ORDER_H(
+6			REQ_NO
+7			, USERID
+8			, SHIPTO_CD
+9			, STATUS_CD
+10			, ZIP_CD
+11			, ADD1
+12			, ADD2
+13			, REQUEST_DT
+14			, TEL1
+15			, TEL2
+16			, TRANS_TY
+17			, BUILDING_TY
+18			, REQUEST_TIME
+19			, REMARK
+20			, RETURN_DESC
+21			, RECEIVER
+22			, RETURN_CD
+23			, CUST_CD
+24			, ORDER_DT
+25			, CANCEL_DT
+26			, ORDER_MEANS
+27			, DUMMY
+28			, INSERTID
+29			, INSERT_DT
+30			, INDATE
+31			, ACCESS_DEVICE
+32		)VALUES(
+33			#{m_reqno}
+34			, #{m_userid}
+35			, #{m_shiptocd}
+36			, #{m_statuscd}
+37			, #{m_zipcd}
+38			, #{m_add1}
+39			, #{m_add2}
+40			, #{m_requestdt}
+41			, #{m_tel1}
+42			, #{m_tel2}
+43			, #{m_transty}
+44			, #{m_buildingty}
+45			, #{m_requesttime}
+46			, #{m_remark}
+47			, #{m_returndesc}
+48			, #{m_receiver}
+49			, #{m_returncd}
+50			, #{m_custcd}
+51			, CONVERT(VARCHAR(8), GETDATE(), 112)
+52			, #{m_canceldt}
+53			, #{m_ordermeans}
+54			, #{m_dummy}
+55			, #{m_insertid}
+56			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+57			, GETDATE()
+58			, #{m_accessdevice}
+59		)
+60	</insert>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+/* *********** Insert O_CUST_ORDER_D *********** */
+
+
+564	// Insert O_CUST_ORDER_D;
+565	String[] mi_itemcd = req.getParameterValues("m_itemcd");
+566	String[] mi_unit = req.getParameterValues("m_unit");
+567	String[] mi_quantity = req.getParameterValues("m_quantity");
+568	if(!ArrayUtils.isEmpty(mi_itemcd)) {
+569		for(int i=0,j=mi_itemcd.length; i<j; i++) {
+570			params.put("m_lineno", (i+1)*1000);
+571			params.put("m_itemcd", mi_itemcd[i]);
+572			params.put("m_unit", mi_unit[i]);
+573			params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+574			params.put("m_price", 0);
+575			custOrderDDao.in(params);
+576		}
+577	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderDDao.java *********** */
+
+
+15	public int in(Map<String, Object> svcMap) {
+16		return sqlSession.insert("eorder.o_cust_order_d.in", svcMap);
+17	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_d.xml *********** */
+
+4	<insert id="in" parameterType="hashmap">
+5		INSERT INTO O_CUST_ORDER_D(
+6			REQ_NO
+7			, LINE_NO
+8			, ITEM_CD
+9			, UNIT
+10			, QUANTITY
+11			, PRICE
+12			, DUMMY
+13			, INSERTID
+14			, INSERT_DT
+15			, INDATE
+16		)VALUES(
+17			#{m_reqno}
+18			, #{m_lineno}
+19			, #{m_itemcd}
+20			, #{m_unit}
+21			, #{m_quantity}
+22			, 0
+23			, #{m_dummy}
+24			, #{m_insertid}
+25			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+26			, GETDATE()
+27		)
+28	</insert>
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+/* *********** 임시저장으로 업데이트. *********** */
+
+
+583	// 상태값 체크.
+584	//logger.debug("변경 전 상태값 : {}", nOrder.get("STATUS_CD"));
+585	//logger.debug("변경 하려는 상태값 : {}", m_statuscd);
+586	if(!StatusUtil.ORDER.statusCheck(Converter.toStr(nOrder.get("STATUS_CD")), m_statuscd)) throw new LimeBizException(MsgCode.DATA_STATUS_ERROR);
+587
+588	// Update O_CUST_ORDER_H.
+589	params.put("r_reqno", r_reqno);
+590	params.put("m_accessdevice", m_accessdevice);
+591
+592	custOrderHDao.up(params);
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderHDao.java *********** */
+
+19	public int up(Map<String, Object> svcMap) {
+20		return sqlSession.update("eorder.o_cust_order_h.up", svcMap);
+21	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml *********** */
+
+62	<update id="up" parameterType="hashmap">
+63		UPDATE O_CUST_ORDER_H
+64		<set>
+65			<if test="m_reqno != null and m_reqno != ''">REQ_NO = #{m_reqno},</if>
+66			<if test="m_userid != null and m_userid != ''">USERID = #{m_userid},</if>
+67			<if test="m_shiptocd != null">SHIPTO_CD = #{m_shiptocd},</if>
+68			<if test="m_statuscd != null and m_statuscd != ''">STATUS_CD = #{m_statuscd},</if>
+69			<if test="m_zipcd != null">ZIP_CD = #{m_zipcd},</if>
+70			<if test="m_add1 != null">ADD1 = #{m_add1},</if>
+71			<if test="m_add2 != null">ADD2 = #{m_add2},</if>
+72			<if test="m_requestdt != null and m_requestdt != ''">REQUEST_DT = #{m_requestdt},</if>
+73			<if test="m_tel1 != null and m_tel1 != ''">TEL1 = #{m_tel1},</if>
+74			<if test="m_tel2 != null">TEL2 = #{m_tel2},</if>
+75			<if test="m_transty != null and m_transty != ''">TRANS_TY = #{m_transty},</if>
+76			<if test="m_buildingty != null and m_buildingty != ''">BUILDING_TY = #{m_buildingty},</if>
+77			<if test="m_requesttime != null and m_requesttime != ''">REQUEST_TIME = #{m_requesttime},</if>
+78			<if test="m_remark != null">REMARK = #{m_remark},</if>
+79			<if test="m_returndesc != null and m_returndesc != ''">RETURN_DESC = #{m_returndesc},</if>
+80			<if test="m_receiver != null">RECEIVER = #{m_receiver},</if>
+81			<if test="m_returncd != null and m_returncd != ''">RETURN_CD = #{m_returncd},</if>
+82			<if test="m_custcd != null and m_custcd != ''">CUST_CD = #{m_custcd},</if>
+83			<if test="m_orderdt != null and m_orderdt != ''">ORDER_DT = #{m_orderdt},</if>
+84			<if test="m_canceldt != null and m_canceldt != ''">CANCEL_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),</if>
+85			<if test="m_ordermeans != null and m_ordermeans != ''">ORDER_MEANS = #{m_ordermeans},</if>
+86			<if test="m_dummy != null and m_dummy != ''">DUMMY = #{m_dummy},</if>
+87			<if test="m_accessdevice != null and m_accessdevice != ''">ACCESS_DEVICE = #{m_accessdevice},</if>
+88			<if test="m_updateid != null and m_updateid != ''">UPDATEID = #{m_updateid},</if>
+89			<if test='r_insertdt != null and "Y".equals(r_insertdt)'>
+90				INSERT_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),
+91				INDATE = GETDATE(),
+92			</if>
+93			UPDATE_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),
+94			MODATE = GETDATE()
+95		</set>
+96		<where>
+97			AND REQ_NO = #{r_reqno}
+98		</where>
+99	</update>
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+/* *********** Delete O_CUST_ORDER_D; *********** */
+
+
+594	// Delete O_CUST_ORDER_D;
+595	params.put("r_reqno", r_reqno);
+596	custOrderDDao.del(params);
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderDDao.java *********** */
+
+27	public int del(Map<String, Object> svcMap) {
+28		return sqlSession.update("eorder.o_cust_order_d.del", svcMap);
+29	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_d.xml *********** */
+
+
+60	<delete id="del" parameterType="hashmap">
+61		DELETE O_CUST_ORDER_D
+62		<where>
+63			AND REQ_NO = #{r_reqno}
+64			<if test="r_lineno != null and r_lineno != ''">AND LINE_NO = #{r_lineno}</if>
+65		</where>
+66	</delete>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+/* *********** Insert O_CUST_ORDER_D *********** */
+
+
+598	// Insert O_CUST_ORDER_D;
+599	String[] mi_itemcd = req.getParameterValues("m_itemcd");
+600	String[] mi_unit = req.getParameterValues("m_unit");
+601	String[] mi_quantity = req.getParameterValues("m_quantity");
+602	params.put("m_reqno", r_reqno);
+603	if(!ArrayUtils.isEmpty(mi_itemcd)) {
+604		for(int i=0,j=mi_itemcd.length; i<j; i++) {
+605			params.put("m_lineno", (i+1)*1000);
+606			params.put("m_itemcd", mi_itemcd[i]);
+607			params.put("m_unit", mi_unit[i]);
+608			params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+609			params.put("m_price", 0);
+610			custOrderDDao.in(params);
+611		}
+612	}
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주문접수. *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+619	// 주문번호 생성.
+620	m_reqno = this.createCustOrderReqNo(m_custcd);
+
+
+
+1769	/**
+1770	 * 주문번호 생성.
+1771	 * @작성일 : 2020. 4. 2.
+1772	 * @작성자 : kkyu
+1773	 */
+1774	public String createCustOrderReqNo(String cust_cd){
+1775		Map<String, Object> svcMap = new HashMap<>();
+1776		svcMap.put("r_custcd", cust_cd);
+1777		return custOrderHDao.createCustOrderReqNo(svcMap);
+1778	}
+
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderHDao.java *********** */
+
+
+43	/**
+44	 * Get O_CUST_ORDER_H.REQ_NO 주문번호 생성하기.
+45	 */
+46	public String createCustOrderReqNo(Map<String, Object> svcMap) {
+47		return sqlSession.selectOne("eorder.o_cust_order_h.createCustOrderReqNo", svcMap);
+48	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml *********** */
+
+
+315	<select id="createCustOrderReqNo" parameterType="hashmap" resultType="String">
+316		<!-- 2024-10-18 HSG REQ_NO생성하는 부분과 WHERE절에서 REQ_NO를 구하는 방식의 차이가 있어 수정. -->
+317		SELECT '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6) + ISNULL(CONVERT(VARCHAR, IIF(MAX(REQ_NO) IS NOT NULL, CONVERT(DECIMAL, REPLACE(MAX(CONVERT(DECIMAL, REQ_NO )), '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6), ''))+1, 1)), '')
+318		FROM O_CUST_ORDER_H
+319		WHERE CUST_CD = #{r_custcd}
+320		AND REQ_NO NOT LIKE 'T%'
+321		<!-- 2024-10-18 HSG REQ_NO생성하는 부분과 WHERE절에서 REQ_NO를 구하는 방식의 차이가 있어 수정. -->
+322		<!-- 년도를 구할 때 오늘일자('20241018')를 구한 뒤 SUBSTRING으로 3에서 6번째 자리까지 구한다. -->
+323		<!--AND REQ_NO LIKE '${r_custcd}' + CONVERT(VARCHAR(10), GETDATE(), 112) + '%' -->
+324		AND REQ_NO LIKE '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6) + '%'
+325	</select>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주문접수. *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+624	// 주문접수 인서트.
+625	if(StringUtils.equals("", r_reqno)) {
+626		// Insert O_CUST_ORDER_H.
+		custOrderHDao.in(params);
+
+
+629	// Insert O_CUST_ORDER_D;
+630	String[] mi_itemcd = req.getParameterValues("m_itemcd");
+631	String[] mi_unit = req.getParameterValues("m_unit");
+632	String[] mi_quantity = req.getParameterValues("m_quantity");
+633	params.put("m_reqno", m_reqno);
+634	if(!ArrayUtils.isEmpty(mi_itemcd)) {
+635		for(int i=0,j=mi_itemcd.length; i<j; i++) {
+636			params.put("m_lineno", (i+1)*1000);
+637			params.put("m_itemcd", mi_itemcd[i]);
+638			params.put("m_unit", mi_unit[i]);
+639			params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+640			params.put("m_price", 0);
+641			custOrderDDao.in(params);
+642		}
+643	}
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주문접수로 업데이트. *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+655	// Update O_CUST_ORDER_H.
+656	params.put("r_reqno", r_reqno);
+657	params.put("m_reqno", m_reqno);
+658	params.put("r_insertdt", "Y");
+659	custOrderHDao.up(params);
+
+
+
+661	// Delete O_CUST_ORDER_D;
+662	params.put("r_reqno", r_reqno);
+663	custOrderDDao.del(params);
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주문이력 변경 > Temp REQ_NO => Real REQ_NO 업데이트. *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+680	// 주문이력 변경 > Temp REQ_NO => Real REQ_NO 업데이트.
+681	if(StringUtils.equals("99", now_status_cd)) {
+682		this.updateOrderHeaderHistoryForReqNoRef(m_reqno, r_reqno, r_reqno, 0L, "");
+	}
+
+
+
+1808	/**
+1809	 * 주문이력 주문번호 업데이트.
+1810	 * @작성일 : 2020. 4. 3.
+1811	 * @작성자 : kkyu
+1812	 * @param m_ohhreqno : Real REQ_NO [필수]
+1813	 * @param m_ohhreqnoref : Temp REQ_NO [필수]
+1814	 * @param r_ohhreqno : 현재 REQ_NO [필수]
+1815	 */
+1816	public void updateOrderHeaderHistoryForReqNoRef(String m_ohhreqno, String m_ohhreqnoref, String r_ohhreqno, long r_ohhseq, String r_ohhstatuscd) {
+1817		Map<String, Object> svcMap = new HashMap<>();
+1818		svcMap.put("m_ohhreqno", m_ohhreqno);
+1819		svcMap.put("m_ohhreqnoref", m_ohhreqnoref);
+1820		svcMap.put("r_ohhreqno", r_ohhreqno);
+1821		svcMap.put("r_ohhseq", r_ohhseq);
+1822		svcMap.put("r_ohhstatuscd", r_ohhstatuscd);
+1823		orderHeaderHistoryDao.upForReqNoRef(svcMap);
+1824	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\OrderHeaderHistoryDao.java *********** */
+
+19	public int upForReqNoRef(Map<String, Object> svcMap) {
+20		return sqlSession.update("eorder.orderHeaderHistory.upForReqNoRef", svcMap);
+21	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\orderHeaderHistory.xml*********** */
+
+
+31	<update id="upForReqNoRef" parameterType="hashmap">
+32		UPDATE ORDERHEADERHISTORY
+33		<set>
+34			OHH_REQNO = #{m_ohhreqno},
+35			OHH_REQNOREF = #{m_ohhreqnoref},
+36		</set>
+37		<where>
+38			AND OHH_REQNO = #{r_ohhreqno}
+39			<if test="r_ohhseq != null and r_ohhseq != '' ">AND OHH_SEQ = #{r_ohhseq}</if>
+40			<if test="r_ohhstatuscd != null and r_ohhstatuscd != '' ">AND OHH_STATUSCD = #{r_ohhstatuscd}</if>
+41		</where>
+42	</update>
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주문이력 저장. *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+689	// 주문이력 저장.
+690	// OrderHeaderHistory 인서트.
+691	this.insertOrderHeaderHistory(m_ohhreqno, m_statuscd, StatusUtil.ORDER.getValue(m_statuscd), loginDto.getUserId());
+
+
+
+
+1794	/**
+1795	 * 주문이력 저장.
+1796	 * @작성일 : 2020. 4. 2.
+1797	 * @작성자 : kkyu
+1798	 */
+1799	public void insertOrderHeaderHistory(String req_no, String status_cd, String memo, String inid) {
+1800		Map<String, Object> svcMap = new HashMap<>();
+1801		svcMap.put("m_ohhreqno", req_no);
+1802		svcMap.put("m_ohhstatuscd", status_cd);
+1803		svcMap.put("m_ohhmemo", memo);
+1804		svcMap.put("m_ohhinid", inid);
+1805		orderHeaderHistoryDao.in(svcMap);
+1806	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\OrderHeaderHistoryDao.java *********** */
+
+15	public int in(Map<String, Object> svcMap) {
+16		return sqlSession.insert("eorder.orderHeaderHistory.in", svcMap);
+17	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\orderHeaderHistory.xml *********** */
+
+
+
+4	<insert id="in" parameterType="hashmap">
+5		<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+6		<selectKey keyProperty="ohhSeq" resultType="long" order="BEFORE">
+7			SELECT MAX(OHH_SEQ)+1 FROM ORDERHEADERHISTORY;
+8		</selectKey>
+9
+10		INSERT INTO ORDERHEADERHISTORY(
+11			OHH_SEQ,
+12			OHH_REQNO,
+13			OHH_REQNOREF,
+14			OHH_STATUSCD,
+15			OHH_MEMO,
+16			OHH_INID,
+17			OHH_INDATE
+18		)VALUES(
+19		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+20		<!--	USQ_ORDERHEADERHISTORY.NEXTVAL -->
+21			#{ohhSeq}
+22			, #{m_ohhreqno}
+23			, #{m_ohhreqnoref}
+24			, #{m_ohhstatuscd}
+25			, #{m_ohhmemo}
+26			, #{m_ohhinid}
+27			, GETDATE()
+28		)
+29	</insert>
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주소록 저장. *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+689	// 주소록 저장.
+690	String r_savebookmark = Converter.toStr(params.get("r_savebookmark"));
+691	logger.debug("주소록 저장여부 Y/N : {}", r_savebookmark);
+692	if(StringUtils.equals("Y", r_savebookmark)) {
+693		this.insertOrderAddressBookmark(loginDto.getUserId(), m_zipcd, Converter.toStr(params.get("m_add1")), Converter.toStr(params.get("m_add2"))
+694			, Converter.toStr(params.get("m_tel1")), Converter.toStr(params.get("m_tel2")), Converter.toStr(params.get("m_receiver")), loginDto.getUserId());
+695	}
+696	Map result = MsgCode.getResultMap(MsgCode.SUCCESS);
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\common\exception\MsgCode.java*********** */
+
+74	public static Map<String, Object> getResultMap(MsgCode msgCode) {
+75		Map<String, Object> resMap = new HashMap<>();
+76		resMap.put("RES_CODE", msgCode.getCode());
+77		resMap.put("RES_MSG", msgCode.getMessage());
+78		return resMap;
+79	}
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 최초 오더접수 입력시에만 사전입력 진행 *********** */
+/* *********** url : '${url}/admin/order/setQmsFirstOrderAjax.lime', *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java *********** */
+
+153	   /**
+154	 * OK.
+155	 * O_CUST_ORDER 임시저장(99) 시 사전입력 저장
+156	 * @작성일 : 2020. 6. 22.
+157	 * @작성자 : jsh
+158	 */
+159	@ResponseBody
+160	@PostMapping(value="setQmsFirstOrderAjax")
+161	public Object insertQmsTempOrderAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+162		params.put("where", "admin");
+163		return orderSvc.setQmsFirstOrderAjax(params, req, loginDto);
+164	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+445	/**
+446	 * O_CUST_ORDER 임시저장 시 사전입력
+447	 * @작성일 : 2020. 6. 22.
+448	 * @작성자 : jsh
+449	 * @param where : admin=영업사원, front=거래처,납품처.
+450	 * @param authority by session : SH,SR,SM=내부영업사원, CO=거래처, CT=납품처.
+451	 */
+452	public Map<String, Object> setQmsFirstOrderAjax(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+453		String m_reqNo = Converter.toStr(params.get("m_reqNo"));
+454		params.put("r_userid", loginDto.getUserId());
+455		Boolean firstInsertFlag = true;
+456		String qmsTempId = null;
+457
+458		// Insert O_CUST_ORDER_D;
+459		String[] mi_itemcd = req.getParameterValues("m_itemcd");
+460		String[] mi_unit   = req.getParameterValues("m_unit");
+461		String[] mi_quantity = req.getParameterValues("m_quantity");
+462		String[] mi_fireproof = req.getParameterValues("m_fireproof");
+463
+464		// 기존 QMS 채번여부 체크
+465		qmsTempId = qmsOrderDao.getQmsFirstOrderCheckAjax(params);
+466
+467		//아이템 코드와 QMS 번호가 존재하는 경우에만 입력 진행.
+468		if(!ArrayUtils.isEmpty(mi_itemcd) && StringUtils.isEmpty(qmsTempId)) {
+469			for(int i=0,j=mi_itemcd.length; i<j; i++) {
+470				params.put("m_lineno", (i+1)*1000);
+471				params.put("m_itemcd", mi_itemcd[i]);
+472				params.put("m_unit", mi_unit[i]);
+473				params.put("mi_fireproof", mi_fireproof[i]);
+474				params.put("m_quantity", mi_quantity[i].replaceAll(",", ""));
+475				params.put("m_price", 0);
+476				//내화구조가 존재하는 경우 디테일 입력
+477				if(mi_fireproof[i]!=null && mi_fireproof[i].equals("Y")) {
+478					//QMS 헤더정보는 한번만 입력
+479					if (firstInsertFlag) {
+480					  //QMS Temp ID 신규 채번
+481					  qmsTempId = qmsOrderDao.getQmsTempId(params);
+482					  params.put("qmsTempId", qmsTempId);
+483
+484					  //QMS 헤더 입력
+485					  qmsOrderDao.setQmsFirstOrderAjax(params);
+486					  firstInsertFlag = false;
+487					}
+488					//QMS 디테일(아이템) 입력
+489					qmsOrderDao.setQmsFirstOrderDetailAjax(params);
+490				}
+491			}
+492		}
+493
+494		Map<String, Object> result = MsgCode.getResultMap(MsgCode.SUCCESS);
+495		result.put("qmsTempId", qmsTempId);
+496		return result;
+497	}
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 기존 QMS 채번여부 체크 : qmsTempId = qmsOrderDao.getQmsFirstOrderCheckAjax(params); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+292	   public String getQmsFirstOrderCheckAjax(Map<String, Object> svcMap) {
+293		return sqlSession.selectOne("eorder.o_qmsorder.getQmsFirstOrderCheckAjax", svcMap);
+294	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+2924	<select id="getQmsFirstOrderCheckAjax" parameterType="hashmap" resultType="String">
+2925		 SELECT MIN(QMS_TEMP_ID)
+2926		   FROM QMS_PRE_MAST
+2927		  WHERE REQ_NO = #{m_reqNo}
+2928			AND DELETEYN = 'N'
+2929	</select>
+
+
+
+
+/* *********** QMS 헤더 입력 : qmsOrderDao.setQmsFirstOrderAjax(params) *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+296	   public int setQmsFirstOrderAjax(Map<String, Object> svcMap) {
+297		return sqlSession.insert("eorder.o_qmsorder.setQmsFirstOrderAjax", svcMap);
+298	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+2931	<insert id="setQmsFirstOrderAjax" parameterType="hashmap" >
+2932		/* eorder.o_qmsorder.setQmsFirstOrderAjax */
+2933		INSERT INTO QMS_PRE_MAST(QMS_TEMP_ID,REQ_NO,REQUSET_DT,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN)
+2934			 VALUES(#{qmsTempId},#{m_reqNo}, CONVERT(VARCHAR, GETDATE(), 120),#{r_userid},GETDATE(),#{r_userid},GETDATE(),'N')
+2935	</insert>
+
+
+
+
+
+/* *********** QMS 디테일(아이템) 입력 : qmsOrderDao.setQmsFirstOrderDetailAjax(params); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+300	   public int setQmsFirstOrderDetailAjax(Map<String, Object> svcMap) {
+301		return sqlSession.insert("eorder.o_qmsorder.setQmsFirstOrderDetailAjax", svcMap);
+302	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+2937	<insert id="setQmsFirstOrderDetailAjax" parameterType="hashmap" >
+2938		/* eorder.o_qmsorder.setQmsFirstOrderDetailAjax */
+2939		INSERT INTO QMS_PRE_DETL(QMS_TEMP_ID,ORDERNO,LINE_NO,ITEM_CD,ORDER_QTY,DELETEYN)
+2940		VALUES(#{qmsTempId},NULL,#{m_lineno},#{m_itemcd},#{m_quantity},'N')
+2941	</insert>
+
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 내화구조 사전입력을 취소 *********** */
+/* *********** url : '${url}/admin/order/setQmsFirstOrderCancelAjax.lime', *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java *********** */
+
+
+166	   /**
+167	 * OK.
+168	 * O_CUST_ORDER 임시저장(99) 시 사전입력 취소
+169	 * @작성일 : 2020. 7. 12.
+170	 * @작성자 : jsh
+171	 */
+172	@ResponseBody
+173	@PostMapping(value="setQmsFirstOrderCancelAjax")
+174	public Object setQmsFirstOrderCancelAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+175		params.put("where", "admin");
+176		return orderSvc.setQmsFirstOrderCancelAjax(params);
+177	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+499	   /**
+500	 * QMS 오더 사전입력 취소
+501	 * @작성일 : 2021. 7. 12.
+502	 * @작성자 : jsh
+503	 */
+504	public Object setQmsFirstOrderCancelAjax(Map<String, Object> svcMap){
+505		return qmsOrderDao.setQmsFirstOrderCancelAjax(svcMap);
+506	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+333	   public int setQmsFirstOrderCancelAjax(Map<String, Object> svcMap) {
+334		return sqlSession.update("eorder.o_qmsorder.setQmsFirstOrderCancelAjax", svcMap);
+335	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+3076	<update id="setQmsFirstOrderCancelAjax" parameterType="hashmap" >
+3077	/* eorder.o_qmsorder.setQmsFirstOrderCancelAjax */
+3078		UPDATE QMS_PRE_MAST
+3079		   SET DELETEYN = 'Y'
+3080		 WHERE QMS_TEMP_ID = #{qmsTempId}
+3081	</update>

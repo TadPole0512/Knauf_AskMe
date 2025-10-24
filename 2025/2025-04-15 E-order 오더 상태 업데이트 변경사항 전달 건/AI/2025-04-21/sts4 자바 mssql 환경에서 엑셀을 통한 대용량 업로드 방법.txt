@@ -1,0 +1,147 @@
+sts4 자바 mssql 환경에서 엑셀을 통한 대용량 업로드 방법 알려줘
+--MSSQL의 BULK INSERT 구문이나 BCP (Bulk Copy Program) 유틸리티를 사용하는 방법에 대한 자세한 설명과 예시를 들어가면서 설명해 주고, 단점도 명확히 해서 알려줘.
+최종적으로는 설명한 것을 기반으로 동작하는 예제도 자세하게 만들어주고, 주석문도 꼼꼼하게 적어줘
+
+
+1. Maven 의존성 (pom.xml)
+
+<dependencies>
+  <!-- MS SQL Server JDBC 드라이버 -->
+  <dependency>
+    <groupId>com.microsoft.sqlserver</groupId>
+    <artifactId>mssql-jdbc</artifactId>
+    <version>10.2.0.jre11</version>
+  </dependency>
+  <!-- Excel 파싱용 Apache POI -->
+  <dependency>
+    <groupId>org.apache.poi</groupId>
+    <artifactId>poi-ooxml</artifactId>
+    <version>5.2.0</version>
+  </dependency>
+  <!-- Spring Web/MVC -->
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+  </dependency>
+</dependencies>
+
+
+
+
+2. application.properties
+
+spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=MyDatabase
+spring.datasource.username=sa
+spring.datasource.password=yourPassword
+spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+
+3. 컨트롤러 (Excel 업로드 엔드포인트)
+
+@RestController
+@RequestMapping("/upload")
+public class BulkUploadController {
+
+    @Autowired
+    private BulkUploadService bulkUploadService;
+
+    @PostMapping("/excel")
+    public ResponseEntity<String> uploadExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            // 서비스에 넘겨서 CSV 변환+BULK INSERT 수행
+            bulkUploadService.processExcelAndBulkInsert(file);
+            return ResponseEntity.ok("업로드 및 삽입 완료");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("오류 발생: " + e.getMessage());
+        }
+    }
+}
+
+
+
+
+4. 서비스: Excel → CSV → BULK INSERT
+
+@Service
+public class BulkUploadService {
+
+    @Autowired
+    private DataSource dataSource;
+
+    public void processExcelAndBulkInsert(MultipartFile excelFile) throws Exception {
+        // 1) 엑셀을 임시 CSV로 변환
+        Path tempCsv = Files.createTempFile("bulk_upload_", ".csv");
+        try (Workbook wb = new XSSFWorkbook(excelFile.getInputStream());
+             BufferedWriter writer = Files.newBufferedWriter(tempCsv, StandardCharsets.UTF_8)) {
+            
+            Sheet sheet = wb.getSheetAt(0);
+            // 헤더(첫 행) 출력
+            Row headerRow = sheet.getRow(0);
+            for (int c = 0; c < headerRow.getLastCellNum(); c++) {
+                String val = headerRow.getCell(c).getStringCellValue();
+                writer.write(val + (c < headerRow.getLastCellNum()-1 ? "," : ""));
+            }
+            writer.newLine();
+
+            // 데이터(2번째 행부터)
+            DataFormatter fmt = new DataFormatter();
+            for (int r = 1; r <= sheet.getLastRowNum(); r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) continue;
+                for (int c = 0; c < headerRow.getLastCellNum(); c++) {
+                    String cell = fmt.formatCellValue(row.getCell(c));
+                    // 쉼표 포함되는 값은 큰따옴표 감싸기
+                    if (cell.contains(",")) {
+                        writer.write("\"" + cell.replace("\"", "\"\"") + "\"");
+                    } else {
+                        writer.write(cell);
+                    }
+                    if (c < headerRow.getLastCellNum()-1) writer.write(",");
+                }
+                writer.newLine();
+            }
+        }
+
+        // 2) BULK INSERT 실행
+        String sql = ""
+            + "BULK INSERT dbo.Person "              // 로드할 테이블
+            + "FROM '" + tempCsv.toAbsolutePath().toString().replace("\\", "\\\\") + "' "
+            + "WITH ( "
+            + "  FIRSTROW = 2, "
+            + "  FIELDTERMINATOR = ',', "
+            + "  ROWTERMINATOR = '\\n', "
+            + "  CODEPAGE = '65001', "
+            + "  TABLOCK "
+            + ")";
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute(sql);
+        } finally {
+            // 임시 CSV 파일 삭제
+            Files.deleteIfExists(tempCsv);
+        }
+    }
+}
+
+
+주석 설명
+createTempFile: 충돌 없이 임시 파일 생성
+DataFormatter: 날짜/숫자를 문자열로 안전하게 변환
+셀 값에 쉼표가 있으면 CSV 규격에 맞춰 큰따옴표 처리
+SQLServer는 역슬래시(\)를 이스케이프 처리하므로 replace("\\","\\\\")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

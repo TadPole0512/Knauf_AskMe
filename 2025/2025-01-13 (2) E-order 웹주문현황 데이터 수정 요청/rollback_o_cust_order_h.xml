@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="eorder.o_cust_order_h">
+	<insert id="in" parameterType="hashmap">
+		INSERT INTO O_CUST_ORDER_H(
+			REQ_NO
+			, USERID
+			, SHIPTO_CD
+			, STATUS_CD
+			, ZIP_CD
+			, ADD1
+			, ADD2
+			, REQUEST_DT
+			, TEL1
+			, TEL2
+			, TRANS_TY
+			, BUILDING_TY
+			, REQUEST_TIME
+			, REMARK
+			, RETURN_DESC
+			, RECEIVER
+			, RETURN_CD
+			, CUST_CD
+			, ORDER_DT
+			, CANCEL_DT
+			, ORDER_MEANS
+			, DUMMY
+			, INSERTID
+			, INSERT_DT
+			, INDATE
+			, ACCESS_DEVICE
+		)VALUES(
+			#{m_reqno}
+			, #{m_userid}
+			, #{m_shiptocd}
+			, #{m_statuscd}
+			, #{m_zipcd}
+			, #{m_add1}
+			, #{m_add2}
+			, #{m_requestdt}
+			, #{m_tel1}
+			, #{m_tel2}
+			, #{m_transty}
+			, #{m_buildingty}
+			, #{m_requesttime}
+			, #{m_remark}
+			, #{m_returndesc}
+			, #{m_receiver}
+			, #{m_returncd}
+			, #{m_custcd}
+			, CONVERT(VARCHAR(8), GETDATE(), 112)
+			, #{m_canceldt}
+			, #{m_ordermeans}
+			, #{m_dummy}
+			, #{m_insertid}
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, GETDATE()
+			, #{m_accessdevice}
+		)
+	</insert>
+	
+	<update id="up" parameterType="hashmap">
+		UPDATE O_CUST_ORDER_H
+		<set>
+			<if test="m_reqno != null and m_reqno != ''">REQ_NO = #{m_reqno},</if>
+			<if test="m_userid != null and m_userid != ''">USERID = #{m_userid},</if>
+			<if test="m_shiptocd != null">SHIPTO_CD = #{m_shiptocd},</if>
+			<if test="m_statuscd != null and m_statuscd != ''">STATUS_CD = #{m_statuscd},</if>
+			<if test="m_zipcd != null">ZIP_CD = #{m_zipcd},</if>
+			<if test="m_add1 != null">ADD1 = #{m_add1},</if>
+			<if test="m_add2 != null">ADD2 = #{m_add2},</if>
+			<if test="m_requestdt != null and m_requestdt != ''">REQUEST_DT = #{m_requestdt},</if>
+			<if test="m_tel1 != null and m_tel1 != ''">TEL1 = #{m_tel1},</if>
+			<if test="m_tel2 != null">TEL2 = #{m_tel2},</if>
+			<if test="m_transty != null and m_transty != ''">TRANS_TY = #{m_transty},</if>
+			<if test="m_buildingty != null and m_buildingty != ''">BUILDING_TY = #{m_buildingty},</if>
+			<if test="m_requesttime != null and m_requesttime != ''">REQUEST_TIME = #{m_requesttime},</if>
+			<if test="m_remark != null">REMARK = #{m_remark},</if>
+			<if test="m_returndesc != null and m_returndesc != ''">RETURN_DESC = #{m_returndesc},</if>
+			<if test="m_receiver != null">RECEIVER = #{m_receiver},</if>
+			<if test="m_returncd != null and m_returncd != ''">RETURN_CD = #{m_returncd},</if>
+			<if test="m_custcd != null and m_custcd != ''">CUST_CD = #{m_custcd},</if>
+			<if test="m_orderdt != null and m_orderdt != ''">ORDER_DT = #{m_orderdt},</if>
+			<if test="m_canceldt != null and m_canceldt != ''">CANCEL_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),</if>
+			<if test="m_ordermeans != null and m_ordermeans != ''">ORDER_MEANS = #{m_ordermeans},</if>
+			<if test="m_dummy != null and m_dummy != ''">DUMMY = #{m_dummy},</if>
+			<if test="m_accessdevice != null and m_accessdevice != ''">ACCESS_DEVICE = #{m_accessdevice},</if>
+			<if test="m_updateid != null and m_updateid != ''">UPDATEID = #{m_updateid},</if>
+			<if test='r_insertdt != null and "Y".equals(r_insertdt)'>
+				INSERT_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),
+				INDATE = GETDATE(),
+			</if>
+			UPDATE_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),
+			MODATE = GETDATE()
+		</set>
+		<where>
+			AND REQ_NO = #{r_reqno}
+		</where>
+	</update>
+	
+	<update id="upReqNo" parameterType="hashmap">
+		UPDATE O_CUST_ORDER_H
+		<set>
+			REQ_NO = #{m_reqno},
+			<if test="m_updateid != null and m_updateid != ''">UPDATEID = #{m_updateid},</if>
+			UPDATE_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),
+			MODATE = GETDATE()
+		</set>
+		<where>
+			AND REQ_NO = #{r_reqno}
+		</where>
+	</update>
+	
+	<delete id="del" parameterType="hashmap">
+		DELETE O_CUST_ORDER_H
+		<where>
+			AND REQ_NO = #{r_reqno}
+		</where>
+	</delete>
+	
+	<select id="one" parameterType="hashmap" resultType="hashmap">
+		SELECT COH.* 
+			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+			, CU.CUST_NM
+			, ST.SHIPTO_NM
+			, ST.QUOTE_QT
+			<!-- 2025-01-13 HSG Double Suplex. O_SALESORDER 테이블에서 담당자(SALESREP_NM) 값을 구하기 위해 O_SALESORDER 테이블과 LEFT OUTER JOIN 함 , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM -->
+			, OS.SALESREP_CD AS SALESUSERID, OS.SALESREP_NM AS SALESUSER_NM
+			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+			<!-- 2025-01-13 HSG Double Suplex. O_SALESORDER 테이블에서 담당자(SALESREP_NM) 값을 구하기 위해 O_SALESORDER 테이블과 LEFT OUTER JOIN 함 -->
+			LEFT JOIN O_SALESORDER OS ON COH.REQ_NO = OS.CUST_PO
+		<where>
+			<if test="r_userid != null and r_userid != '' ">AND RTRIM(COH.USERID) = RTRIM(#{r_userid})</if>
+			<if test="r_reqno != null and r_reqno != '' ">AND COH.REQ_NO = #{r_reqno}</if>
+			<if test="rl_reqno != null and rl_reqno != '' ">AND COH.REQ_NO LIKE '%' + #{rl_reqno} + '%'</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND COH.CUST_CD = #{r_custcd}</if>
+			<if test="rl_custcd != null and rl_custcd != '' ">AND COH.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+			<if test="r_custnm != null and r_custnm != '' ">AND CU.CUST_NM = #{r_custnm}</if>
+			<if test="rl_custnm != null and rl_custnm != '' ">AND CU.CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND US_SALES.USER_NM LIKE '%' + #{rl_salesusernm} + '%'</if>
+			<if test="rl_receiver != null and rl_receiver != '' ">AND COH.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+			<if test="r_csuserid != null and r_csuserid != '' ">
+				AND US_SALES.USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_csuserid})
+			</if>
+			<if test="r_insdate != null and r_insdate != '' ">AND COH.INDATE <![CDATA[>=]]> CONVERT(DATE, #{r_insdate})</if>
+			<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<=]]> CONVERT(DATE, #{r_inedate})</if>
+			<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+			<if test="ri_statuscd != null">
+   				AND COH.STATUS_CD IN <foreach collection="ri_statuscd" item="status_cd" separator="," open="(" close=")">#{status_cd}</foreach>
+ 			</if>
+			
+			<!-- 관리자 권한에 따른 조건절 -->
+ 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+ 				<if test='"AD".equals(r_adminauthority)'>
+ 				</if>
+ 				<if test='"CS".equals(r_adminauthority)'>
+ 					AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+ 				</if>
+ 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+ 					<if test='"SH".equals(r_adminauthority)'>
+ 						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SM".equals(r_adminauthority)'>
+ 						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SR".equals(r_adminauthority)'>
+ 						AND CU.SALESREP_CD = #{r_adminuserid}
+ 					</if>
+ 				</if>
+ 				<if test='"MK".equals(r_adminauthority)'>
+ 				</if>
+ 			</if>
+		</where>
+	</select>
+	
+	<select id="cnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) 
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+			<!-- 2025-01-13 HSG Double Suplex. O_SALESORDER 테이블에서 담당자(SALESREP_NM) 값을 구하기 위해 O_SALESORDER 테이블과 LEFT OUTER JOIN 함 -->
+			LEFT JOIN O_SALESORDER OS ON COH.REQ_NO = OS.CUST_PO
+		<where>
+			<if test="r_userid != null and r_userid != '' ">AND RTRIM(COH.USERID) = RTRIM(#{r_userid})</if>
+			<if test="r_reqno != null and r_reqno != '' ">AND COH.REQ_NO = #{r_reqno}</if>
+			<if test="rl_reqno != null and rl_reqno != '' ">AND COH.REQ_NO LIKE '%' + #{rl_reqno} + '%'</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND COH.CUST_CD = #{r_custcd}</if>
+			<if test="rl_custcd != null and rl_custcd != '' ">AND COH.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+			<if test="r_custnm != null and r_custnm != '' ">AND CU.CUST_NM = #{r_custnm}</if>
+			<if test="rl_custnm != null and rl_custnm != '' ">AND CU.CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND US_SALES.USER_NM LIKE '%' + #{rl_salesusernm} + '%'</if>
+			<if test="rl_receiver != null and rl_receiver != '' ">AND COH.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+			<if test="r_csuserid != null and r_csuserid != '' ">
+				AND US_SALES.USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_csuserid})
+			</if>
+			<if test="r_insdate != null and r_insdate != '' ">AND COH.INDATE <![CDATA[>=]]> CONVERT(DATE, #{r_insdate})</if>
+				<!-- 2024-10-18 HSG 조회조건 변경 : 종료일 이전이 아니라 종료일 다음날 이전으로 변경 -->
+				<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<]]> DATEADD(day, 1,CONVERT(DATE, #{r_inedate}))</if>
+			<!-- <if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<=]]> CONVERT(DATE, #{r_inedate})</if> -->
+			<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+			<if test="ri_statuscd != null">
+   				AND COH.STATUS_CD IN <foreach collection="ri_statuscd" item="status_cd" separator="," open="(" close=")">#{status_cd}</foreach>
+ 			</if>
+ 			
+ 			<!-- 관리자 권한에 따른 조건절 -->
+ 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+ 				<if test='"AD".equals(r_adminauthority)'>
+ 				</if>
+ 				<if test='"CS".equals(r_adminauthority)'>
+ 					AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+ 				</if>
+ 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+ 					<if test='"SH".equals(r_adminauthority)'>
+ 						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SM".equals(r_adminauthority)'>
+ 						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SR".equals(r_adminauthority)'>
+ 						AND CU.SALESREP_CD = #{r_adminuserid}
+ 					</if>
+ 				</if>
+ 				<if test='"MK".equals(r_adminauthority)'>
+ 				</if>
+ 			</if>
+ 			<!-- End. -->
+		</where>
+	</select>
+	
+	<select id="list" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+			<choose>
+				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+				<otherwise>ORDER BY (SELECT 1)</otherwise>
+			</choose>
+			) AS ROWNUM
+			, XX.* FROM (
+			SELECT COH.*
+				, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+				, CU.CUST_NM
+				, ST.SHIPTO_NM
+				<!-- 2025-01-13 HSG Double Suplex. O_SALESORDER 테이블에서 담당자(SALESREP_NM) 값을 구하기 위해 O_SALESORDER 테이블과 LEFT OUTER JOIN 함 , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM -->
+				, OS.SALESREP_CD AS SALESUSERID, OS.SALESREP_NM AS SALESUSER_NM
+				, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+				, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+				, (SELECT COUNT(*) FROM O_CUST_ORDER_D WHERE REQ_NO = COH.REQ_NO) AS ITEM_CNT
+				, (SELECT TOP 1 CONFIRM_DT FROM O_ORDER_CONFIRM_H WHERE REQ_NO = COH.REQ_NO) AS CONFIRM_DT2
+				, QM.QMS_TEMP_ID
+			FROM O_CUST_ORDER_H COH
+				LEFT OUTER JOIN QMS_PRE_MAST QM ON QM.REQ_NO = COH.REQ_NO AND QM.DELETEYN = 'N'
+				LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+				LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+				LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+				<!-- 2025-01-13 HSG Double Suplex. O_SALESORDER 테이블에서 담당자(SALESREP_NM) 값을 구하기 위해 O_SALESORDER 테이블과 LEFT OUTER JOIN 함 -->
+				LEFT JOIN O_SALESORDER OS ON COH.REQ_NO = OS.CUST_PO
+			<where>
+				<if test="r_userid != null and r_userid != '' ">AND RTRIM(COH.USERID) = RTRIM(#{r_userid})</if>
+				<if test="r_reqno != null and r_reqno != '' ">AND COH.REQ_NO = #{r_reqno}</if>
+				<if test="rl_reqno != null and rl_reqno != '' ">AND COH.REQ_NO LIKE '%' + #{rl_reqno} + '%'</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND COH.CUST_CD = #{r_custcd}</if>
+				<if test="rl_custcd != null and rl_custcd != '' ">AND COH.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+				<if test="r_custnm != null and r_custnm != '' ">AND CU.CUST_NM = #{r_custnm}</if>
+				<if test="rl_custnm != null and rl_custnm != '' ">AND CU.CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+				<if test="r_shiptocd != null and r_shiptocd != '' ">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+				<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND US_SALES.USER_NM LIKE '%' + #{rl_salesusernm} + '%'</if>
+				<if test="rl_receiver != null and rl_receiver != '' ">AND COH.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+				<if test="r_csuserid != null and r_csuserid != '' ">
+					AND US_SALES.USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_csuserid})
+				</if>
+				<if test="r_insdate != null and r_insdate != '' ">AND COH.INDATE <![CDATA[>=]]> CONVERT(DATE, #{r_insdate})</if>
+				<!-- 2024-10-18 HSG 조회조건 변경 : 종료일 이전이 아니라 종료일 다음날 이전으로 변경 -->
+				<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<]]> DATEADD(day, 1,CONVERT(DATE, #{r_inedate}))</if>
+				<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+				<if test="ri_statuscd != null">
+	   				AND COH.STATUS_CD IN <foreach collection="ri_statuscd" item="status_cd" separator="," open="(" close=")">#{status_cd}</foreach>
+	 			</if>
+				<if test="ri_reqno != null">
+	   				AND COH.REQ_NO IN <foreach collection="ri_reqno" item="req_no" separator="," open="(" close=")">#{req_no}</foreach>
+	 			</if>
+	 			
+	 			<!-- 관리자 권한에 따른 조건절 -->
+	 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+	 				<if test='"AD".equals(r_adminauthority)'>
+	 				</if>
+	 				<if test='"CS".equals(r_adminauthority)'>
+	 					AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+	 				</if>
+	 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+	 					<if test='"SH".equals(r_adminauthority)'>
+	 						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SM".equals(r_adminauthority)'>
+	 						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SR".equals(r_adminauthority)'>
+	 						AND CU.SALESREP_CD = #{r_adminuserid}
+	 					</if>
+	 				</if>
+	 				<if test='"MK".equals(r_adminauthority)'>
+	 				</if>
+	 			</if>
+	 			<!-- End. -->
+			</where>
+			) XX 
+		) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+	
+	<select id="createCustOrderReqNo" parameterType="hashmap" resultType="String">			
+		<!-- 2024-10-18 HSG REQ_NO생성하는 부분과 WHERE절에서 REQ_NO를 구하는 방식의 차이가 있어 수정. -->
+		SELECT '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6) + ISNULL(CONVERT(VARCHAR, IIF(MAX(REQ_NO) IS NOT NULL, CONVERT(DECIMAL, REPLACE(MAX(CONVERT(DECIMAL, REQ_NO )), '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6), ''))+1, 1)), '')
+		FROM O_CUST_ORDER_H
+		WHERE CUST_CD = #{r_custcd}
+		AND REQ_NO NOT LIKE 'T%'
+		<!-- 2024-10-18 HSG REQ_NO생성하는 부분과 WHERE절에서 REQ_NO를 구하는 방식의 차이가 있어 수정. -->
+		<!-- 년도를 구할 때 오늘일자('20241018')를 구한 뒤 SUBSTRING으로 3에서 6번째 자리까지 구한다. -->
+<!-- 		AND REQ_NO LIKE '${r_custcd}' + CONVERT(VARCHAR(10), GETDATE(), 112) + '%' -->
+		AND REQ_NO LIKE '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6) + '%'
+	</select>
+	
+</mapper>

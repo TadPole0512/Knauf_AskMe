@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인정보 수집, 이용 동의서</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        .details {
+            display: none;
+            margin-left: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+    <script>
+        function toggleDetails(id) {
+            const details = document.getElementById(id);
+            if (details) {
+                details.style.display = details.style.display === 'block' ? 'none' : 'block';
+            }
+        }
+
+        function validateForm() {
+            const requiredCheckboxes = document.querySelectorAll('.required-checkbox');
+            const submitButton = document.getElementById('submit-button');
+            const isValid = Array.from(requiredCheckboxes).every(checkbox => checkbox.checked);
+            submitButton.disabled = !isValid;
+            submitButton.classList.toggle('disabled', !isValid);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => checkbox.addEventListener('change', validateForm));
+            validateForm();
+        });
+    </script>
+</head>
+<body>
+    <h1>개인정보 수집, 이용 동의서</h1>
+
+    <div class="section">
+        <form>
+            <label for="affiliation">소속:</label>
+            <input type="text" id="affiliation" name="affiliation" required><br>
+
+            <label for="position">직급:</label>
+            <input type="text" id="position" name="position" required><br>
+
+            <label for="name">성명:</label>
+            <input type="text" id="name" name="name" required><br>
+
+            <label for="phone">전화번호:</label>
+            <input type="tel" id="phone" name="phone" required><br>
+
+            <label for="email">이메일 주소:</label>
+            <input type="email" id="email" name="email" required><br>
+        </form>
+    </div>
+
+    <div class="section">
+
+        <form>
+            <label>
+                <input type="checkbox" class="required-checkbox">
+                (필수) 개인정보수집, 이용 동의 (<a href="#" onclick="toggleDetails('details-2-1'); return false;">자세한 내용 클릭</a>)
+            </label>
+            <div id="details-2-1" class="details">
+                개인정보 수집 및 이용에 관한 상세 내용입니다.
+            </div>
+<br>
+            <label>
+                <input type="checkbox" class="required-checkbox">
+                (필수) 개인정보 제3자 제공 동의 (<a href="#" onclick="toggleDetails('details-2-2'); return false;">자세한 내용 클릭</a>)
+            </label>
+            <div id="details-2-2" class="details">
+                개인정보 제3자 제공에 관한 상세 내용입니다.
+            </div>
+<br>
+            <label>
+                <input type="checkbox" class="required-checkbox">
+                (필수) 개인정보 국외이전 동의 (<a href="#" onclick="toggleDetails('details-2-3'); return false;">자세한 내용 클릭</a>)
+            </label>
+            <div id="details-2-3" class="details">
+                개인정보 국외 이전에 관한 상세 내용입니다.
+            </div>
+<p></p>
+            <label>
+                <input type="checkbox">
+                (선택) 마케팅 목적 개인정보수집, 이용 동의 (<a href="#" onclick="toggleDetails('details-2-4'); return false;">자세한 내용 클릭</a>)
+            </label>
+            <div id="details-2-4" class="details">
+                마케팅 목적 개인정보 수집 및 이용에 관한 상세 내용입니다.
+            </div>
+<br>
+            <label>
+                <input type="checkbox">
+                (선택) 마케팅 및 광고 목적 정보 수령 동의 (<a href="#" onclick="toggleDetails('details-2-5'); return false;">자세한 내용 클릭</a>)
+            </label>
+            <div id="details-2-5" class="details">
+                마케팅 및 광고 목적 정보 수령에 관한 상세 내용입니다.
+            </div>
+        </form>
+    </div>
+
+    <div class="section">
+        <button id="submit-button" disabled class="disabled">동의</button>
+    </div>
+
+    <div class="section">
+        <p>자세한 내용은 당사의 <a href="https://knauf.com/ko-KR/privacy-policy" target="_blank">개인정보 처리방침</a>을 참고해 주시기 바랍니다.</p>
+    </div>
+</body>
+</html>

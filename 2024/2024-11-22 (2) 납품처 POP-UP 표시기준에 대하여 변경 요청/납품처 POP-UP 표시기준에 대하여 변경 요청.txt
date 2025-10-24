@@ -1,0 +1,617 @@
+
+/* ***************************************************************************************************************************************** */
+/* *********** 납품처 POP-UP 표시기준에 대하여 변경 요청 *********** */
+
+
+/* 주문현황 > 주문등록 */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\orderAdd.jsp *********** */
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java *********** */
+
+73	/**
+	 * OK.
+	 * 주문등록 폼.
+	 * @작성일 : 2020. 3. 12.
+	 * @작성자 : kkyu
+	 */
+	@GetMapping(value="orderAdd")
+	public String orderAdd(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		String reqNo = Converter.toStr(params.get("r_reqno"));
+		String status = Converter.toStr(params.get("status"));
+		//String userId = loginDto.getUserId();
+
+		// 임시저장(99) 상태에서 수정 폼.
+		if(!StringUtils.equals("", reqNo) && status.equals("99")) {
+			//데이터 쿼리날려서 조회하는부분
+			Map<String, Object> custOrderH = orderSvc.getCustOrderHOne(reqNo, "", "99");
+			if(CollectionUtils.isEmpty(custOrderH)) throw new LimeBizException(MsgCode.DATA_NOT_FOUND_ERROR);
+			model.addAttribute("pageType", "EDIT");
+			model.addAttribute("custOrderH", custOrderH);
+			model.addAttribute("custOrderD", orderSvc.getCustOrderDList(reqNo, Converter.toStr(custOrderH.get("CUST_CD")), Converter.toStr(custOrderH.get("SHIPTO_CD")), "LINE_NO ASC ", 0, 0));
+		// 주문등록 후(00) 수정 폼.
+		}else if(!StringUtils.equals("", reqNo) && status.equals("00")){
+			Map<String, Object> custOrderH = orderSvc.getCustOrderHOne(reqNo);
+			if(CollectionUtils.isEmpty(custOrderH)) throw new LimeBizException(MsgCode.DATA_NOT_FOUND_ERROR);
+			model.addAttribute("pageType", "EDIT");
+			model.addAttribute("custOrderH", custOrderH);
+			model.addAttribute("custOrderD", orderSvc.getCustOrderDList(reqNo, Converter.toStr(custOrderH.get("CUST_CD")), Converter.toStr(custOrderH.get("SHIPTO_CD")), "LINE_NO ASC ", 0, 0));
+		}else {
+			model.addAttribute("pageType", "ADD");
+		}
+
+		model.addAttribute("todayDate", Converter.dateToStr("yyyy-MM-dd"));
+		model.addAttribute("orderStatus", StatusUtil.ORDER.getMap()); // 주문상태 Map형태로 가져오기.
+		model.addAttribute("orderStatusToJson", StatusUtil.ORDER.getMapToJson()); // 주문상태 JSON형태로 가져오기.
+		return "admin/order/orderAdd";
+	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+92	/**
+	 * Get O_CUST_ORDER_H One.
+	 * @작성일 : 2020. 4. 2.
+	 * @작성자 : kkyu
+	 */
+	public Map<String, Object> getCustOrderHOne(String req_no){
+		Map<String, Object> svcMap = new HashMap<>();
+		svcMap.put("r_reqno", req_no);
+		return this.getCustOrderHOne(svcMap);
+	}
+	public Map<String, Object> getCustOrderHOne(String req_no, String userid, String status_cd){
+		Map<String, Object> svcMap = new HashMap<>();
+		svcMap.put("r_reqno", req_no);
+		svcMap.put("r_userid", userid);
+		svcMap.put("r_statuscd", status_cd);
+		return this.getCustOrderHOne(svcMap);
+	}
+	public Map<String, Object> getCustOrderHOne(LoginDto loginDto, String req_no){
+		Map<String, Object> svcMap = new HashMap<>();
+		svcMap.put("r_reqno", req_no);
+		svcMap.put("r_custcd", loginDto.getCustCd());
+		svcMap.put("r_shiptocd", loginDto.getShiptoCd());
+		return this.getCustOrderHOne(svcMap);
+	}
+	public Map<String, Object> getCustOrderHOne(Map<String, Object> svcMap){
+		return custOrderHDao.one(svcMap);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderHDao.java *********** */
+
+31	public Map<String, Object> one(Map<String, Object> svcMap) {
+		return sqlSession.selectOne("eorder.o_cust_order_h.one", svcMap);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml *********** */
+
+121	<select id="one" parameterType="hashmap" resultType="hashmap">
+		SELECT COH.*
+			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+			, CU.CUST_NM
+			, ST.SHIPTO_NM
+			, ST.QUOTE_QT
+			, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+		<where>
+			<if test="r_userid != null and r_userid != '' ">AND RTRIM(COH.USERID) = RTRIM(#{r_userid})</if>
+			<if test="r_reqno != null and r_reqno != '' ">AND COH.REQ_NO = #{r_reqno}</if>
+			<if test="rl_reqno != null and rl_reqno != '' ">AND COH.REQ_NO LIKE '%' + #{rl_reqno} + '%'</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND COH.CUST_CD = #{r_custcd}</if>
+			<if test="rl_custcd != null and rl_custcd != '' ">AND COH.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+			<if test="r_custnm != null and r_custnm != '' ">AND CU.CUST_NM = #{r_custnm}</if>
+			<if test="rl_custnm != null and rl_custnm != '' ">AND CU.CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND US_SALES.USER_NM LIKE '%' + #{rl_salesusernm} + '%'</if>
+			<if test="rl_receiver != null and rl_receiver != '' ">AND COH.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+			<if test="r_csuserid != null and r_csuserid != '' ">
+				AND US_SALES.USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_csuserid})
+			</if>
+			<if test="r_insdate != null and r_insdate != '' ">AND COH.INDATE <![CDATA[>=]]> CONVERT(DATE, #{r_insdate})</if>
+			<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<=]]> CONVERT(DATE, #{r_inedate})</if>
+			<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+			<if test="ri_statuscd != null">
+				AND COH.STATUS_CD IN <foreach collection="ri_statuscd" item="status_cd" separator="," open="(" close=")">#{status_cd}</foreach>
+			</if>
+
+			<!-- 관리자 권한에 따른 조건절 -->
+			<if test="r_adminauthority != null and r_adminauthority != '' ">
+				<if test='"AD".equals(r_adminauthority)'>
+				</if>
+				<if test='"CS".equals(r_adminauthority)'>
+					AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+				</if>
+				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+					<if test='"SH".equals(r_adminauthority)'>
+						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+					</if>
+					<if test='"SM".equals(r_adminauthority)'>
+						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+					</if>
+					<if test='"SR".equals(r_adminauthority)'>
+						AND CU.SALESREP_CD = #{r_adminuserid}
+					</if>
+				</if>
+				<if test='"MK".equals(r_adminauthority)'>
+				</if>
+			</if>
+		</where>
+	</select>
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+129	/**
+	 * Get O_CUST_ORDER_D List.
+	 * @작성일 : 2020. 4. 2.
+	 * @작성자 : kkyu
+	 */
+	public List<Map<String, Object>> getCustOrderDList(String req_no, String cust_cd, String shipto_cd, String order_by, int start_row, int end_row){
+		Map<String, Object> svcMap = new HashMap<>();
+		svcMap.put("r_reqno", req_no);
+		svcMap.put("r_custcd", cust_cd);
+		svcMap.put("r_shiptocd", shipto_cd);
+		svcMap.put("r_orderby", (StringUtils.equals("", order_by) ? "XX.REQ_NO DESC, XX.LINE_NO ASC " : order_by));
+		svcMap.put("r_startrow", start_row);
+		svcMap.put("r_endrow", end_row);
+		return this.getCustOrderDList(svcMap);
+	}
+	public List<Map<String, Object>> getCustOrderDList(Map<String, Object> svcMap){
+		return custOrderDDao.list(svcMap);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderDDao.java *********** */
+
+39	public List<Map<String, Object>> list(Map<String, Object> svcMap) {
+		return sqlSession.selectList("eorder.o_cust_order_d.list", svcMap);
+	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_d.xml *********** */
+
+94	<select id="list" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (
+			SELECT ROW_NUMBER() OVER(
+			<choose>
+				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+				<otherwise>ORDER BY (SELECT 1)</otherwise>
+			</choose>
+			) AS ROWNUM
+			, XX.* FROM (
+			SELECT COD.*
+				, COH.CUST_CD, COH.SHIPTO_CD
+				, IT.DESC1, IT.DESC2
+				, ITI.*
+				, (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = COD.ITEM_CD) AS RECOMMEND_ITEM_COUNT
+				, CASE WHEN SALES_CD1 = 'A' AND (SALES_CD2 IN ('02','06','US1') OR (SALES_CD2 = '76' AND PLAN_FMLY = 'H15' ) ) THEN 'Y' ELSE 'N' END AS FIREPROOF_YN
+			FROM O_CUST_ORDER_D COD
+				LEFT JOIN O_CUST_ORDER_H COH ON COD.REQ_NO = COH.REQ_NO
+				LEFT JOIN O_ITEM_NEW IT ON COD.ITEM_CD = IT.ITEM_CD
+				LEFT JOIN ITEMINFO ITI ON COD.ITEM_CD = ITI.ITI_ITEMCD
+			<where>
+				<if test="r_reqno != null and r_reqno != ''">AND COD.REQ_NO = #{r_reqno}</if>
+				<if test="r_custcd != null and r_custcd != ''">AND COH.CUST_CD = #{r_custcd}</if>
+				<if test="r_shiptocd != null and r_shiptocd != ''">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+				<if test="r_lineno != null and r_lineno != ''">AND COD.LINE_NO = #{r_lineno}</if>
+				<if test="r_itemcd != null and r_itemcd != ''">AND IT.ITEM_CD = #{r_itemcd}</if>
+				<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+			</where>
+			) XX
+		) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 납품처 선택 팝업 *********** */
+
+
+/* *********** https://eordertest.knaufapac.kr/eorder/admin/base/pop/shiptoListPop.lime *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java *********** */
+
+264	/**
+	 * 납품처 리스트 팝업 폼.
+	 * @작성일 : 2020. 3. 30.
+	 * @작성자 : kkyu
+	 */
+	@PostMapping(value="/admin/base/pop/shiptoListPop")
+	public String shiptoListPop(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		String r_multiselect = Converter.toStr(params.get("r_multiselect"));
+		model.addAttribute("r_multiselect", r_multiselect);
+		
+		Object o = params.get("rl_quoteqt");
+		if(o != null)
+			return "admin/base/shiptoqtListPop";
+			
+		return "admin/base/shiptoListPop";
+	}
+	
+	/**
+	 * 납품처 리스트 가져오기 Ajax.
+	 * @작성일 : 2020. 3. 30.
+	 * @작성자 : kkyu
+	 */
+	@ResponseBody
+	@PostMapping(value="/admin/base/getShiptoListAjax")
+	public Object getShiptoListAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		String page_type = Converter.toStr(params.get("page_type"));
+		if(StringUtils.equals("orderadd", page_type)) { // 주문등록 팝업인 경우, 거래처 매핑.
+			params.put("r_custcd", params.get("r_custcd"));
+		}
+		return customerSvc.getShipToList(params, req, loginDto);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CustomerSvc.java *********** */
+
+123	/**
+	 * 납품처 리스트 가져오기 Ajax.
+	 * @작성일 : 2020. 3. 12.
+	 * @작성자 : an
+	 */
+	public Map<String, Object> getShipToList(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+		Map<String, Object> resMap = new HashMap<>();
+
+		int totalCnt = shipToDao.cnt(params);
+
+		Pager pager = new Pager();
+		pager.gridSetInfo(totalCnt, params, req);
+		resMap.put("total", Converter.toInt(params.get("totpage")));
+		resMap.put("listTotalCount", totalCnt);
+		
+		// Start. Define Only For Form-Paging.
+		resMap.put("startnumber", params.get("startnumber"));
+		resMap.put("r_page", params.get("r_page"));
+		resMap.put("startpage", params.get("startpage"));
+		resMap.put("endpage", params.get("endpage"));
+		resMap.put("r_limitrow", params.get("r_limitrow"));
+		// End.
+		
+		String r_orderby = "";
+		String sidx = Converter.toStr(params.get("sidx")); //정렬기준컬럼
+		String sord = Converter.toStr(params.get("sord")); //내림차순,오름차순
+		r_orderby = sidx + " " + sord;
+		if(StringUtils.equals("", sidx)) { r_orderby = "SHIPTO_CD DESC"; } //디폴트 지정
+		params.put("r_orderby", r_orderby);
+
+		// 엑셀 다운로드.
+		String where = Converter.toStr(params.get("where"));
+		if ("excel".equals(where) || "mypage".equals(where) || "all".equals(where)) {
+			params.remove("r_startrow");
+			params.remove("r_endrow");
+		}
+		
+		List<Map<String, Object>> list = this.getShipToList(params);
+		resMap.put("list", list);
+		resMap.put("data", list);
+		
+		return resMap;
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ShipToDao.java *********** */
+
+19	public int cnt(Map<String, Object> svcMap) {
+		return sqlSession.selectOne("eorder.o_shipto.cnt", svcMap);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_shipto.xml *********** */
+
+15	<select id="cnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) FROM
+		((SELECT ST.* FROM O_SHIPTO ST
+		LEFT JOIN O_USER US ON US.CUST_CD = ST.CUST_CD AND US.USER_SHIPTOCD = ST.SHIPTO_CD AND US.AUTHORITY = 'CT'
+		<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+			LEFT JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+		</if>
+		<if test='where != null and "pop".equals(where) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+			INNER JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+		</if>
+		<!-- 2024-10-15 HSG 주석 처리 LEFT OUTER JOIN (SELECT QUOTE_QT, MAX(INSERT_DT) AS DT FROM O_SHIPTO GROUP BY QUOTE_QT) TT ON
+			TT.QUOTE_QT = ST.QUOTE_QT -->
+		<where>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND ST.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND ST.CUST_CD = #{r_custcd}</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND ST.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND ST.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+			<!-- 2024-10-15 HSG 주석 처리 <if test="rl_quoteqt != null">AND ST.QUOTE_QT LIKE '%' + #{rl_quoteqt} + '%' AND ST.QUOTE_QT IS NOT NULL</if>  -->
+			<if test="rl_insertdt != null">AND ST.ANGDT <![CDATA[<=]]> #{rl_insertdt}</if>
+			<!-- 2024-10-15 HSG 주석 처리 AND TT.DT = ST.INSERT_DT  -->
+		</where>)
+		UNION
+		(SELECT ST.* FROM O_SHIPTO ST
+		LEFT JOIN O_USER US ON US.CUST_CD = ST.CUST_CD AND US.USER_SHIPTOCD = ST.SHIPTO_CD AND US.AUTHORITY = 'CT'
+		<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+			LEFT JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+		</if>
+		<if test='where != null and "pop".equals(where) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+			INNER JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+		</if>
+		<!-- 2024-10-15 HSG 주석 처리 LEFT OUTER JOIN (SELECT QUOTE_QT, MAX(INSERT_DT) AS DT FROM O_SHIPTO GROUP BY QUOTE_QT) TT ON
+			TT.QUOTE_QT = ST.QUOTE_QT  -->
+		<where>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND ST.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND ST.SHIPTO_CD = #{r_custcd}</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND ST.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND ST.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+		</where>)) S
+	</select>
+
+
+
+
+/* *********** /eorder/src/main/java/com/limenets/common/util/Pager.java *********** */
+
+11	/**
+	 * 그리드 페이징 & 폼 페이징
+	 * page:페이지, rows:레코드수
+	 */
+	public void gridSetInfo(int totalCnt, Map<String, Object> params, HttpServletRequest req) {
+		Device device = DeviceUtils.getCurrentDevice(req);
+		
+		int r_page = Converter.toInt(params.get("page"), 1); // 페이지
+		int r_limitrow = Converter.toInt(params.get("rows"), 10); // 한페이지에 보여줄 레코드수
+		
+		if (r_page == 0) r_page = 1;
+		if (r_limitrow == 0) r_limitrow = 10;
+		
+		if (r_limitrow > 0) {
+			int totalPage = ( totalCnt % r_limitrow == 0 ) ? totalCnt / r_limitrow : totalCnt / r_limitrow + 1; // 전체페이지 수 
+			if (r_page > totalPage) r_page = 1;
+
+			int r_endrow = r_page * r_limitrow; // 끝지점
+			int r_startrow = r_endrow - r_limitrow + 1; // 시작지점
+			
+			// 파라미터 설정 For Form & Grid.  
+			params.put("r_startrow", r_startrow);
+			params.put("r_endrow", r_endrow);
+			params.put("totpage", totalPage);
+			
+			// 파라미터 설정 For Only Form. 
+			int startnumber = totalCnt - ( r_limitrow * ( r_page - 1 ) ); // 일련번호 설정
+			int viewpageea = (device.isMobile() || device.isTablet()) ? 5 : 10; // 페이징처리시 보여지는 페이지수 > 접속기기가 모바일(태블릿)=5, PC=10.
+			//int viewpageea = Converter.toInt(params.get("r_viewpageea"), 10);
+			int startpage = r_page - (r_page - 1) % viewpageea; // 페이징처리시 처음 보여지는 페이지수
+			int endpage = startpage + viewpageea - 1; // 페이징처리시 마지막에 보여지는 페이지수
+			if(totalPage < endpage) endpage = totalPage;
+			params.put("startnumber", startnumber);
+			params.put("r_page", r_page);
+			params.put("startpage", startpage);
+			params.put("endpage", endpage);
+			params.put("r_limitrow", r_limitrow);
+			params.put("limitrow"+r_limitrow, "selected='selected'");
+			
+		}
+		else { // r_limitrow = -1 로 설정하여 페이징 안타게 처리.
+			params.put("r_startrow", "");
+			params.put("r_endrow", "");			
+		}
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CustomerSvc.java *********** */
+
+45	public List<Map<String, Object>> getShipToList(Map<String, Object> svcMap){
+		return shipToDao.list(svcMap);
+	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ShipToDao.java *********** */
+
+23	public List<Map<String, Object>> list(Map<String, Object> svcMap) {
+		return sqlSession.selectList("eorder.o_shipto.list", svcMap);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_shipto.xml *********** */
+
+108	<select id="list" parameterType="hashmap" resultType="hashmap">
+	WITH XX AS (
+			(SELECT ST.SHIPTO_CD, ST.SHIPTO_NM, ST.ADD1, ST.ADD2, ST.ADD3, ST.ADD4, ST.ZIP_CD, ST.BUILDING_TY, ST.BUILDING_NM
+					, ST.BUSINESS_TY, ST.BUSINESS_NM, ST.INSERT_DT, ST.DUMMY, ST.DIST_CLASS, ST.QUOTE_QT, ST.ANGDT
+					, format(CAST(ST.BNDDT AS date),'yyyy-MM-dd') AS BNDDT, ST.CUST_CD
+					, iif(CAST(ST.BNDDT AS date) > DATEADD(DAY, 1, getDate()), 1, 0) AS PASSYN
+			FROM O_SHIPTO ST
+			LEFT JOIN O_USER US ON US.CUST_CD = ST.CUST_CD AND US.USER_SHIPTOCD = ST.SHIPTO_CD AND US.AUTHORITY = 'CT' 
+			<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+				LEFT JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+			</if>
+			<if test='where != null and "pop".equals(where) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+				INNER JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+			</if>
+			<!-- 2024-10-15 HSG 주석 처리 LEFT OUTER JOIN (SELECT QUOTE_QT AS QT, MAX(INSERT_DT) AS DT FROM O_SHIPTO GROUP BY QUOTE_QT) TT ON
+				TT.QT = ST.QUOTE_QT  -->
+			<where>
+				<if test="r_shiptocd != null and r_shiptocd != '' ">AND ST.SHIPTO_CD = #{r_shiptocd}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND ST.CUST_CD = #{r_custcd}</if>
+				<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND ST.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+				<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND ST.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+				<!-- 2024-10-15 HSG 주석 처리 <if test="rl_quoteqt != null">AND ST.QUOTE_QT LIKE '%' + #{rl_quoteqt} + '%' AND ST.QUOTE_QT IS NOT NULL</if>  -->
+				<if test="rl_insertdt != null">AND ST.ANGDT <![CDATA[<=]]> #{rl_insertdt}</if>
+				<!-- 2024-10-15 HSG 주석 처리 AND TT.DT = ST.INSERT_DT  -->
+			</where>)
+			UNION (
+			SELECT ST.SHIPTO_CD, ST.SHIPTO_NM, ST.ADD1, ST.ADD2, ST.ADD3, ST.ADD4, ST.ZIP_CD, ST.BUILDING_TY, ST.BUILDING_NM
+					, ST.BUSINESS_TY, ST.BUSINESS_NM, ST.INSERT_DT, ST.DUMMY, ST.DIST_CLASS, ST.QUOTE_QT, ST.ANGDT
+					, format(CAST(ST.BNDDT AS date),'yyyy-MM-dd') AS BNDDT, ST.CUST_CD
+					, iif(CAST(ST.BNDDT AS date) > DATEADD(DAY, 1, getDate()), 1, 0) AS PASSYN
+			FROM O_SHIPTO ST
+			LEFT JOIN O_USER US ON US.CUST_CD = ST.CUST_CD AND US.USER_SHIPTOCD = ST.SHIPTO_CD AND US.AUTHORITY = 'CT' 
+			<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+				LEFT JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+			</if>
+			<if test='where != null and "pop".equals(where) and r_stbuserid != null and !"".equals(r_stbuserid)'>
+				INNER JOIN SHIPTOBOOKMARK STB ON ST.SHIPTO_CD = STB.STB_SHIPTOCD AND STB.STB_USERID = #{r_stbuserid}
+			</if>
+			<!-- 2024-10-15 HSG 주석 처리 LEFT OUTER JOIN (SELECT QUOTE_QT AS QT, MAX(INSERT_DT) AS DT FROM O_SHIPTO GROUP BY QUOTE_QT) TT ON
+				TT.QT = ST.QUOTE_QT -->
+			<where>
+				<if test="r_shiptocd != null and r_shiptocd != '' ">AND ST.SHIPTO_CD = #{r_shiptocd}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND ST.SHIPTO_CD = #{r_custcd}</if>
+				<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND ST.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+				<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND ST.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+				<!-- 2024-10-15 HSG 주석 처리 <if test="rl_quoteqt != null">AND ST.QUOTE_QT LIKE '%' + #{rl_quoteqt} + '%' AND ST.QUOTE_QT IS NOT NULL</if> -->
+			</where>)
+			
+			<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${ r_orderby }</if> -->
+				)
+		SELECT * FROM (SELECT 
+				ROW_NUMBER() OVER( ORDER BY ISNULL(A.QUOTE_QT, 9999999999) DESC, (SELECT 1) ) AS ROWNUM
+				, A.* FROM XX A	
+		WHERE	1 = 1
+		AND SHIPTO_CD IN (SELECT max(SHIPTO_CD) AS SHIPTO_CD FROM XX GROUP BY SHIPTO_NM)
+		) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

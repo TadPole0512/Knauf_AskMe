@@ -1,0 +1,340 @@
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 내화구조관리 : http://localhost:8080/eorder/admin/system/fireproofStructure.lime *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\system\fireproofStructure.jsp *********** */
+
+
+312	// 저장/수정.
+	function dataInUp(obj, val) {
+		$(obj).prop('disabled', true);
+
+		var chk = $('#gridList').jqGrid('getGridParam','selarrrow');
+		chk += '';
+		var chkArr = chk.split(",");
+		if (chk == '') {
+			alert("선택 후 진행해 주십시오.");
+			$(obj).prop('disabled', false);
+			return false;
+		}
+
+		var iFormObj = $('form[name="iForm"]');
+		iFormObj.empty();
+
+		var ckflag = true;
+		for (var i=0; i<chkArr.length; i++){
+			var trObj = $('#jqg_gridList_' + chkArr[i]).closest('tr');
+
+			var process_type = ('' == toStr(trObj.find('input[name="R_KEYCODE"]').val())) ? 'ADD' : 'EDIT';
+
+			//validation
+			if(ckflag && '' == trObj.find('select[name="ACTIVE"]').val()){
+				alert('상태를 선택해 주세요.');
+				trObj.find('select[name="ACTIVE"]').focus();
+				ckflag = false;
+			}
+			//if(ckflag) ckflag = validation(trObj.find('input[name="DISPLAYORDER"]')[0], 'Display 순서', 'value');
+			//if(ckflag && 'ADD' == process_type) ckflag = validation(trObj.find('input[name="M_KEYCODE"]')[0], '코드', 'value');
+			if(ckflag) ckflag = validation(trObj.find('input[name="FIREPROOFTYPE"]')[0], '내화구조타입', 'value');
+			// if(ckflag) ckflag = validation(trObj.find('input[name="DESC1"]')[0], '우편번호', 'value');
+			// if(ckflag) ckflag = validation(trObj.find('input[name="DESC1"]')[0], '설명1', 'value');
+			// if(ckflag) ckflag = validation(trObj.find('input[name="DESC2"]')[0], '설명2', 'value');
+			//if(ckflag) ckflag = validation(trObj.find('input[name="FIRETIME"]')[0], '시간', 'npoint');
+
+			if(!ckflag){
+				$(obj).prop('disabled', false);
+				return false;
+			}
+
+			// aForm append.
+			iFormObj.append('<input type="hidden" name="r_processtype" value="' + process_type + '" />');
+			if('ADD' == process_type){
+				iFormObj.append('<input type="hidden" name="r_keycode" value="' + toStr(trObj.find('input[name="M_KEYCODE"]').val()) + '" />');
+			}else{
+				iFormObj.append('<input type="hidden" name="r_keycode" value="' + toStr(trObj.find('input[name="R_KEYCODE"]').val()) + '" />');
+			}
+
+			iFormObj.append('<input type="hidden" name="m_active" value="' + toStr(trObj.find('select[name="ACTIVE"]').val()) + '" />');
+			iFormObj.append('<input type="hidden" name="m_displayorder" value="' + toStr(trObj.find('input[name="DISPLAYORDER"]').val()) + '" />');
+			iFormObj.append('<input type="hidden" name="m_fireprooftype" value="' + toStr(trObj.find('input[name="FIREPROOFTYPE"]').val()) + '" />');
+			iFormObj.append('<input type="hidden" name="m_desc1" value="' + toStr(trObj.find('input[name="DESC1"]').val()) + '" />');
+			iFormObj.append('<input type="hidden" name="m_desc2" value="' + toStr(trObj.find('input[name="DESC2"]').val()) + '" />');
+			iFormObj.append('<input type="hidden" name="m_firetime" value="' + toStr(trObj.find('input[name="M_FIRETIME"]').val()) + '" />');
+			iFormObj.append('<input type="hidden" name="m_filename" value="' + toStr(trObj.find('input[name="M_FILENAME"]').val()) + '" />');
+			iFormObj.append('<input type="hidden" name="m_createtime" value="' + toStr(trObj.find('input[name="CREATETIME"]').val()) + '" />');
+		}
+		//console.log($(iFormObj).html());
+
+		if(!ckflag){
+			$(obj).prop('disabled', false);
+			return false;
+		}
+
+		if (confirm('저장 하시겠습니까?')) {
+		var iFormData = iFormObj.serialize();
+
+				var url = '${url}/admin/system/insertUpdateFireproofAjax.lime';
+				$.ajax({
+					async : false,
+					data : iFormData,
+					type : 'POST',
+					url : url,
+					success : function(data) {
+						if (data.RES_CODE == '0000') {
+							alert(data.RES_MSG);
+							dataSearch();
+						}else{
+
+						}
+						$(obj).prop('disabled', false);
+					},
+					error : function(request,status,error){
+						alert('Error');
+						$(obj).prop('disabled', false);
+					}
+				});
+
+		}
+	}
+
+
+
+
+/* *********** /admin/system/insertUpdateFireproofAjax.lime *********** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\SystemCtrl.java *********** */
+
+673	/**
+	 * 내화구조관리 폼 > 출고지 저장/수정 Ajax.
+	 * @작성일 : 2021. 4. 5.
+	 * @작성자 : jihye lee
+	 */
+	@ResponseBody
+	@PostMapping(value="insertUpdateFireproofAjax")
+	public Object insertUpdateFireproofAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		Map<String, Object> resMap = configSvc.insertUpdateFireproofTransaction(params, req, loginDto);
+		return resMap;
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\ConfigSvc.java *********** */
+
+403	/**
+	 * 내화구조 저장/수정.
+	 * @작성일 : 2021. 4. 5 -> 2021. 7. 15
+	 * @작성자 : jihye lee -> jsh
+	 * @param r_processtype : ADD=저장 / EDIT=수정 / DEL=삭제
+	 * @param r_ptcode
+	 */
+	public Map<String, Object> insertUpdateFireproofTransaction(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws LimeBizException {
+		Map<String, Object> svcMap = new HashMap<>();
+
+		// 파라미터 정의.
+		String [] r_processtypearr = req.getParameterValues("r_processtype");
+		String [] r_ptcodearr = req.getParameterValues("r_keycode");
+
+		String [] m_active = req.getParameterValues("m_active");
+		String [] m_displayorder = req.getParameterValues("m_displayorder");
+		String [] m_fireprooftype = req.getParameterValues("m_fireprooftype");
+		String [] m_desc1 = req.getParameterValues("m_desc1");
+		String [] m_desc2 = req.getParameterValues("m_desc2");
+		String [] m_firetime = req.getParameterValues("m_firetime");
+		//String [] m_filepath = req.getParameterValues("m_filepath");
+		String [] m_createtime = req.getParameterValues("m_createtime");
+
+
+		// 저장/수정 처리.
+		for(int i=0,j=r_ptcodearr.length; i<j; i++){
+			String r_processtype = Converter.toStr(r_processtypearr[i]);
+			String r_ptcode = Converter.toStr(r_ptcodearr[i]);
+
+			svcMap.put("m_active", Converter.toStr(m_active[i]));
+			svcMap.put("m_displayorder", Converter.toStr(m_displayorder[i]));
+			svcMap.put("m_fireprooftype", Converter.toStr(m_fireprooftype[i]));
+			svcMap.put("m_desc1", Converter.toStr(m_desc1[i]));
+			svcMap.put("m_desc2", Converter.toStr(m_desc2[i]));
+			svcMap.put("m_firetime", Converter.toStr(m_firetime[i]));
+			//svcMap.put("m_ptaddr2", Converter.toStr(m_ptaddr2arr[i]));
+			svcMap.put("m_createtime", Converter.toStr(m_createtime[i]));
+
+			// 저장
+			if("ADD".equals(r_processtype)) {
+				svcMap.put("m_keycode", r_ptcode);
+				svcMap.put("m_inid", loginDto.getUserId());
+				fireDao.in(svcMap);
+			}
+			// 삭제
+			else if("DEL".equals(r_processtype)){
+				svcMap.put("m_keycode", r_ptcode);
+				svcMap.put("m_upid", loginDto.getUserId());
+				fireDao.del(svcMap);
+			}
+			// 수정
+			else {
+				svcMap.put("m_keycode", r_ptcode);
+				svcMap.put("m_upid", loginDto.getUserId());
+				fireDao.up(svcMap);
+			}
+			svcMap.clear();
+		}
+
+		return MsgCode.getResultMap(MsgCode.SUCCESS);
+	}
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 저장 : fireDao.in(svcMap); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\FireproofDao.java *********** */
+
+15	public int in(Map<String, Object> svcMap) {
+		if(svcMap.get("m_keycode")==null || svcMap.get("m_keycode").toString().equals("")) {
+			svcMap.put("m_keycode",sqlSession.selectOne("eorder.fireproof.getMaxKeycode", svcMap));
+		}
+		return sqlSession.insert("eorder.fireproof.in", svcMap);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\fireproof.xml *********** */
+
+
+5	<select id="getMaxKeycode" parameterType="hashmap" resultType="String">
+		SELECT 'FW'+ISNULL(FORMAT(CAST(SUBSTRING(ISNULL(MAX(KEYCODE),0),3, LEN(ISNULL(MAX(KEYCODE),0))) AS FLOAT)+1,'0000'), '') FROM O_FIREPROOFMASTER
+	</select>
+
+
+9	<insert id="in" parameterType="hashmap">
+		INSERT INTO O_FireproofMaster (
+			KEYCODE
+			, FIREPROOFTYPE
+			, ACTIVE
+			, DESC1
+			, DESC2
+			, FIRETIME
+			, DISPLAYORDER
+			, CREATETIME
+			, CREATEUSER
+		) VALUES (
+			#{m_keycode}
+			, #{m_fireprooftype}
+			, #{m_active}
+			, #{m_desc1}
+			, #{m_desc2}
+			, #{m_firetime}
+			<if test="m_displayorder != '' ">
+			, #{m_displayorder}
+			</if>
+			<if test="m_displayorder == '' ">
+			<!-- 2024-11-06 hsg PlayStation4 오라클 문법인 nvl에서 mssql 문법인 isnull로 변경 -->
+			,(SELECT ISNULL(MAX(DISPLAYORDER),0)+1 FROM O_FIREPROOFMASTER)
+			</if>
+			, GETDATE()
+			, #{m_inid}
+		)
+	</insert>
+
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 삭제 : fireDao.del(svcMap); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\FireproofDao.java *********** */
+
+26	public int del(Map<String, Object> svcMap) {
+		return sqlSession.insert("eorder.fireproof.del", svcMap);
+	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\fireproof.xml *********** */
+
+57	<delete id="del" parameterType="hashmap">
+		DELETE O_FireproofMaster FM
+		 WHERE FM.KEYCODE = #{m_keycode}
+	</delete>
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 수정 : fireDao.up(svcMap); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\FireproofDao.java *********** */
+
+22	public int up(Map<String, Object> svcMap) {
+		return sqlSession.update("eorder.fireproof.up", svcMap);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\fireproof.xml *********** */
+
+
+39	<update id="up" parameterType="hashmap">
+	<!-- 2024-11-28 hsg Tomstone Piledriver 업데이트 문에 테이블 별칭(FM) 삭제 -->
+		UPDATE O_FireproofMaster
+		<set>
+			<if test="m_fireprooftype != null and m_fireprooftype != ''">FIREPROOFTYPE = #{m_fireprooftype},</if>
+			<if test="m_active != null and m_active != ''">ACTIVE = #{m_active},</if>
+			<if test="m_desc1 != null and m_desc1 != ''">DESC1 = #{m_desc1},</if>
+			<if test="m_desc2 != null and m_desc2 != ''">DESC2 = #{m_desc2},</if>
+			<if test="m_firetime != null and m_firetime != ''">FIRETIME = #{m_firetime},</if>
+			<if test="m_displayorder != null and m_displayorder != ''">DISPLAYORDER = #{m_displayorder},</if>
+			<if test="m_upid != null and m_upid != ''">UPDATEUSER = #{m_upid},</if>
+			UPDATETIME = GETDATE()
+		</set>
+		<where>
+			AND KEYCODE = #{m_keycode}
+		</where>
+	</update>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

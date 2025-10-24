@@ -1,0 +1,779 @@
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/include/admin/commonimport.jsp" %>
+<!DOCTYPE html>
+<html>
+<head>
+<%@ include file="/WEB-INF/views/include/admin/commonhead.jsp" %>
+
+< script src="${url}/include/js/common/dropzone/dropzone.min.js">< / script >
+<link href="${url}/include/js/common/dropzone/dropzone.min.css" rel="stylesheet" type="text/css" />
+
+< script type="text/javascript">
+
+$(function(){
+
+});
+
+//Dropzone
+Dropzone.autoDiscover = false;
+
+$(document).ready(function() {
+	$("#frm").dropzone({
+		url: "./updateOrderStateExcelAjax.lime",
+		maxFiles: 1,
+		acceptedFiles: ".xls,.XLS,.xlsx,.XLSX,.csv,.CSV",
+		maxFilesize: 30,
+
+		init: function() {
+			// maxFiles 카운터를 초과하면 경고창
+			this.on("maxfilesexceeded", function(data) {
+				$('#ajax_indicator').fadeOut();
+
+				this.removeFile(data);
+				alert('최대 업로드 파일 수는 1개 입니다.');
+			});
+
+			// 등록시 바로 처리하기 위한 컨펌창
+			this.on("addedfile", function(data) {
+				$('#ajax_indicator').show().fadeIn('fast');
+
+				if (!confirm('품목 일괄 등록을 진행 하시겠습니까?')) {
+					$('#ajax_indicator').fadeOut();
+					this.removeFile(data);
+				}
+			});
+
+			// 성공시
+			this.on("success", function(data, response) {
+				var result;
+				var json = response;
+
+				if('object' === typeof json) result = json;
+				else result = JSON.parse(json);
+
+				var resCode = result.RES_CODE;
+				var resMsg = result.RES_MSG;
+
+				$('#resultContentPId').empty();
+				$('#resultContentPId').show();
+				// if('0000' != resCode) $('#resultContentPId').append('ERROR MASSAGE<br />');
+				if('0000' != resCode) $('#resultContentPId').append('MASSAGE<br />');
+				$('#resultContentPId').append('<span>'+resMsg+'</span>');
+
+				$('#ajax_indicator').fadeOut();
+				this.removeFile(data);
+			});
+
+			// 에러시
+			this.on("error", function(data, response, xhr) {
+				console.log('data = '+data);
+			    $('#resultContentPId').show();
+				$('#resultContentPId').html('ERROR');
+
+
+				$('#ajax_indicator').fadeOut();
+				this.removeFile(data);
+			});
+		},
+	});
+});
+
+
+//샘플파일다운로드
+function fileDown(obj, file_type){ // file_type 1=품목코드 다운로드, 2=샘플파일 다운로드.
+	var fileFormHtml = '';
+
+	if('1' == file_type){
+		$('#ajax_indicator').show().fadeIn('fast');
+		var token = getFileToken('excel');
+		$('form[name="frm_excel"]').append('<input type="hidden" name="filetoken" value="'+token+'" />');
+
+		formPostSubmit('frm_excel', '${url}/admin/item/itemExcelDown2.lime');
+		$('form[name="frm_excel"]').attr('action', '');
+
+		$('input[name="filetoken"]').remove();
+		var fileTimer = setInterval(function() {
+			//console.log('token : ', token);
+	        console.log("cookie : ", getCookie(token));
+			if('true' == getCookie(token)){
+				$('#ajax_indicator').fadeOut();
+				delCookie(token);
+				clearInterval(fileTimer);
+			}
+	    }, 1000 );
+	}
+	else if('2' == file_type){
+		// 파일 다운로드.
+		fileFormHtml += '<form name="frm_filedown" method="post" action="${url}/admin/base/sampleFileDown.lime">';
+		fileFormHtml += '	<input type="hidden" name="r_filename" value="orderStateUpdateSample.csv" />';
+		fileFormHtml += '</form>';
+		fileFormHtml += '<iframe name="fileDownLoadIf" style="display:none;"></iframe>';
+		$.download('frm_filedown', fileFormHtml); // common.js 위치.
+	}
+
+}
+
+
+< / script >
+</head>
+
+<body class="page-header-fixed compact-menu">
+	<div id="ajax_indicator" style="display:none;">
+	    <p style="position: absolute; top: 50%; left: 50%; margin: -110px 0 0 -110px;">
+	        <img src="${url}/include/images/common/loadingbar.gif" />
+	    </p>
+	</div>
+
+	<!-- Page Content -->
+	<main class="page-content content-wrap">
+
+		<%@ include file="/WEB-INF/views/include/admin/header.jsp" %>
+		<%@ include file="/WEB-INF/views/include/admin/left.jsp" %>
+
+		<form name="frm_excel" method="post"></form>
+
+		<!-- Page Inner -->
+		<div class="page-inner">
+			<div class="page-title">
+				<h3>
+					오더 상태 업데이트
+					<div class="page-right">
+						<button type="button" class="btn btn-line f-black" title="목록" onclick="location.href ='${url}/admin/order/salesOrderList.lime'"><i class="fa fa-list-ul"></i><em>목록</em></button>
+					</div>
+				</h3>
+			</div>
+
+			<!-- Main Wrapper -->
+			<div id="main-wrapper">
+				<!-- Row -->
+				<div class="row">
+					<div class="col-md-12">
+						<div class="panel panel-white">
+							<div class="panel-body">
+								<h5 class="table-title no-title"></h5>
+								<div class="btnList writeObjectClass">
+									<button type="button" class="btn btn-warning" onclick="fileDown(this, '2');">오더 상태 다운로드</button>
+								</div>
+
+								<form class="dropzone pull-left full-width" name="frm" id="frm" enctype="multipart/form-data">
+									<div class="fallback">
+										<input type="file" class="dropify" />
+										<input type="button" class="dropify-btn btn-github hide" value="파일업로드" onclick="fileUpload();" /> <!-- IE9 -->
+									</div>
+								</form>
+
+								<p class="dropzone-white pull-left m-t-lg full-width" id="resultContentPId" style="display: none;">
+									<!--
+									INSERT MASSAGE<br />
+									<span>success</span>
+									 -->
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- //Row -->
+			</div>
+			<!-- //Main Wrapper -->
+
+			<%@ include file="/WEB-INF/views/include/admin/footer.jsp" %>
+
+		</div>
+		<!-- //Page Inner -->
+	</main>
+	<!-- //Page Content -->
+
+</body>
+
+</html>
+
+
+
+
+
+OrderCtrl.java
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * 주문관리 > 오더 상태 업데이트 : 엑셀대량수정 폼.
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	@GetMapping(value="orderStateUpdateExcel")
+	public String itemEditExcel(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		return "admin/order/orderStateUpdateExcel";
+	}
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * 오더 상태 엑셀 수정 폼 > 업데이트 Ajax
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	@ResponseBody
+	@PostMapping(value="updateOrderStateExcelAjax")
+	public Object updateOrderStateExcelAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		return orderSvc.updateOrderStateExcel(params, req, loginDto);
+	}
+
+
+
+
+
+
+
+
+
+OrderSvc.java
+
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * 오더 상태 대량 등록/수정
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	public Map<String, Object> updateOrderStateExcel(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+		if (!MultipartHttpServletRequest.class.isInstance(req)) {
+			throw new LimeBizException(MsgCode.FILE_REQUEST_ERROR);
+		}
+
+		Map<String, Object> svcMap = new HashMap<>();
+//		Map<String, Object> orderStateMap = new HashMap<>();
+		List<Map<String, Object>> orderStateList = new ArrayList<>();
+//		List<Map<String, Object>> orderStateSearchList = new ArrayList<>();
+//		List<Map<String, Object>> orderStateRecommendList = new ArrayList<>();
+
+		String m_itiinid = loginDto.getUserId();
+
+//		FileUtil fileUtil = new FileUtil();
+		String errorMsg = "";
+		MultipartHttpServletRequest mtreq = (MultipartHttpServletRequest)req;
+		MultipartFile mpf = mtreq.getFile("file");
+
+		Workbook workbook = WorkbookFactory.create(mpf.getInputStream());
+		Sheet sheet = workbook.getSheetAt(0);
+
+		DataFormatter formatter = new DataFormatter();
+		Iterator<Row> it = sheet.iterator();
+
+//		long start = System.currentTimeMillis();
+//		long end = 0;
+		int rowNum = 0, cellNum = 0;
+
+		Map<String, Object> resMap = new HashMap<>();
+		while (it.hasNext()) {
+			Row row = it.next();
+
+			if(rowNum > 0){
+				cellNum=2;
+				//Working!
+				String m_reasonForRejection = formatter.formatCellValue(row.getCell(cellNum++)).replaceAll("\\s","");
+				String m_orderno = formatter.formatCellValue(row.getCell(cellNum++)).replaceAll("\\s","");
+				String s_lineno = formatter.formatCellValue(row.getCell(cellNum++)).replaceAll("\\s","");
+				int lineno = Integer.parseInt(s_lineno) * 100;
+				String m_lineno = Integer.toString(lineno);
+
+				int updateCnt = 0;
+
+				if (StringUtils.equals("", m_orderno)) {
+					if(rowNum == 1){
+						resMap.put("RES_MSG",(rowNum+1)+"행의 Order No가 누락되었습니다.");
+					}else{
+						resMap.put("RES_MSG",rowNum+"행까지 정상적으로 처리되었습니다.");
+					}
+
+					resMap.put("RES_CODE","0010");
+//					end = System.currentTimeMillis();
+					return resMap;
+				}
+				logger.debug("m_orderno: " + m_orderno);
+				logger.debug("m_lineno: " + m_lineno);
+				svcMap.put("m_orderno", m_orderno);
+				svcMap.put("m_lineno", m_lineno);
+				svcMap.put("m_itiinid", m_itiinid);
+				
+
+				//엑셀 오더번호 체크
+				orderStateList = this.getOrderStateList(svcMap);
+				if(CollectionUtils.isEmpty(orderStateList)){
+					//throw new LimeBizException(MsgCode.DATA_EXCEL_NOT_FIND_ORDERNO_ERROR, rowNum+1);
+					errorMsg += (rowNum+1)+"행의 Order No는 등록되지 않은 오더번호입니다.<br>";
+				} else {
+
+					String m_deliveryStatus = formatter.formatCellValue(row.getCell(cellNum++)).trim();
+					String m_overallStatus = formatter.formatCellValue(row.getCell(cellNum++)).trim();
+					boolean b = false;
+
+
+					if(StringUtils.isNotBlank(m_reasonForRejection)) {
+						svcMap.put("m_statuscd", "980");
+						svcMap.put("m_status2cd", "999");
+						svcMap.put("m_statusdesc", "오더취소");
+
+						b = true;
+					} else if(StringUtils.equals("C", StringUtils.defaultString(m_deliveryStatus))) {
+						svcMap.put("m_statuscd", "580");
+						svcMap.put("m_status2cd", "620");
+						svcMap.put("m_statusdesc", "배송완료");
+
+						b = true;
+					} else if(StringUtils.isBlank(m_deliveryStatus) && StringUtils.equals("C", StringUtils.defaultString(m_overallStatus))) {
+						svcMap.put("m_statuscd", "580");
+						svcMap.put("m_status2cd", "620");
+						svcMap.put("m_statusdesc", "배송완료");
+
+						b = true;
+					}
+
+					if(b) {
+						updateCnt = updateCnt + salesOrderDao.updateOrderStatusExcel(svcMap);
+						if( updateCnt == 0 ) {
+							errorMsg += (rowNum+1)+"행의 Order No가 O_SALESORDER 테이블에 업데이트를 실패했습니다.<br>";
+						}
+
+
+
+						updateCnt = 0;
+
+						updateCnt = qmsOrderDao.updateOrderStatusExcel(svcMap);
+						if( updateCnt == 0 ) {
+							errorMsg += (rowNum+1)+"행의 Order No가 QMS_SALESORDER 테이블에 업데이트를 실패했습니다.<br>";
+						}
+
+
+
+					}
+
+
+				}
+
+
+				svcMap.clear();
+
+			}
+			rowNum++;
+
+		}
+		/*
+		end = System.currentTimeMillis();
+		logger.debug("################## 반복문 수행 시간 = "+ (end - start)/1000.0);
+		*/
+		if(StringUtils.equals("", errorMsg)){
+			return MsgCode.getResultMap(MsgCode.SUCCESS);
+		} else {
+			return MsgCode.getResultMap(MsgCode.DATA_EXCEL_NOT_FIND_ORDERNO_ERROR, errorMsg);
+		}
+		
+	}
+	
+	
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.
+	 * UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+    public List<Map<String, Object>> getOrderStateList(Map<String, Object> params){
+        List<Map<String, Object>> orderStateList = salesOrderDao.getOrderStateList(params);
+        return orderStateList;
+    }
+
+
+
+
+
+
+
+
+
+SalesOrderDao.java
+
+
+
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.
+	 * UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	public List<Map<String, Object>> getOrderStateList(Map<String, Object> svcMap) {
+		return sqlSession.selectList("eorder.o_salesorder.getOrderStateList", svcMap);
+	}
+
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.
+	 * UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회
+	 * @작성일 : 2025. 3. 31.
+	 * @작성자 : hsg
+	 */
+	public int updateOrderStatusExcel(Map<String, Object> svcMap) {
+		return sqlSession.update("eorder.o_salesorder.updateOrderStatusExcel", svcMap);
+	}
+
+
+
+
+
+
+
+
+
+o_salesorder.xml
+
+
+
+	<!-- ▼▼▼▼▼▼▼▼▼▼▼ 2025-03-28 hsg Sunset Flip : Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회 ▼▼▼▼▼▼▼▼▼▼▼ -->	
+	<select id="getOrderStateList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				'O_SALESORDER' AS TBL_NAME, ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+		  FROM	O_SALESORDER A
+		 WHERE	1 = 1
+		   AND	ORDERNO = #{m_orderno}
+		   AND	LINE_NO = #{m_lineno}
+		UNION	ALL
+		SELECT
+				'QMS_SALESORDER' AS TBL_NAME, ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+		  FROM	QMS_SALESORDER A
+		 WHERE	1 = 1
+		   AND	ORDERNO = #{m_orderno}
+		   AND	LINE_NO = #{m_lineno}
+	</select>
+
+
+	<update id="updateOrderStatusExcel" parameterType="hashmap">
+		UPDATE O_SALESORDER
+		   SET STATUS1 = #{m_statuscd}
+		     , STATUS2 = #{m_status2cd}
+		     , STATUS_DESC = #{m_statusdesc}
+		 WHERE 1 = 1
+		   AND ORDERNO = #{m_orderno}
+		   AND LINE_NO = #{m_lineno}
+	</update>
+	
+	<!-- ▲▲▲▲▲▲▲▲▲▲▲ 2025-03-28 hsg Sunset Flip : Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회 ▲▲▲▲▲▲▲▲▲▲▲ -->	
+
+
+
+위의 소스를 앞에서 설명햇던 대용량 엑셀 업로드 방식으로 수정해줘
+
+
+
+
+
+
+
+
+
+==========================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+아래는 기존 OrderSvc.updateOrderStateExcel 메서드를 Apache POI StreamingReader + JDBC Batch 방식으로 완전히 교체한 예제입니다. 한 번에 파일을 메모리에 올리지 않고, 헤더를 동적 매핑한 뒤 DTO 리스트로 수집하고, 마지막에 두 테이블을 한 번에 배치 업데이트합니다.
+
+
+package com.yourcompany.yourapp.service;
+
+import com.monitorjbl.xlsx.StreamingReader;
+import com.yourcompany.yourapp.dto.LoginDto;
+import com.yourcompany.yourapp.dto.OrderUpdateDto;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
+import javax.sql.DataSource;
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.*;
+
+import org.apache.poi.ss.usermodel.*;
+
+@Service
+public class OrderSvc {
+
+    @Autowired
+    private DataSource dataSource;
+
+    /**
+     * 엑셀을 StreamingReader로 파싱하고, DTO로 모은 뒤 JDBC Batch로 업데이트.
+     */
+    @Transactional
+    public Map<String, Object> updateOrderStateExcel(Map<String, Object> params, MultipartHttpServletRequest req, LoginDto loginDto) throws Exception {
+        // 1. MultipartFile 가져오기
+        MultipartFile mpf = req.getFile("file");
+        if (mpf == null || mpf.isEmpty()) {
+            throw new IllegalArgumentException("업로드된 파일이 없습니다.");
+        }
+
+        List<OrderUpdateDto> dtoList = new ArrayList<>();
+
+        // 2. StreamingReader로 엑셀 읽기
+        try (InputStream is = mpf.getInputStream(); Workbook wb = StreamingReader.builder().rowCacheSize(100).bufferSize(4096).open(is)) {
+
+            Sheet sheet = wb.getSheetAt(0);
+            Iterator<Row> rows = sheet.iterator();
+            if (!rows.hasNext()) {
+                return buildError("엑셀에 데이터가 없습니다.");
+            }
+
+            // 3. 헤더 동적 매핑
+            Row header = rows.next();
+            Map<String, Integer> hdrMap = new HashMap<>();
+            List<String> targets = Arrays.asList(
+                "Sales Document Type", "Purchase order no.",
+                "Reason for rejection","Sales Document",
+                "Sales Document Item","Delivery status","Overall status"
+            );
+            for (Cell c : header) {
+                String name = c.getStringCellValue().trim();
+                if (targets.contains(name)) {
+                    hdrMap.put(name, c.getColumnIndex());
+                }
+            }
+            // 필요한 헤더가 모두 매핑되었는지 확인
+            if (!hdrMap.keySet().containsAll(targets)) {
+                return buildError("필수 컬럼 헤더가 엑셀에 없습니다: " + targets);
+            }
+
+            // 4. 각 행을 DTO로 수집
+            int rowNum = 1;
+            DataFormatter fmt = new DataFormatter();
+            String userId = loginDto.getUserId();
+            for (; rows.hasNext(); rowNum++) {
+                Row r = rows.next();
+                String cell(String key) {
+                    Cell c = r.getCell(hdrMap.get(key), Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                    return c == null ? null : fmt.formatCellValue(c).trim();
+                }
+                String ordType = cell("Sales Document Type");
+                String orderNo = cell("Sales Document");
+                String lineNoStr = cell("Sales Document Item");
+                String reason = cell("Reason for rejection");
+                String ds = cell("Delivery status");
+                String os = cell("Overall status");
+
+                // 필수값 검증
+                if (StringUtils.isAnyBlank(orderNo, lineNoStr)) {
+                    return buildError((rowNum+1) + "행: 주문번호·라인번호 누락");
+                }
+
+                long lineNo = Long.parseLong(lineNoStr) * 100L;
+                OrderUpdateDto dto = new OrderUpdateDto();
+                dto.setOrderNo(Long.parseLong(orderNo));
+                dto.setLineNo(lineNo);
+                dto.setReason(reason);
+                dto.setDs(ds);
+                dto.setOs(os);
+                dto.setUserId(userId);
+                dtoList.add(dto);
+            }
+        }
+
+        // 5. JDBC Batch Update
+        String sqlO = "UPDATE EORDER.dbo.O_SALESORDER "
+                    + "SET STATUS1=?, STATUS2=?, STATUS_DESC=? "
+                    + "WHERE ORDERNO=? AND LINE_NO=?";
+        String sqlQ = "UPDATE QMS_SALESORDER "
+                    + "SET STATUS1=?, STATUS2=?, STATUS_DESC=? "
+                    + "WHERE ORDERNO=? AND LINE_NO=?";
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement psO = conn.prepareStatement(sqlO);
+             PreparedStatement psQ = conn.prepareStatement(sqlQ)) {
+
+            conn.setAutoCommit(false);
+            int batchSize = 500, count = 0;
+
+            for (OrderUpdateDto dto : dtoList) {
+                // 5-1. 비즈니스 로직: 상태 결정
+                String s1 = null, s2 = null, desc = null;
+                if (StringUtils.isNotBlank(dto.getReason())) {
+                    s1 = "980"; s2 = "999"; desc = "오더취소";
+                } else if ("C".equalsIgnoreCase(dto.getDs())) {
+                    s1 = "580"; s2 = "620"; desc = "배송완료";
+                } else if (StringUtils.isBlank(dto.getDs()) && "C".equalsIgnoreCase(dto.getOs())) {
+                    s1 = "580"; s2 = "620"; desc = "배송완료";
+                } else {
+                    continue; // 업데이트 대상 아님
+                }
+
+                // 5-2. 두 PreparedStatement에 파라미터 설정 및 addBatch
+                for (PreparedStatement ps : Arrays.asList(psO, psQ)) {
+                    ps.setString(1, s1);
+                    ps.setString(2, s2);
+                    ps.setString(3, desc);
+                    ps.setLong(4, dto.getOrderNo());
+                    ps.setLong(5, dto.getLineNo());
+                    ps.addBatch();
+                }
+
+                if (++count % batchSize == 0) {
+                    psO.executeBatch();
+                    psQ.executeBatch();
+                    conn.commit();
+                }
+            }
+
+            // 남은 배치 실행
+            psO.executeBatch();
+            psQ.executeBatch();
+            conn.commit();
+        }
+
+        return buildSuccess();
+    }
+
+    private Map<String,Object> buildError(String msg) {
+        Map<String,Object> m = new HashMap<>();
+        m.put("RES_CODE", "ERROR");
+        m.put("RES_MSG", msg);
+        return m;
+    }
+
+    private Map<String,Object> buildSuccess() {
+        Map<String,Object> m = new HashMap<>();
+        m.put("RES_CODE", "0000");
+        m.put("RES_MSG", "정상 처리되었습니다.");
+        return m;
+    }
+}
+주요 변경점
+StreamingReader 사용
+
+WorkbookFactory 대신 StreamingReader.builder()…open(is)로 낮은 메모리 풀이터링.
+
+헤더 동적 매핑
+
+첫 행만 읽어 Map<String,Integer>에 컬럼 인덱스를 저장.
+
+DTO(List<OrderUpdateDto>)에 모든 행 수집
+
+개별 DAO 호출을 모아두고
+
+JDBC Batch
+
+두 테이블(O_SALESORDER, QMS_SALESORDER)을 PreparedStatement 배치로 한 번에 업데이트.
+
+batchSize 단위로 커밋하여 대용량도 안정적.
+
+이렇게 바꾸면
+
+엑셀 수십만 행도 스트리밍으로 읽고,
+
+데이터베이스와는 배치 업데이트로 통신량을 줄여
+성능과 안정성이 크게 개선됩니다.
+
+
+
+
+
+
+나의 말:
+다른 파일은 바꿀 부분이 없어?
+
+
+ChatGPT의 말:
+
+
+
+
+몇 초 동안 생각함
+서비스 로직을 Streaming + JDBC 배치로 완전히 바꿨기 때문에, 다음 추가 작업만 해 주면 됩니다. 나머지 파일(Controller, JSP, MyBatis 매퍼 등)은 그대로 두셔도 돼요.
+
+1. DTO 클래스 추가
+OrderUpdateDto 를 새로 만들어야 합니다.
+
+
+package com.yourcompany.yourapp.dto;
+
+public class OrderExcelUpdateDto {
+    private long orderNo;
+    private long lineNo;
+    private String reason;
+    private String ds;
+    private String os;
+    private String userId;
+    // + getters / setters
+}
+2. Controller 메서드 시그니처 수정
+현재는 updateOrderStateExcelAjax(@RequestParam Map<String,Object> params, HttpServletRequest req, …) 형태인데, Multipart 전용으로 받도록 시그니처를 바꿔 주세요.
+
+
+
+@ResponseBody
+@PostMapping("updateOrderStateExcelAjax")
+public Object updateOrderStateExcelAjax(MultipartHttpServletRequest req,
+                                        LoginDto loginDto) throws Exception {
+    // params Map은 더 이상 쓰지 않으므로 제거해도 되고,
+    return orderSvc.updateOrderStateExcel(/*no params Map*/, req, loginDto);
+}
+@RequestParam Map<String, Object> params 는 더 이상 안 쓰이니 생략 가능합니다.
+
+메서드 내 req.getFile("file") 로 MultipartFile을 바로 가져옵니다.
+
+3. 기존 MyBatis DAO／XML
+우리가 JDBC 배치로 업데이트하므로,
+
+salesOrderDao.updateOrderStatusExcel(...)
+
+qmsOrderDao.updateOrderStatusExcel(...)
+
+salesOrderDao.getOrderStateList(...)
+
+이 호출들은 더는 사용하지 않거나, 완전히 제거해도 무방합니다. (물론, 코드 유지 차원에서 남겨둬도 돼요.)
+
+4. Spring 설정
+DataSource 빈이 이미 잘 등록되어 있다면 별도 작업 없음
+
+@Transactional 이 작동하도록 <tx:annotation-driven> 혹은 @EnableTransactionManagement 확인
+
+5. JSP / Dropzone 설정
+아까 올려두신 JSP(orderStateUpdateExcel.jsp)와 Dropzone 스크립트, action="./updateOrderStateExcelAjax.lime" 부분은 그대로 유지하세요.
+단, URL 패턴이 바뀌었다면 lime → .json 등 매핑만 맞춰주면 됩니다.
+
+정리
+OrderUpdateDto.java 생성
+
+OrderCtrl.updateOrderStateExcelAjax 시그니처 수정 → MultipartHttpServletRequest 받기
+
+OrderSvc 외에 다른 파일은 건드릴 필요 없음 (MyBatis 매퍼는 그냥 두셔도 되고, 필요 없으면 제거)
+
+Spring 트랜잭션 / DataSource 설정 확인
+
+JSP/Dropzone action URL 확인 후 유지
+
+이렇게 하면 새로 추가한 DTO와 컨트롤러 변경만으로 바로 Streaming + JDBC 배치 방식이 잘 동작할 겁니다. 추가 질문 있으면 언제든 알려주세요!
+
+
+
+
+
+
+
+
+
+

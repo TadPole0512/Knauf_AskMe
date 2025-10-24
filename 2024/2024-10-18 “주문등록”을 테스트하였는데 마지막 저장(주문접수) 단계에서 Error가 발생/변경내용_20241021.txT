@@ -1,0 +1,117 @@
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java
+
+331	// 2024-10-21 hsg 별칭 오류가 나서 수정. COD -> XX)
+332	List<Map<String, Object>> orderDetailList = orderSvc.getCustOrderDList(r_reqno, "", "", "XX.LINE_NO ASC ", 0, 0);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml
+
+list
+
+271	<!-- 2024-10-18 HSG 조회조건 변경 : 종료일 이전이 아니라 종료일 다음날 이전으로 변경 -->
+272	<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<]]> DATEADD(day, 1,CONVERT(DATE, #{r_inedate)))</if>
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml
+
+190	<!-- 2024-10-21 HSG MS-SQL에서는 DUAL이라는 문법이 없고, SF_GETQMSID_SEQ함수에 접근하기 위해선 DBO.를 붙여줘야 한다.  -->
+191	<select id="getQmsOrderId" parameterType="hashmap" resultType="String">
+192	/* eorder.o_qmsorder.getQmsOrderId */
+193	/* SELECT SF_GETQMSID_SEQ(#{currQuarter}) AS NEW_QMS_ID FROM DUAL */
+194	SELECT dbo.SF_GETQMSID_SEQ(#{currQuarter}) AS NEW_QMS_ID
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml
+
+
+574	<!-- 2024-10-21 HSG MS-SQL에서는 WHERE절에서 두 개의 컬럼을 한 번에 비교할 수 없어서 WHERE절을 EXISTS로 수정 전 백업 -->
+575	<insert id="setQmsOrderFireproofInsert_2024-10-21_HSG" parameterType="hashmap" >
+576	/* eorder.o_qmsorder.setQmsOrderFireproofInsert */
+577	INSERT INTO QMS_ORD_FRCN(QMS_ID,QMS_SEQ,QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN)
+578	SELECT #{qmsId},#{qmsSeq},QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN
+579	  FROM QMS_ORD_FRCN 
+580	 WHERE (QMS_ID,QMS_SEQ) IN (SELECT QMS_ID,QMS_SEQ
+581	                              FROM
+582	                            (SELECT RANK() OVER(PARTITION BY A.CUST_CD,C.SHIPTO_CD ORDER BY A.QMS_ID DESC, A.QMS_SEQ DESC,B.QMS_DETL_ID DESC) AS RNUM 
+583	                                  ,A.*
+584	                              FROM QMS_ORD_MAST A
+585	                                  ,QMS_ORD_DETL B
+586	                                  ,QMS_SALESORDER C
+587	                             WHERE A.QMS_ID = B.QMS_ID
+588	                               AND A.QMS_SEQ = B.QMS_SEQ
+589	                               AND A.DELETEYN = 'N'
+590	                               AND B.DELETEYN = 'N'
+591	                               AND B.ORDERNO = C.ORDERNO
+592	                               AND B.LINE_NO = C.LINE_NO
+593	                               AND A.CUST_CD = #{custCd}
+594	                               AND C.SHIPTO_CD = #{orgShiptoCd}
+595	                            )WHERE RNUM = 1)
+596	</insert>
+597	
+598
+599	<!-- 2024-10-21 HSG MS-SQL에서는 WHERE절에서 두 개의 컬럼을 한 번에 비교할 수 없어서 WHERE절을 EXISTS로 수정 -->
+600	<insert id="setQmsOrderFireproofInsert" parameterType="hashmap" >
+601	/* eorder.o_qmsorder.setQmsOrderFireproofInsert */
+602	INSERT INTO QMS_ORD_FRCN(QMS_ID,QMS_SEQ,QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN)
+603	SELECT #{qmsId},#{qmsSeq},QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN
+604	  FROM QMS_ORD_FRCN 
+605	WHERE	EXISTS	(
+606						SELECT	*
+607						FROM	QMS_ORD_MAST A , QMS_ORD_DETL B , QMS_SALESORDER C
+608						WHERE	A.QMS_ID = B.QMS_ID
+609						AND		A.QMS_SEQ = B.QMS_SEQ
+610						AND		QOF.QMS_ID = A.QMS_ID
+611						AND		QOF.QMS_SEQ = A.QMS_SEQ
+612						AND		A.DELETEYN = 'N'
+613						AND		B.DELETEYN = 'N'
+614						AND		B.ORDERNO = C.ORDERNO
+615						AND		B.LINE_NO = C.LINE_NO
+616						AND		A.CUST_CD = #{custCd}
+617						AND		C.SHIPTO_CD = #{orgShiptoCd}
+618					)
+619	</insert>
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java
+
+1400	//  2024-10-21 hsg MS-SQL에서 TO_CHAR 함수를 사용할 수 없어 FORMAT으로 변경
+1401	//        		wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT >= TO_CHAR(SYSDATE, 'yyyymmdd'))";
+1402		wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT >= FORMAT(GETDATE(), 'yyyymmdd'))";
+1403	} else if( (cntDType==1) && bDeliv ) {
+1404	//  2024-10-21 hsg MS-SQL에서 TO_CHAR 함수를 사용할 수 없어 FORMAT으로 변경
+1405	//        		wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT < TO_CHAR(SYSDATE, 'yyyymmdd'))";
+1406	wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT < FORMAT(GETDATE(), 'yyyymmdd'))";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

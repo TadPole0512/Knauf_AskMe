@@ -1,0 +1,383 @@
+주문확정 오류 발생
+-.웹주문현황에서 자료선택
+-.출고지 선택 > [주문확정] 선택
+=> 품목을 가져오지 못한다는 메시지 발생
+
+* 실제 선택이 필요한 품목이 있습니다만, 본 품목은 자동으로 나타나야 하는 품목입니다.
+
+
+주문관리 > 웹주문현황
+	조회조건
+		주문일자 : 2024-10-22 ~ 2024-10-22
+		주문상태 : 주문접수
+
+	조회 후 목록에서 5번째 항목에 처리를 선택
+
+
+주문관리 > 웹주문현황 > 주문접수
+
+오류내용
+	주문품목 확장처리에 품목명은 있는데 품목코드가 없음.
+
+
+주문관리 > 웹주문현황
+orderEdit.jsp
+OrderCtrl.java
+OrderSvc.java
+CustOrderDDao.java
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\orderEdit.jsp
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java
+orderSvc.getCustOrderDList
+public List<Map<String, Object>> getCustOrderDList(String req_no, String cust_cd, String shipto_cd, String order_by, int start_row, int end_row)
+public List<Map<String, Object>> getCustOrderDList(Map<String, Object> svcMap)
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderDDao.java
+public List<Map<String, Object>> list(Map<String, Object> svcMap)
+
+
+
+SELECT
+    *
+FROM
+    (
+    SELECT
+        ROW_NUMBER() OVER(
+        ORDER BY CC_SORT1,
+        CC_SORT2,
+        CC_SORT3) AS ROWNUM ,
+        XX.*
+    FROM
+        (
+        SELECT
+            CC.* ,
+            (
+            SELECT
+                COUNT(*)
+            FROM
+                COMMONCODE
+            WHERE
+                CC_PARENT = CC.CC_CODE) CHILD_COUNT
+        FROM
+            COMMONCODE CC
+        WHERE
+            ISNULL(CC_PARENT,
+            ' ') = ISNULL(?,
+            ' ')
+            AND CC_USE = ? ) XX ) S
+
+
+
+C05(String), Y(String)
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\orderEdit.jsp
+
+// 주문품목 확정처리 > 전체 / 개별 출고지 선택.
+function changeCompanyCd(obj, tr_id){
+
+// 선택한 출고지 and 품목명으로 품목코드 리스트 가져오기.
+function setItemCd(tr_id){
+url : '/admin/base/getItemMcuListAjax.lime', 
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java
+주문 > 선택한 출고지(사업장) and 품목명으로 품목코드 리스트 가져오기 Ajax.
+public Object getItemMcuListAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\SapRestApiSvc.java
+선택한 출고지(사업장) and 품목명으로 품목코드 리스트 가져오기.
+public Map<String, Object> getItemMcuList(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ItemDao.java
+public List<Map<String, Object>> listItemMcu(Map<String, Object> svcMap) {
+eorder.o_item_new.listItemMcu
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_item_new.xml
+	<select id="listItemMcu" parameterType="hashmap" resultType="hashmap">
+		<!-- SELECT ITM.ITEM_CD  FROM O_ITEM_MCU ITM
+		<where>
+			<if test="r_itemmcu != null and r_itemmcu != '' "> AND ITM.ITEM_MCU = #{r_itemmcu}</if>
+			<if test="r_desc1 != null and r_desc1 != '' "> AND REGEXP_REPLACE(ITM.DESC1, ' |,' ,'') = REGEXP_REPLACE(#{r_desc1}, ' |,' ,'')</if>
+		</where>
+		GROUP BY ITM.ITEM_CD -->
+		
+		SELECT ITM.ITEM_CD  
+		FROM O_ITEM_MCU ITM
+		LEFT JOIN
+			O_ITEM_NEW OIN 
+			ON OIN.ITEM_CD = ITM.ITEM_CD
+		<where>
+			AND (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL)
+			<if test="r_itemmcu != null and r_itemmcu != '' "> AND ITM.ITEM_MCU = #{r_itemmcu}</if>
+			<if test="r_desc1 != null and r_desc1 != '' "> AND REPLACE(ITM.DESC1,' ','') = REPLACE(#{r_desc1},' ','')</if>
+		</where>
+		GROUP BY ITM.ITEM_CD
+	</select>
+
+
+
+SELECT ITM.ITEM_CD FROM O_ITEM_MCU ITM LEFT JOIN O_ITEM_NEW OIN ON OIN.ITEM_CD = ITM.ITEM_CD WHERE (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL) AND ITM.ITEM_MCU = ? AND REPLACE(ITM.DESC1,' ','') = REPLACE(?,' ','') GROUP BY ITM.ITEM_CD 
+-- 5600(String), 일반 9.5*900*1800 평보드(String)
+
+
+SELECT
+        ITM.ITEM_CD
+FROM    O_ITEM_MCU ITM
+        LEFT JOIN O_ITEM_NEW OIN
+                ON OIN.ITEM_CD = ITM.ITEM_CD
+                AND ( UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL)
+WHERE   1 = 1
+AND     ITM.ITEM_MCU = '5600'
+AND     REPLACE(ITM.DESC1, ' ', '') = REPLACE('일반 9.5*900*1800 평보드', ' ', '')
+GROUP BY ITM. ITEM_CD
+
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 재고 + 중량 가져오기. 
+function setItemStock(tr_id){
+	var divider = '!!';
+
+
+품목코드 : url: /admin/base/getItemStockAjax.lime
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java
+
+	/**
+	 * 주문 > 선택한 출고지(사업장) and 품목코드로  재고 가져오기 Ajax.
+	 * + 품목코드로 중량 가져오기.
+	 * @작성일 : 2020. 4. 17.
+	 * @작성자 : kkyu
+	 */
+	@ResponseBody
+	@PostMapping(value="/admin/base/getItemStockAjax")
+	public Object getItemStockAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		//return itemSvc.getItemStock(params, req, loginDto);
+
+		/*System.out.println(params);
+		Map<String, Object> pm = new HashMap<>();
+		pm.put("PLANT", params.get("PLANT"));
+		pm.put("MATERIAL", params.get("MATERIAL"));
+		pm.put("UNIT", params.get("UNIT"));
+		pm.put("CHECK_RULE", params.get("CHECK_RULE"));
+		return sapApiSvc.getATPCheckList(pm);*/
+		
+		return sapApiSvc.getATPCheckList(params);
+	}
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\SapRestApiSvc.java
+
+
+public Map<String, Object> getItemOne(String item_cd)
+
+public Map<String, Object> getATPCheckList(Map<String, Object> params )/*throws Exception*/
+
+
+
+public Map<String, Object> one(Map<String, Object> svcMap)
+o_item_new
+
+
+
+
+
+
+
+
+
+주문확정 오류 발생
+-.웹주문현황에서 자료선택
+-.출고지 선택 > [주문확정] 선택
+=> 품목을 가져오지 못한다는 메시지 발생
+
+* 실제 선택이 필요한 품목이 있습니다만, 본 품목은 자동으로 나타나야 하는 품목입니다.
+
+
+주문관리 > 웹주문현황
+	조회조건
+		주문일자 : 2024-10-22 ~ 2024-10-22
+		주문상태 : 주문접수
+
+	조회 후 목록에서 5번째 항목에 처리를 선택
+
+
+주문관리 > 웹주문현황 > 주문접수
+
+오류내용
+	주문품목 확장처리에 품목명은 있는데 품목코드가 없음.
+
+
+주문관리 > 웹주문현황
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\orderEdit.jsp
+1575	<select class="" name="select_companycd" onchange="changeCompanyCd(this, '');">
+1576	<option value="">출고지를 선택하세요</option>
+
+
+468	// 주문품목 확정처리 > 전체 / 개별 출고지 선택.
+469	function changeCompanyCd(obj, tr_id)
+481		setItemCd(tr_id);
+
+285	// 선택한 출고지 and 품목명으로 품목코드 리스트 가져오기.
+286	function setItemCd(tr_id)
+326		url : '${url}/admin/base/getItemMcuListAjax.lime', 
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java
+189	* 주문 > 선택한 출고지(사업장) and 품목명으로 품목코드 리스트 가져오기 Ajax.
+195	public Object getItemMcuListAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+196		return itemSvc.getItemMcuList(params, req, loginDto);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\ItemSvc.java
+468	 * 선택한 출고지(사업장) and 품목명으로 품목코드 리스트 가져오기.
+475	public Map<String, Object> getItemMcuList(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+495		List<Map<String, Object>> itemMcuList = itemDao.listItemMcu(params);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ItemDao.java
+
+114	public List<Map<String, Object>> listItemMcu(Map<String, Object> svcMap) {
+115		return sqlSession.selectList("eorder.o_item_new.listItemMcu", svcMap);
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_item_new.xml
+720	<select id="listItemMcu" parameterType="hashmap" resultType="hashmap">
+721		<!-- SELECT ITM.ITEM_CD  FROM O_ITEM_MCU ITM
+722		<where>
+723			<if test="r_itemmcu != null and r_itemmcu != '' "> AND ITM.ITEM_MCU = #{r_itemmcu}</if>
+724			<if test="r_desc1 != null and r_desc1 != '' "> AND REGEXP_REPLACE(ITM.DESC1, ' |,' ,'') = REGEXP_REPLACE(#{r_desc1}, ' |,' ,'')</if>
+725		</where>
+726		GROUP BY ITM.ITEM_CD -->
+727		
+728		SELECT ITM.ITEM_CD  
+729		FROM O_ITEM_MCU ITM
+730		LEFT JOIN
+731			O_ITEM_NEW OIN 
+732			ON OIN.ITEM_CD = ITM.ITEM_CD
+733		<where>
+734			AND (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL)
+735			<if test="r_itemmcu != null and r_itemmcu != '' "> AND ITM.ITEM_MCU = #{r_itemmcu}</if>
+736			<if test="r_desc1 != null and r_desc1 != '' "> AND REPLACE(ITM.DESC1,' ','') = REPLACE(#{r_desc1},' ','')</if>
+737		</where>
+738		GROUP BY ITM.ITEM_CD
+739	</select>
+
+
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java
+
+342	// 출고지 리스트 가져오기.
+343	List<Map<String, Object>> plantList = configSvc.getPlantList("", 0, 0);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\ConfigSvc.java
+
+173	* 출고지 리스트 가져오기.
+177	public List<Map<String, Object>> getPlantList(String order_by, int start_row, int end_row){
+182		this.getPlantList(svcMap);
+
+
+184	public List<Map<String, Object>> getPlantList(Map<String, Object> svcMap){
+185		return plantDao.list(svcMap);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\PlantDao.java
+
+31	public List<Map<String, Object>> list(Map<String, Object> svcMap) {
+32		return sqlSession.selectList("eorder.plant.list", svcMap);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\plant.xml
+
+72	<select id="list" parameterType="hashmap" resultType="hashmap">		
+73		<!-- 2024-10-15 HSG 주석 처리 후 아래 코드 삽입  SELECT p.WERKS AS PT_CODE
+74			, p.PT_NAME + '(' + p.WERKS + ')' AS PT_NAME -->
+75		SELECT 
+76			p.PT_CODE  PT_CODE ,
+77			p.PT_NAME AS PT_NAME
+78		FROM PLANT p 
+79		WHERE p.PT_USE = 'Y'
+80		ORDER BY p.PT_SORT
+81	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

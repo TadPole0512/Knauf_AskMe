@@ -1,0 +1,875 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="eorder.o_salesorder">
+
+	<select id="one" parameterType="hashmap" resultType="hashmap">
+		SELECT TOP 1
+			SO.ORDERNO, SO.ORDERTY, SO.LINE_NO, SO.ORDER_DT, SO.REQUEST_DT, SO.ACTUAL_SHIP_DT, SO.CUST_CD, SO.CUST_NM, SO.SHIPTO_CD, SO.SHIPTO_NM
+        	, SO.ADD1, SO.ADD2, SO.ADD4, SO.ZIP_CD, SO.COMPANY, SO.PLANT_CD, SO.PLANT_DESC, SO.ITEM_CD, SO.ITEM_DESC, SO.ORDER_QTY, SO.UNIT, SO.PRIMARY_QTY
+        	, SO.UNIT1, SO.SECOND_QTY, SO.UNIT2, SO.WEIGHT, SO.WEIGHT_UNIT, SO.AMOUNT, SO.STATUS1, SO.STATUS2, SO.STATUS_DESC, SO.DRIVER_PHONE
+			<!-- 2024-10-15 HSG 주석 처리 후 아래 코드 삽입 , SO.SHIPMENT_CD_3PL, SO.CUST_PO, SO.ORDER_TAKER, SO.HOLD_CODE, SO.TRUCK_NO, SO.SALESREP_CD, SO.SALESREP_NM, SO.TEAM_CD, SO.TEAM_NM, SO.BUILDING_TYPE, SO.INSERT_DT-->
+        	/*, SO.SHIPMENT_CD_3PL*/, SO.CUST_PO, SO.ORDER_TAKER, SO.HOLD_CODE, SO.TRUCK_NO, SO.SALESREP_CD, SO.SALESREP_NM, SO.TEAM_CD, SO.TEAM_NM, SO.BUILDING_TYPE, SO.INSERT_DT
+        	, SO.PRICE, SO.ADD3, SO.REQUEST_TIME, SO.DUMMY
+		FROM O_SALESORDER SO
+		<where>
+			<if test="wherebody_status != null and wherebody_status != '' ">
+				${wherebody_status}
+			</if>
+			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%'</if> <!-- 오더번호 -->
+			<if test="rl_custpo != null and rl_custpo != '' ">AND SO.CUST_PO LIKE '%' + #{rl_custpo} + '%'</if> <!-- 고객주문번호 -->
+			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if> 
+			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_add1 != null and rl_add1 != '' ">AND (SO.ADD1 + SO.ADD2) LIKE '%' + #{rl_add1} + '%'</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND SO.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND SO.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'</if>
+			<if test="r_orderno != null and r_orderno != '' ">AND SO.ORDERNO = #{r_orderno}</if>
+			<if test="r_orderty != null and r_orderty != '' ">AND SO.ORDERTY = #{r_orderty}</if>
+			<if test="r_lineno != null and r_lineno != '' ">AND SO.LINE_NO = #{r_lineno}</if>
+		</where>
+	</select>
+	
+	<select id="cnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*)
+		FROM O_SALESORDER SO
+		<where>
+			<if test="wherebody_status != null and wherebody_status != '' ">
+				${wherebody_status}
+			</if>
+			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="r_requestsdt != null and r_requestsdt != '' ">AND SO.REQUEST_DT <![CDATA[>=]]> #{r_requestsdt}</if>
+			<if test="r_requestedt != null and r_requestedt != '' ">AND SO.REQUEST_DT <![CDATA[<=]]> #{r_requestedt}</if>
+			<if test="r_orderno != null and r_orderno != '' ">AND SO.ORDERNO = #{r_orderno}</if>
+			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%'</if> <!-- 오더번호 -->
+			<if test="rl_custpo != null and rl_custpo != '' ">AND SO.CUST_PO LIKE '%' + #{rl_custpo} + '%'</if> <!-- 고객주문번호 -->
+			<if test="r_truckno != null and r_truckno != '' ">AND SO.TRUCK_NO = #{r_truckno}</if>
+			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if> 
+			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if> 
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND SO.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND SO.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+			<!-- 2025-04-17 hsg don't say goodbay : E-Order 전체주문현황 납품주소 검색 조건 수정 요청 건 -->
+			<if test="rl_add1 != null and rl_add1 != '' ">AND (SO.ADD1 + ISNULL(SO.ADD2, '')) LIKE '%' + #{rl_add1} + '%'</if>
+			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">
+				AND SO.CUST_CD IN (SELECT CUST_CD FROM O_CUSTOMER WHERE SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%')
+			</if>
+
+			<if test="r_insertsdt != null and r_insertsdt != '' ">AND SO.INSERT_DT <![CDATA[>=]]> #{r_insertsdt}</if>
+			<if test="r_insertedt != null and r_insertedt != '' ">AND SO.INSERT_DT <![CDATA[<=]]> #{r_insertedt}</if>
+			<!-- 관리자 권한에 따른 조건절 -->
+ 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+ 				<if test='"AD".equals(r_adminauthority)'>
+ 				</if>
+ 				<if test='"CS".equals(r_adminauthority)'>
+ 					AND SO.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+ 				</if>
+ 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+ 					<if test='"SH".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SM".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SR".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD = #{r_adminuserid}
+ 					</if>
+ 				</if>
+ 				<if test='"MK".equals(r_adminauthority)'>
+ 					
+ 				</if>
+ 			</if>
+ 			<!-- End. -->
+		</where>
+	</select>
+	
+	<select id="list" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+			<choose>
+				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+				<otherwise>ORDER BY (SELECT 1)</otherwise>
+			</choose>
+			) AS ROWNUM
+			, XX.* FROM (
+		SELECT 
+			SO.ORDERNO, SO.ORDERTY, SO.LINE_NO, SO.ORDER_DT, SO.REQUEST_DT, SO.ACTUAL_SHIP_DT, SO.CUST_CD, SO.CUST_NM, SO.SHIPTO_CD, SO.SHIPTO_NM
+        	, SO.ADD1, SO.ADD2, SO.ADD4, SO.ZIP_CD, SO.COMPANY, SO.PLANT_CD, SO.PLANT_DESC, SO.ITEM_CD, SO.ITEM_DESC, SO.ORDER_QTY, SO.UNIT, (CAST(SO.PRIMARY_QTY AS FLOAT) * CAST(OH.X AS FLOAT) / OH.Y) AS PRIMARY_QTY
+        	, OH.HEBE_UM AS UNIT1, SO.SECOND_QTY, SO.UNIT2, SO.WEIGHT, SO.WEIGHT_UNIT, SO.AMOUNT, SO.STATUS1, SO.STATUS2, SO.STATUS_DESC, SO.DRIVER_PHONE
+        	<!-- 2024-10-15 HSG 주석 처리 후 아래 코드 삽입 , SO.SHIPMENT_CD_3PL, SO.CUST_PO, SO.ORDER_TAKER, SO.HOLD_CODE, SO.TRUCK_NO, SO.SALESREP_CD, SO.SALESREP_NM, SO.TEAM_CD, SO.TEAM_NM, SO.BUILDING_TYPE, SO.INSERT_DT-->
+        	/*, SO.SHIPMENT_CD_3PL*/, SO.CUST_PO, SO.ORDER_TAKER, SO.HOLD_CODE, SO.TRUCK_NO, SO.SALESREP_CD, SO.SALESREP_NM, SO.TEAM_CD, SO.TEAM_NM, SO.BUILDING_TYPE, SO.INSERT_DT
+        	, SO.PRICE, SO.ADD3, SO.REQUEST_TIME, SO.DUMMY
+        	<!-- 2025-03-24 hsg Super Kick : 조회목폭에 LOTN 항목 추가 요청 -->
+        	, (SELECT LOTN FROM QMS_SALESORDER qs WHERE SO.ORDERNO = qs.ORDERNO AND SO.LINE_NO = qs.LINE_NO) AS LOTN
+		FROM O_SALESORDER SO
+			LEFT JOIN O_ITEM_HEBE OH ON OH.ITEM_CD = SO.ITEM_CD
+			LEFT JOIN O_ITEM_MFG MFG ON SO.ITEM_CD = MFG.ITEM_CD
+		<where>
+			<if test="wherebody_status != null and wherebody_status != '' ">
+				${wherebody_status}
+			</if>
+			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="r_requestsdt != null and r_requestsdt != '' ">AND SO.REQUEST_DT <![CDATA[>=]]> #{r_requestsdt}</if>
+			<if test="r_requestedt != null and r_requestedt != '' ">AND SO.REQUEST_DT <![CDATA[<=]]> #{r_requestedt}</if>
+			<if test="r_orderno != null and r_orderno != '' ">AND SO.ORDERNO = #{r_orderno}</if>
+			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%'</if> <!-- 오더번호 -->
+			<if test="rl_custpo != null and rl_custpo != '' ">AND SO.CUST_PO LIKE '%' + #{rl_custpo} + '%'</if> <!-- 고객주문번호 -->
+			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if> <!-- 품목명 -->
+			<if test="r_salescd1nm != null and r_salescd1nm != '' ">
+				AND SO.ITEM_CD IN ( SELECT ITEM_CD FROM O_ITEM_NEW WHERE SALES_CD1_NM = #{r_salescd1nm} )
+			</if> <!-- 품목분류 코드1 -->
+			<if test="r_salescd2nm != null and r_salescd2nm != '' ">
+				AND SO.ITEM_CD IN ( SELECT ITEM_CD FROM O_ITEM_NEW WHERE SALES_CD2_NM = #{r_salescd2nm} )
+			</if> <!-- 품목분류 코드2 -->
+			<if test="r_salescd3nm != null and r_salescd3nm != '' ">
+				AND SO.ITEM_CD IN ( SELECT ITEM_CD FROM O_ITEM_NEW WHERE SALES_CD3_NM = #{r_salescd3nm} )
+			</if> <!-- 품목분류 코드3 -->
+			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if> 
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if>
+			<if test="r_truckno != null and r_truckno != '' ">AND SO.TRUCK_NO = #{r_truckno}</if>
+			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if> 
+			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if> 
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND SO.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND SO.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">
+				AND SO.CUST_CD IN (SELECT CUST_CD FROM O_CUSTOMER WHERE SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%')
+			</if>
+			<!-- 2025-04-17 hsg don't say goodbay : E-Order 전체주문현황 납품주소 검색 조건 수정 요청 건 -->
+			<if test="rl_add1 != null and rl_add1 != '' ">AND (SO.ADD1 + ISNULL(SO.ADD2, '')) LIKE '%' + #{rl_add1} + '%'</if>
+			<if test="r_insertsdt != null and r_insertsdt != '' ">AND SO.INSERT_DT <![CDATA[>=]]> #{r_insertsdt}</if>
+			<if test="r_insertedt != null and r_insertedt != '' ">AND SO.INSERT_DT <![CDATA[<=]]> #{r_insertedt}</if>
+			<!-- 관리자 권한에 따른 조건절 -->
+ 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+ 				<if test='"AD".equals(r_adminauthority)'>
+ 				</if>
+ 				<if test='"CS".equals(r_adminauthority)'>
+ 					AND SO.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+ 				</if>
+ 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+ 					<if test='"SH".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SM".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SR".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD = #{r_adminuserid}
+ 					</if>
+ 				</if>
+ 				<if test='"MK".equals(r_adminauthority)'>
+ 					
+ 				</if>
+ 			</if>
+ 			<!-- End. -->
+		</where>
+		
+		) XX ) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+	
+	<select id="cntGroup" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) FROM(
+		
+		SELECT ORDERNO
+		FROM O_SALESORDER SO
+		<where>
+			<if test="wherebody_status != null and wherebody_status != '' ">
+				${wherebody_status}
+			</if>
+			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="r_orderno != null and r_orderno != '' ">AND SO.ORDERNO = #{r_orderno}</if>
+			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%'</if> <!-- 오더번호 -->
+			<if test="rl_custpo != null and rl_custpo != '' ">AND SO.CUST_PO LIKE '%' + #{rl_custpo} + '%'</if> <!-- 고객주문번호 -->
+			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if> 
+			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if> 
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if>
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND SO.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND SO.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">
+				AND SO.CUST_CD IN (SELECT CUST_CD FROM O_CUSTOMER WHERE SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%')
+			</if>
+			<if test="rl_add1 != null and rl_add1 != '' ">AND SO.ADD1 LIKE '%' + #{rl_add1} + '%'</if>
+			
+			<if test="r_insertsdt != null and r_insertsdt != '' ">AND SO.INSERT_DT <![CDATA[>=]]> #{r_insertsdt}</if>
+			<if test="r_insertedt != null and r_insertedt != '' ">AND SO.INSERT_DT <![CDATA[<=]]> #{r_insertedt}</if>
+			<!-- 관리자 권한에 따른 조건절 -->
+ 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+ 				<if test='"AD".equals(r_adminauthority)'>
+ 				</if>
+ 				<if test='"CS".equals(r_adminauthority)'>
+ 					AND SO.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+ 				</if>
+ 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+ 					<if test='"SH".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SM".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+ 					</if>
+ 					<if test='"SR".equals(r_adminauthority)'>
+ 						AND SO.SALESREP_CD = #{r_adminuserid}
+ 					</if>
+ 				</if>
+ 				<if test='"MK".equals(r_adminauthority)'>
+ 					
+ 				</if>
+ 			</if>
+		</where>
+		GROUP BY ORDERNO
+		
+		) ORDN
+	</select>
+	
+	<select id="cntForItem" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) FROM (
+		
+		SELECT ITEM_DESC, UNIT
+		FROM O_SALESORDER SO
+		<where>
+			<if test="wherebody_status != null and wherebody_status != '' ">
+				${wherebody_status}
+			</if>
+			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%'</if> <!-- 오더번호 -->
+			<if test="rl_custpo != null and rl_custpo != '' ">AND SO.CUST_PO LIKE '%' + #{rl_custpo} + '%'</if> <!-- 고객주문번호 -->
+			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if> 
+			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if> 
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND SO.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND SO.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'</if>
+		</where>
+		GROUP BY SO.ITEM_DESC, SO.UNIT) S
+	</select>
+	
+	<select id="listForItem" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+				ROW_NUMBER() OVER(
+				<choose>
+					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+					<otherwise>ORDER BY (SELECT 1)</otherwise>
+				</choose>
+				) AS ROWNUM
+				, XX.* FROM (
+		
+		SELECT 
+			ITEM_DESC, UNIT
+			, SUM(ORDER_QTY) AS ORDER_QTY
+		FROM O_SALESORDER SO
+		<where>
+			<if test="wherebody_status != null and wherebody_status != '' ">
+				${wherebody_status}
+			</if>
+			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%'</if> <!-- 오더번호 -->
+			<if test="rl_custpo != null and rl_custpo != '' ">AND SO.CUST_PO LIKE '%' + #{rl_custpo} + '%'</if> <!-- 고객주문번호 -->
+			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if> 
+			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if> 
+			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND SO.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND SO.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'</if>
+		</where>
+		GROUP BY SO.ITEM_DESC, SO.UNIT
+		) XX ) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+	
+	<select id="getOrderNoGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT ORDERNO, CUST_CD, TRUCK_NO
+		FROM O_SALESORDER  
+		<where>
+			<if test="ri_orderno != null">
+   				AND ORDERNO IN <foreach collection="ri_orderno" item="order_no" separator="," open="(" close=")">#{order_no}</foreach>
+   			</if>
+   			<if test=" r_shiptocd != null and r_shiptocd != '' ">AND SHIPTO_CD = #{r_shiptocd}</if>
+		</where>
+		GROUP BY ORDERNO, CUST_CD, TRUCK_NO
+	</select>
+	
+	<!-- Start. 납품확인서 리스트 -->
+	<select id="getOrderShipGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT SHIPTO_CD
+		FROM O_SALESORDER  
+		<where>
+			<if test=" r_wherebody != null and r_wherebody != '' ">AND ${r_wherebody}</if>
+		</where>
+		GROUP BY SHIPTO_CD
+	</select>
+	
+	<!-- 2024-10-15 HSG 사용하지 않음 -->
+	<select id="getOrderShipNmGroup_hsg_20241002" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			'' AS SHIPTO_CD,
+			SHIPTO_NM
+		FROM
+			O_SALESORDER
+		<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			</where>
+		GROUP BY
+			SHIPTO_NM
+		ORDER BY SHIPTO_NM ASC
+	</select>
+	
+	<!-- 2024-10-02 hsg SHIPTO_CD가 공백('')으로 되어 있어서 SHIPTO_CD를 GROUP BY에 추가한 다음 조회 때 컬럼값을 가져오도록 수정 -->
+	<select id="getOrderShipNmGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT
+		<!-- 2024-11-04 hsg imir-83 출고자료 중복으로 나타남 - SHIPTO_NM별로 여러개의 SHIPTO_CD 생성 되기때문에 MAX값을 불러오도록 수정 -->
+			MAX(SHIPTO_CD) AS SHIPTO_CD,
+			SHIPTO_NM
+		FROM
+			O_SALESORDER
+		<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+				<!-- 2024-10-29 HSG  대상오더 추출기준 : STATUS1 >= '580' AND STATUS1 <> '980' -->
+				AND	STATUS1 <![CDATA[>=]]> '580'
+				AND STATUS1 <![CDATA[<>]]> '980'
+			</where>
+		GROUP BY
+			SHIPTO_NM<!-- 2024-11-04 hsg imir-83 출고자료 중복으로 나타남 - SHIPTO_NM별로 여러개의 SHIPTO_CD 생성 되기때문에 MAX값을 가져오도록 SHIPTOP_CD는 주석처리, SHIPTO_CD -->
+		ORDER BY SHIPTO_NM ASC
+	</select>
+	
+	<select id="getCntReportFor1020" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*)
+		FROM ( 
+		
+			SELECT SO.ACTUAL_SHIP_DT
+			       , SO.ITEM_DESC
+			       , SO.ADD1
+				<if test='r_hebechk == null or r_hebechk == "" '>
+			       , SO.UNIT
+			       , SUM(SO.ORDER_QTY) AS ORDER_QTY
+				</if>
+				<if test='r_hebechk != null and r_hebechk == "Y" '>
+			       , SO.UNIT1 AS UNIT
+				   <!-- 2024-11-05 hsg CHOBIT-001 헤베수량 표시: 소수점 첫째 자리에서 반올림 적용필요. , SUM(SO.PRIMARY_QTY) AS ORDER_QTY -->
+				   , ROUND( SUM(CASE WHEN SO.STATUS1 = '980' THEN 0 ELSE SO.PRIMARY_QTY END), 0) AS ORDER_QTY
+				</if>
+			FROM O_SALESORDER SO 
+			<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+				<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+				<if test="ri_add1 != null">
+	   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+	   			</if>
+				<if test="ri_itemdesc != null">
+	   				AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+	   			</if>
+	   			AND SO.STATUS1 <![CDATA[>=]]> '580'
+			</where>
+			GROUP BY ACTUAL_SHIP_DT
+			         , ITEM_DESC
+				<if test='r_hebechk == null or r_hebechk == "" '>, UNIT</if>
+				<if test='r_hebechk != null and r_hebechk == "Y" '>, UNIT1</if>
+			         , ADD1 
+		
+		) SUB
+	</select>
+	
+	<select id="getReportFor1020" parameterType="hashmap" resultType="hashmap">
+ 		SELECT SUB.*
+		FROM ( 
+		
+			SELECT SO.ACTUAL_SHIP_DT
+			       , SO.ITEM_DESC
+			       , SO.ADD1
+				<if test='r_hebechk == null or r_hebechk == "" '>
+			       , SO.UNIT
+			       <!-- 2024-11-04 hsg imir-92 "헤베수량" 나타나지 않음. - 현재 운영(오라클)서버의 xml 소스와 동기화 작업. , SUM(SO.ORDER_QTY) AS ORDER_QTY -->
+			       , SUM(CASE WHEN SO.STATUS1 = '980' THEN 0 ELSE SO.ORDER_QTY END) AS ORDER_QTY
+				</if>
+				<if test='r_hebechk != null and r_hebechk == "Y" '>
+			       <!-- 2024-11-04 hsg imir-92 "헤베수량" 나타나지 않음. - 현재 운영(오라클)서버의 xml 소스와 동기화 작업. , SO.UNIT1 AS UNIT
+			       , SUM(SO.PRIMARY_QTY) AS ORDER_QTY -->
+			       , (CASE WHEN OH.HEBE_UM IS NULL THEN (SELECT DISTINCT UNIT FROM O_SALESORDER WHERE ITEM_DESC = SO.ITEM_DESC) ELSE OH.HEBE_UM END) AS UNIT 
+			       , ROUND( SUM(CASE WHEN SO.STATUS1 = '980' 
+						THEN 0
+						ELSE (
+							CASE WHEN OH.ITEM_CD IS NOT NULL 
+							<!-- 2024-11-05 hsg CHOBIT-001 헤베수량 표시: 소수점 첫째 자리에서 반올림 적용필요. INT형을 FLOAT형으로 형변환 -->
+							THEN CAST(SO.PRIMARY_QTY AS FLOAT) * CAST(OH.X AS FLOAT) / OH.Y
+							ELSE SO.PRIMARY_QTY
+							END
+						) END), 0) AS ORDER_QTY
+			       
+				</if>
+			       , SUBSTRING(SO.ITEM_CD, 1, 3) AS ITEM_CD_3
+			       , CASE WHEN MFG.MFG IS NULL THEN '크나우프 석고보드㈜' ELSE MFG.MFG END  AS MANUFACT
+			FROM O_SALESORDER SO 
+			LEFT JOIN O_ITEM_HEBE OH ON OH.ITEM_CD = SO.ITEM_CD
+			LEFT JOIN O_ITEM_MFG MFG ON SO.ITEM_CD = MFG.ITEM_CD
+			<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+				<!-- <if test="r_shiptocd != null and r_shiptocd != '' ">AND SHIPTO_CD = #{r_shiptocd}</if> -->
+				<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+				<if test="ri_add1 != null">
+	   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+	   			</if>
+				<if test="ri_itemdesc != null">
+	   				AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+	   			</if>
+	   			AND SO.STATUS1 >= '580' AND SO.STATUS1 <![CDATA[ <> ]]> '980'
+			</where>
+			GROUP BY ACTUAL_SHIP_DT
+			         , ITEM_DESC
+				<if test='r_hebechk == null or r_hebechk == "" '>, SO.UNIT</if>
+				<if test='r_hebechk != null and r_hebechk == "Y" '>, OH.HEBE_UM</if>
+			         , ADD1
+			         , SUBSTRING(SO.ITEM_CD, 1, 3)
+					 , MFG.MFG
+		
+		) SUB
+		
+		<if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if>
+	</select>
+	
+	<select id="getReportFor1121" parameterType="hashmap" resultType="hashmap">
+		SELECT SUB.*
+		FROM ( 
+
+			SELECT 
+				GRP.ITEM_DESC
+				, CASE GROUPING(GRP.ACTUAL_SHIP_DT)
+					 WHEN 1 THEN 
+					'소계'
+					 ELSE ACTUAL_SHIP_DT END AS ACTUAL_SHIP_DT
+				, SUM(GRP.ORDER_QTY) AS SUM_ORDER_QTY
+				<!-- 2024-11-04 hsg imir-87 출고자료 중복으로 나타남 - group by 에서 빠진 항목은 max 처리함. , GRP.UNIT
+				, GRP.ITEM_CD_3
+				, GRP.ADD1 --> 
+                , CASE GROUPING(GRP.ACTUAL_SHIP_DT) WHEN 1 THEN  '' ELSE MAX(GRP.UNIT) END AS UNIT
+                , CASE GROUPING(GRP.ACTUAL_SHIP_DT) WHEN 1 THEN  '' ELSE MAX(GRP.ITEM_CD_3) END AS ITEM_CD_3
+				<!-- 2024-11-04 hsg imir-88 “제조사” 나타나지 않음 - 제조사 추가 -->
+                , CASE GROUPING(GRP.ACTUAL_SHIP_DT) WHEN 1 THEN  '' ELSE MAX(GRP.MANUFACT) END AS MANUFACT
+                , CASE GROUPING(GRP.ACTUAL_SHIP_DT) WHEN 1 THEN  '' ELSE MAX(GRP.ADD1) END AS ADD1
+			FROM (
+		
+				SELECT SO.ACTUAL_SHIP_DT
+				       , SO.ITEM_DESC
+				       , SO.ADD1
+				<if test='r_hebechk == null or r_hebechk == "" '>
+				       , SO.UNIT
+				       <!-- 2024-11-04 hsg imir-92 "헤베수량" 나타나지 않음. - 현재 운영(오라클)서버의 xml 소스와 동기화 작업. , SUM(SO.ORDER_QTY) AS ORDER_QTY -->
+				       , SUM(CASE WHEN SO.STATUS1 = '980' THEN 0 ELSE SO.ORDER_QTY END) AS ORDER_QTY
+				</if>
+				<if test='r_hebechk != null and r_hebechk == "Y" '>
+				       <!-- 2024-11-04 hsg imir-92 "헤베수량" 나타나지 않음. - 현재 운영(오라클)서버의 xml 소스와 동기화 작업. , SO.UNIT1 AS UNIT
+				       , SUM(SO.PRIMARY_QTY) AS ORDER_QTY -->
+				       , (CASE WHEN OH.HEBE_UM IS NULL THEN (SELECT DISTINCT UNIT FROM O_SALESORDER WHERE ITEM_DESC = SO.ITEM_DESC) ELSE OH.HEBE_UM END) AS UNIT
+				       , ROUND( SUM(CASE WHEN SO.STATUS1 = '980' 
+							THEN 0
+							ELSE (
+								CASE WHEN OH.ITEM_CD IS NOT NULL 
+								<!-- 2024-11-05 hsg CHOBIT-001 헤베수량 표시: 소수점 첫째 자리에서 반올림 적용필요. INT형을 FLOAT형으로 형변환 -->
+								THEN CAST(SO.PRIMARY_QTY AS FLOAT) * CAST(OH.X AS FLOAT) / OH.Y
+								ELSE SO.PRIMARY_QTY
+								END
+							) END), 0) AS ORDER_QTY
+				</if>
+				       , SUBSTRING(SO.ITEM_CD, 1, 3) AS ITEM_CD_3 
+						<!-- 2024-11-04 hsg imir-88 “제조사” 나타나지 않음 - 제조사 추가 -->
+				       , CASE WHEN MFG.MFG IS NULL THEN '크나우프 석고보드㈜' ELSE MFG.MFG END  AS MANUFACT
+				FROM O_SALESORDER SO  
+				<!-- 2024-11-04 hsg imir-88 “제조사” 나타나지 않음 - 제조사 추가 하기 위해 O_ITEM_MFG 테이블과 조인. -->
+				LEFT JOIN O_ITEM_HEBE OH ON OH.ITEM_CD = SO.ITEM_CD
+				LEFT JOIN O_ITEM_MFG MFG ON SO.ITEM_CD = MFG.ITEM_CD
+				<where>
+					<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+					<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+					<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+					<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+					<if test="ri_add1 != null">
+		   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+		   			</if>
+					<if test="ri_itemdesc != null">
+		   				AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+		   			</if>
+					<!-- 2024-11-04 hsg imir-87 출고자료 중복으로 나타남 - 조회조건 추가 -->
+					AND	STATUS1 <![CDATA[>=]]> '580'
+					AND STATUS1 <![CDATA[<>]]> '980'
+				</where>
+				GROUP BY ITEM_DESC
+				         , ACTUAL_SHIP_DT
+				<if test='r_hebechk == null or r_hebechk == "" '>, SO.UNIT</if>
+				<if test='r_hebechk != null and r_hebechk == "Y" '>, OH.HEBE_UM</if>
+				         , ADD1
+				         , SUBSTRING(SO.ITEM_CD, 1, 3)
+				         , MFG.MFG
+			) GRP
+			
+			GROUP BY GRP.ITEM_DESC, GRP.ACTUAL_SHIP_DT<!-- 2024-11-04 hsg imir-87 출고자료 중복으로 나타남 - rollup 문으로인해 중복데이터 발생하는 것 같아 나머지 주석처리. , GRP.UNIT, GRP.ITEM_CD_3, GRP.ADD1 --> WITH ROLLUP
+			HAVING GROUPING(GRP.ITEM_DESC) = 0
+			
+		) SUB
+		
+		<if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if>
+	</select>
+	
+	<!-- 2024-11-04 hsg imir-87 출고자료 중복으로 나타남 - group by 에서 빠진 항목은 max 처리함.  -->
+	<select id="getReportFor1222_hsg20241104" parameterType="hashmap" resultType="hashmap">
+		SELECT SUB.*
+		FROM ( 
+			SELECT SO.ITEM_DESC
+			       , SO.UNIT
+			       , MAX(SO.SHIPTO_NM) AS SHIPTO_NM
+			       , SUM(SO.ORDER_QTY) AS ORDER_QTY
+			       , SO.UNIT1 AS UNIT1
+			       , SUM(SO.PRIMARY_QTY) AS PRIMARY_QTY
+			       , SUBSTRING(ITEM_CD, 1, 3) AS ITEM_CD_3 
+			FROM O_SALESORDER SO  
+			<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+				<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+				<if test="ri_add1 != null">
+	   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+	   			</if>
+				<if test="ri_itemdesc != null">
+	   				AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+	   			</if>
+			</where>
+			GROUP BY ITEM_DESC
+			         , UNIT
+			         , UNIT1
+			         , SUBSTRING(ITEM_CD, 1, 3)
+		) SUB
+		<if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if>
+	</select>
+	
+	<select id="getReportFor1222" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			SUB.ITEM_DESC
+			, SUB.UNIT
+			, SUB.SHIPTO_NM
+			, SUB.ORDER_QTY
+			, (CASE WHEN SUB.UNIT1 IS NULL THEN SUB.UNIT ELSE SUB.UNIT1 END) AS UNIT1
+			, SUB.PRIMARY_QTY
+			, SUB.ITEM_CD_3
+			, SUB.MANUFACT
+		FROM ( 
+			SELECT SO.ITEM_DESC
+			       , SO.UNIT
+			       , MAX(SO.SHIPTO_NM) AS SHIPTO_NM
+			       , SUM(CASE WHEN SO.STATUS1 = '980' THEN 0 ELSE SO.ORDER_QTY END) AS ORDER_QTY
+			       , OH.HEBE_UM AS UNIT1
+			       , ROUND( SUM(CASE WHEN SO.STATUS1 = '980' 
+				       	THEN 0 
+				       	ELSE (
+							CASE WHEN OH.ITEM_CD IS NOT NULL 
+							<!-- 2024-11-05 hsg CHOBIT-001 헤베수량 표시: 소수점 첫째 자리에서 반올림 적용필요. INT형을 FLOAT형으로 형변환 -->
+							THEN CAST(SO.PRIMARY_QTY AS FLOAT) * CAST(OH.X AS FLOAT) / OH.Y
+							ELSE SO.PRIMARY_QTY
+							END
+				       	) END), 0) AS PRIMARY_QTY
+			       , SUBSTRING(SO.ITEM_CD, 1, 3) AS ITEM_CD_3 
+			       , CASE WHEN MFG.MFG IS NULL THEN '크나우프 석고보드㈜' ELSE MFG.MFG END  AS MANUFACT
+			FROM O_SALESORDER SO  
+			LEFT JOIN O_ITEM_HEBE OH ON OH.ITEM_CD = SO.ITEM_CD
+			LEFT JOIN O_ITEM_MFG MFG ON SO.ITEM_CD = MFG.ITEM_CD
+			<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+				<!-- <if test="r_shiptocd != null and r_shiptocd != '' ">AND SHIPTO_CD = #{r_shiptocd}</if> -->
+				<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+				<if test="ri_add1 != null">
+	   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+	   			</if>
+				<if test="ri_itemdesc != null">
+	   				AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+	   			</if>
+	   			AND SO.STATUS1 >= '580' AND SO.STATUS1 <![CDATA[ <> ]]> '980'
+			</where>
+			GROUP BY ITEM_DESC
+			         , SO.UNIT
+			         , OH.HEBE_UM
+			         , SUBSTRING(SO.ITEM_CD, 1, 3)
+			         , MFG.MFG
+		) SUB
+		<!-- WHERE SUB.ORDER_QTY > 0 -->
+		<if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if>
+	</select>
+
+
+	<select id="getReportPeriodDate" parameterType="hashmap" resultType="hashmap">
+		SELECT MIN(ACTUAL_SHIP_DT) AS START_DATE, MAX(ACTUAL_SHIP_DT) AS END_DATE 
+		FROM O_SALESORDER SO  
+		<where>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+			<if test="ri_add1 != null">
+   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+   			</if>
+			<if test="ri_itemdesc != null">
+   				AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+   			</if>
+		</where>
+	</select>
+	
+	<select id="getOrderAdd1Group" parameterType="hashmap" resultType="hashmap">
+		SELECT MIN(ACTUAL_SHIP_DT) AS START_DT, MAX(ACTUAL_SHIP_DT) AS END_DT
+		FROM O_SALESORDER  
+		<where>
+			<if test=" r_wherebody != null and r_wherebody != '' ">AND ${r_wherebody}</if>
+		</where>
+		GROUP BY ACTUAL_SHIP_DT
+	</select>
+	
+	<select id="getOrderAdd1Group2" parameterType="hashmap" resultType="hashmap">
+		SELECT AD.* FROM (
+		
+		SELECT ADD1
+		FROM O_SALESORDER  
+		<where>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+		</where>
+		GROUP BY ADD1
+		
+		) AD
+		
+		ORDER BY AD.ADD1 ASC
+	</select>
+	
+	<select id="getOrderItemDescGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT IT.* FROM (
+	
+		SELECT ITEM_DESC
+		FROM O_SALESORDER  A
+		<where>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+			<if test="ri_add1 != null">
+   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+   			</if>
+   			<!-- 2024-11-25 hsg getman suplex alpha eOrder 납품확인서 품목선택 POP-UP에서 판매하지 않는 품목 제외 요청 -->
+   			AND EXISTS ( SELECT * FROM O_ITEM_NEW O WHERE A.ITEM_CD = O.ITEM_CD AND O.SALES_CD3 != 'DAP42600' )
+		</where>
+		GROUP BY ITEM_DESC
+		
+		) IT		
+		ORDER BY IT.ITEM_DESC ASC
+	</select>
+	
+	<select id="getDeliveryPaperList" parameterType="hashmap" resultType="hashmap">
+		SELECT SO.*
+			, (SELECT SALESREP_NM FROM O_CUSTOMER CU WHERE CU.CUST_CD = SO.CUST_CD) AS NOW_SALES_NM
+		FROM O_SALESORDER SO  
+		<where>
+			<if test=" r_wherebody != null and r_wherebody != '' ">AND ${r_wherebody}</if>
+			<if test=" r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_CD = TRIM(#{r_shiptonm})</if>
+			<if test=" r_itemdesc != null and r_itemdesc != '' ">AND ITEM_DESC = TRIM(#{r_itemdesc})</if>
+			<if test=" r_add1 != null and r_add1 != '' ">AND ADD1 = TRIM(#{r_add1})</if>
+		</where>
+		ORDER BY ${r_orderby}
+	</select>
+	
+	<select id="getDeliveryPaperListForItemGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT A.* 
+		    , COUNT(*) OVER(PARTITION BY ITEM_DESC) AS ITEM_CNT
+		    , SUM(ORDER_QTY) OVER(PARTITION BY ITEM_DESC) AS ITEM_SUM
+		FROM(
+		    SELECT SO.ORDERNO, SO.ORDERTY, SO.LINE_NO, SO.CUST_CD, SO.CUST_NM, SO.SHIPTO_NM, SO.ITEM_DESC, SO.ACTUAL_SHIP_DT, SO.UNIT, SO.ADD1, SO.ADD2, SO.ORDER_QTY
+		    , (SELECT SALESREP_NM FROM O_CUSTOMER CU WHERE CU.CUST_CD = SO.CUST_CD) AS NOW_SALES_NM 
+		    FROM O_SALESORDER SO
+		    <where>
+				<if test=" r_wherebody != null and r_wherebody != '' ">AND ${r_wherebody}</if>
+				<if test=" r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+				<if test=" r_itemdesc != null and r_itemdesc != '' ">AND ITEM_DESC = TRIM(#{r_itemdesc})</if>
+				<if test=" r_add1 != null and r_add1 != '' ">AND ADD1 = TRIM(#{r_add1})</if>
+			</where>  
+		) A
+		ORDER BY ${r_orderby} 
+	</select>
+	<!-- End. 납품확인서 리스트 -->
+	
+	<select id="getCustInfoForReport" parameterType="hashmap" resultType="hashmap">
+		SELECT CUST_NM, SALESREP_NM
+			<if test="r_shiptonm != null and r_shiptonm != '' ">, TRIM(#{r_shiptonm}) AS SHIPTO_NM</if>
+		FROM O_CUSTOMER
+		<where>
+			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+		</where>
+	</select>
+	
+	<!-- Start. 배차완료 푸시를 위한. -->
+	<select id="getListForSendPush" parameterType="hashmap" resultType="hashmap">
+		SELECT SALL.*, US.USERID, US.USER_APPPUSHKEY
+		FROM ( 
+		
+			SELECT SO.*, REPLACE(SO.CUST_PO, ' ', '') AS SO_CUSTPO, SOP.*
+			FROM O_SALESORDER SO
+				LEFT JOIN SALESORDERPUSH SOP ON SO.ORDERNO = SOP.SOP_ORDERNO AND SO.ORDERTY = SOP.SOP_ORDERTY AND SO.LINE_NO = SOP.SOP_LINENO
+			<where>
+				AND (SOP.SOP_PUSHYN530 IS NULL OR ISNULL(SOP.SOP_PUSHYN530, ' ') = ' ')
+				<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+				<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+				<if test="r_status2 != null and r_status2 != '' ">AND SO.STATUS2 = #{r_status2}</if>
+			</where>
+		
+		) SALL
+			LEFT JOIN O_ORDER_CONFIRM_H OCH ON SALL.SO_CUSTPO = OCH.CUST_PO
+			LEFT JOIN O_USER US ON REPLACE(OCH.USERID, ' ', '') = US.USERID
+		<where>
+			AND (ISNULL(SALL.SO_CUSTPO, ' ') != ' ')
+			AND (US.USER_APPPUSHKEY IS NOT NULL AND ISNULL(US.USER_APPPUSHKEY, ' ') != ' ')
+			AND US.USER_APPPUSHYN2 = 'Y'
+		</where>
+	</select>
+	
+	<select id="getListForSendPushGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT US.USERID, US.USER_APPPUSHKEY, COUNT(DISTINCT(SALL.SO_CUSTPO)) AS CNT
+			, MAX(SALL.SO_CUSTPO) AS ORDERNO_MAX
+		FROM ( 
+		
+			SELECT SO.*, REPLACE(SO.CUST_PO, ' ', '') AS SO_CUSTPO, SOP.*
+			FROM O_SALESORDER SO
+				LEFT JOIN SALESORDERPUSH SOP ON SO.ORDERNO = SOP.SOP_ORDERNO AND SO.ORDERTY = SOP.SOP_ORDERTY AND SO.LINE_NO = SOP.SOP_LINENO
+			<where>
+				AND (SOP.SOP_PUSHYN530 IS NULL OR ISNULL(SOP.SOP_PUSHYN530, ' ') = ' ')
+				<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+				<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+				<if test="r_status2 != null and r_status2 != '' ">AND SO.STATUS2 = #{r_status2}</if>
+			</where>
+		
+		) SALL
+			LEFT JOIN O_ORDER_CONFIRM_H OCH ON SALL.SO_CUSTPO = OCH.CUST_PO
+			LEFT JOIN O_USER US ON REPLACE(OCH.USERID, ' ', '') = US.USERID
+		<where>
+			AND (ISNULL(SALL.SO_CUSTPO, ' ') != ' ')
+			AND (US.USER_APPPUSHKEY IS NOT NULL AND ISNULL(US.USER_APPPUSHKEY, ' ') != ' ')
+			AND US.USER_APPPUSHYN2 = 'Y'
+		</where>
+		GROUP BY US.USERID, US.USER_APPPUSHKEY, SALL.SO_CUSTPO
+	</select>
+	
+	<insert id="inSalesOrderPush" parameterType="hashmap">
+		INSERT INTO SALESORDERPUSH(
+			SOP_ORDERNO
+			, SOP_ORDERTY
+			, SOP_LINENO
+			, SOP_CUSTCD
+			, SOP_USERID
+			, SOP_USERAPPPUSHKEY
+			, SOP_PUSHYN530
+		)VALUES(
+			#{m_soporderno}
+			, #{m_soporderty}
+			, #{m_soplineno}
+			, #{m_sopcustcd}
+			, #{m_sopuserid}
+			, #{m_sopuserapppushkey}
+			, #{m_soppushyn530}
+		)
+	</insert>
+	
+	
+	<!-- END. 배차완료 푸시를 위한. -->
+	
+	<select id="syncOrderDeleteUpdate"  statementType="CALLABLE" parameterType="hashmap"  resultType="hashmap">
+		{call SP_ORDER_DELETE_UPDATE() }
+	</select> 
+
+	<!-- ▽▽▽▽▽▽▽▽▽▽▽▽▽▽▽ 2025-03-10  hsg. Jack Hammer : E-order 메일 발송 문의 건. 오라클 xml에만 존재하고 mssql에는 존재하지 않아 오라클에서 복사해 옴 ▽▽▽▽▽▽▽▽▽▽▽▽▽▽▽ -->	
+	<select id="getShiptoListWithQuoteQt" parameterType="hashmap" resultType="hashmap">
+		SELECT S.SHIPTO_CD
+			, S.SHIPTO_NM
+			, S.QUOTE_QT
+			, S.CUST_CD
+		FROM O_SHIPTO S
+		INNER JOIN (SELECT QUOTE_QT FROM O_SHIPTO WHERE SHIPTO_CD = #{m_shiptocd}) A  
+			ON A.QUOTE_QT = S.QUOTE_QT
+		WHERE 1=1 
+			AND S.CUST_CD = #{m_custcd}
+	</select>
+	
+	
+	<select id="syncSalesOrderDeliveryComplete"  statementType="CALLABLE" parameterType="hashmap"  resultType="hashmap">
+		{call SP_SALESORDER_DELIVERY() }
+	</select> 
+	<!-- △△△△△△△△△△△△△△△ 2025-03-10  hsg. Jack Hammer : E-order 메일 발송 문의 건. 오라클 xml에만 존재하고 mssql에는 존재하지 않아 오라클에서 복사해 옴 △△△△△△△△△△△△△△△ -->	
+	
+
+	<!-- ▼▼▼▼▼▼▼▼▼▼▼ 2025-03-28 hsg Sunset Flip : Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회 ▼▼▼▼▼▼▼▼▼▼▼ -->	
+	<select id="getOrderStateList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				'O_SALESORDER' AS TBL_NAME, ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+		  FROM	O_SALESORDER A
+		 WHERE	1 = 1
+		   AND	ORDERNO = #{m_orderno}
+		   AND	LINE_NO = #{m_lineno}
+		UNION	ALL
+		SELECT
+				'QMS_SALESORDER' AS TBL_NAME, ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+		  FROM	QMS_SALESORDER A
+		 WHERE	1 = 1
+		   AND	ORDERNO = #{m_orderno}
+		   AND	LINE_NO = #{m_lineno}
+	</select>
+
+
+	<update id="updateOrderStatusExcel" parameterType="hashmap">
+		UPDATE O_SALESORDER
+		   SET STATUS1 = #{m_statuscd}
+		     , STATUS2 = #{m_status2cd}
+		     , STATUS_DESC = #{m_statusdesc}
+		 WHERE 1 = 1
+		   AND ORDERNO = #{m_orderno}
+		   AND LINE_NO = #{m_lineno}
+	</update>
+	
+	<!-- ▲▲▲▲▲▲▲▲▲▲▲ 2025-03-28 hsg Sunset Flip : Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회 ▲▲▲▲▲▲▲▲▲▲▲ -->	
+
+
+
+</mapper>

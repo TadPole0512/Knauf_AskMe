@@ -1,0 +1,73 @@
+1.납품처명 중복 조치완료
+2.제조사 표시 조치완료
+3.헤베수량 표시: 반올림 적용필요
+
+[헤베수량 검증 예시]
+1.현상/이슈:첨부한	 [계산 예시] 장표에서 보시는 바와 같이 소수점 이하는 절사하고 표시하는 것으로 생각됩니다.
+2.개선요청: 소수점이하 반올림하여 정수로 표시
+
+[계산 예시]
+
+[비교장표]
+/* *********** eorder.o_salesorder.getCntReportFor1020 *********** */
+/* *********** eorder.o_salesorder.getReportFor1020 *********** */
+/* *********** eorder.o_salesorder.getReportPeriodDate *********** */
+/* *********** eorder.o_salesorder.getCustInfoForReport *********** */
+/* *********** eorder.o_salesorder.getReportFor1121 *********** */
+/* *********** eorder.o_salesorder.getReportFor1222 *********** */
+
+
+
+
+
+<!-- 2024-11-05 hsg CHOBIT-001 헤베수량 표시: 소수점 첫째 자리에서 반올림 적용필요.
+
+
+
+
+SELECT
+		SUB.*
+FROM	(
+			SELECT
+					SO.ACTUAL_SHIP_DT ,
+					SO.ITEM_DESC ,
+					SO.ADD1 ,
+					(
+						CASE
+							WHEN OH.HEBE_UM IS NULL THEN ( SELECT DISTINCT UNIT FROM O_SALESORDER WHERE ITEM_DESC = SO.ITEM_DESC)
+							ELSE OH.HEBE_UM
+						END
+					) AS UNIT ,
+					ROUND( SUM(CASE WHEN SO.STATUS1 = '980' THEN 0 ELSE ( CASE WHEN OH.ITEM_CD IS NOT NULL THEN SO.PRIMARY_QTY * OH.X / OH.Y ELSE SO.PRIMARY_QTY END ) END), 1) AS ORDER_QTY ,
+					SUBSTRING(SO.ITEM_CD, 1, 3) AS ITEM_CD_3 ,
+					CASE
+						WHEN MFG.MFG IS NULL THEN '크나우프 석고보드㈜'
+						ELSE MFG.MFG
+					END AS MANUFACT
+			FROM	O_SALESORDER SO
+					LEFT JOIN O_ITEM_HEBE OH
+						ON	OH.ITEM_CD = SO.ITEM_CD
+					LEFT JOIN O_ITEM_MFG MFG
+						ON	SO.ITEM_CD = MFG.ITEM_CD
+			WHERE	ACTUAL_SHIP_DT >= '20240901'
+			AND		ACTUAL_SHIP_DT <= '20240930'
+			AND		CUST_CD = '10178170'
+			AND		SHIPTO_NM = TRIM('무안 오룡 우미건설-예술디자인(주)')
+			AND		ITEM_DESC IN (TRIM('방균 9.5*900*2550 평보드'), TRIM('석고본드'), TRIM('일반 9.5*900*1800 평보드'))
+			AND		SO.STATUS1 >= '580'
+			AND		SO.STATUS1 <> '980'
+			GROUP BY ACTUAL_SHIP_DT , ITEM_DESC , OH.HEBE_UM , ADD1 , SUBSTRING(SO.ITEM_CD, 1, 3) , MFG.MFG
+		) SUB
+ORDER BY SUB.ACTUAL_SHIP_DT ASC, SUB.ITEM_DESC ASC
+;
+
+--20240901(String), 20240930(String), 10178170(String), 무안 오룡 우미건설-예술디자인(주)(String), 방균 9.5*900*2550 평보드(String), 석고본드(String), 일반 9.5*900*1800 평보드(String)
+
+<!-- 2024-11-05 hsg CHOBIT-001 헤베수량 표시: 소수점 첫째 자리에서 반올림 적용필요. INT형을 FLOAT형으로 형변환 -->
+THEN CAST(SO.PRIMARY_QTY AS FLOAT) * CAST(OH.X AS FLOAT) / OH.Y
+
+SELECT 100 * 2295 / 1000;
+SELECT 240 * 162 / 100;
+
+
+

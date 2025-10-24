@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="eorder.o_item_new">
+
+	<!-- ################################### -->
+	<!-- ####### O_ITEM_NEW Table Start. ####### -->
+	<!-- ################################### -->
+
+	<select id="one" parameterType="hashmap" resultType="hashmap">
+		SELECT IT.*, ITI.*
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+		<where>
+			<if test="r_itemcd != null and r_itemcd != '' ">AND ITEM_CD = #{r_itemcd}</if>
+			<if test="rl_itemcd != null and rl_itemcd != '' ">AND ITEM_CD LIKE '%' + #{rl_itemcd} + '%'</if>
+			<if test="r_salescd1nm != null and r_salescd1nm != '' ">AND SALES_CD1_NM = #{r_salescd1nm}</if>
+			<if test="r_salescd2nm != null and r_salescd2nm != '' ">AND SALES_CD2_NM = #{r_salescd2nm}</if>
+			<if test="r_salescd3nm != null and r_salescd3nm != '' ">AND SALES_CD3_NM = #{r_salescd3nm}</if>
+			<if test="r_salescd4nm != null and r_salescd4nm != '' ">AND SALES_CD4_NM = #{r_salescd4nm}</if>
+			<if test="r_desc1 != null and r_desc1 != '' ">AND DESC1 = #{r_desc1}</if>
+			<if test="rl_desc1 != null and rl_desc1 != '' ">AND DESC1 LIKE '%' + #{rl_desc1} + '%'</if>
+			<if test="r_desc2 != null and r_desc2 != '' ">AND DESC2 = #{r_desc2}</if>
+			<if test="rl_desc2 != null and rl_desc2 != '' ">AND DESC2 LIKE '%' + #{rl_desc2} + '%'</if>
+			<if test="rl_searchtext != null and rl_searchtext != '' ">AND SEARCH_TEXT LIKE '%' + #{rl_searchtext} + '%'</if>
+			<if test="rl_thicknm != null and rl_thicknm != '' ">AND THICK_NM LIKE '%' + #{rl_thicknm} + '%'</if>
+			<if test="rl_widthnm != null and rl_widthnm != '' ">AND WIDTH_NM LIKE '%' + #{rl_widthnm} + '%'</if>
+			<if test="rl_lengthnm != null and rl_lengthnm != '' ">AND LENGTH_NM LIKE '%' + #{rl_lengthnm} + '%'</if>
+			<if test='ri_existimageyn != null and "N".equals(ri_existimageyn)'>
+				AND (
+					ITI_FILE1 IS NULL OR ISNULL(ITI_FILE1, ' ') = ' '
+					<!--  
+					OR  ITI_FILE2 IS NULL OR ITI_FILE2 = '' OR ITI_FILE3 IS NULL OR ITI_FILE3 = ''
+					OR ITI_FILE4 IS NULL OR ITI_FILE4 = '' OR ITI_FILE5 IS NULL OR ITI_FILE5 = ''
+					 -->
+				)
+			</if>
+			<if test='ri_existrecommend != null and "N".equals(ri_existrecommend)'>
+				AND 0 >= (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = IT.ITEM_CD)
+			</if>
+			<if test="ri_itstext != null">
+				AND ITEM_CD IN ( SELECT DISTINCT(ITS_ITEMCD) FROM ITEMSEARCH WHERE <foreach collection="ri_itstext" item="its_text" separator="OR" open="(" close=")"> (ITS_TEXT LIKE #{"its_text"} + '%')</foreach> )
+			</if>
+		</where>
+	</select>
+
+	<select id="cntByItemcd" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) FROM O_ITEM_NEW
+		<where>
+		<if test="r_itemcd != null and r_itemcd != '' ">AND ITEM_CD = #{r_itemcd}</if>
+		</where>
+	</select>
+
+	<select id="cnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*)
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid)'>
+<!--			<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid)'>-->
+				LEFT JOIN ITEMBOOKMARK ITB ON IT.ITEM_CD = ITB.ITB_ITEMCD AND ITB.ITB_USERID = #{r_itbuserid}
+			</if>
+		<where>
+			<choose>
+				<when test='r_itemdeliverytype != null and "Y".equals(r_itemdeliverytype)'>
+					AND ITEM_CD IN ('65440', '63111', '254636', '177306')
+				</when>
+				<when test='r_itemdeliverytype != null and "ALL".equals(r_itemdeliverytype)'>
+				</when>
+				<otherwise>
+					AND ITEM_CD NOT IN ('65440', '63111', '254636', '177306')
+				</otherwise>
+			</choose>
+
+			<if test="r_itemcd != null and r_itemcd != '' ">AND ITEM_CD = #{r_itemcd}</if>
+			<if test="rl_itemcd != null and rl_itemcd != '' ">AND ITEM_CD LIKE '%' + #{rl_itemcd} + '%'</if>
+			<if test="r_salescd1nm != null and r_salescd1nm != '' ">AND SALES_CD1_NM = #{r_salescd1nm}</if>
+			<if test="r_salescd2nm != null and r_salescd2nm != '' ">AND SALES_CD2_NM = #{r_salescd2nm}</if>
+			<if test="r_salescd3nm != null and r_salescd3nm != '' ">AND SALES_CD3_NM = #{r_salescd3nm}</if>
+			<if test="r_salescd4nm != null and r_salescd4nm != '' ">AND SALES_CD4_NM = #{r_salescd4nm}</if>
+			<if test="r_desc1 != null and r_desc1 != '' ">AND UPPER(DESC1) = UPPER(#{r_desc1})</if>
+			<if test="rl_desc1 != null and rl_desc1 != '' ">AND UPPER(DESC1) LIKE UPPER('%' + TRIM(#{rl_desc1}) + '%')</if>
+			<if test="r_desc2 != null and r_desc2 != '' ">AND UPPER(DESC2) = UPPER(#{r_desc2})</if>
+			<if test="rl_desc2 != null and rl_desc2 != '' ">AND UPPER(DESC2) LIKE UPPER('%' + TRIM(#{rl_desc2}) + '%')</if>
+			<if test="rl_searchtext != null and rl_searchtext != '' ">AND SEARCH_TEXT LIKE '%' + #{rl_searchtext} + '%'</if>
+			<if test="rl_thicknm != null and rl_thicknm != '' ">AND THICK_NM LIKE '%' + #{rl_thicknm} + '%'</if>
+			<if test="rl_widthnm != null and rl_widthnm != '' ">AND WIDTH_NM LIKE '%' + #{rl_widthnm} + '%'</if>
+			<if test="rl_lengthnm != null and rl_lengthnm != '' ">AND LENGTH_NM LIKE '%' + #{rl_lengthnm} + '%'</if>
+			<if test='ri_existimageyn != null and "N".equals(ri_existimageyn)'>
+				AND (
+					ITI_FILE1 IS NULL OR ISNULL(ITI_FILE1, ' ') = ' '
+					<!--  
+					OR  ITI_FILE2 IS NULL OR ITI_FILE2 = '' OR ITI_FILE3 IS NULL OR ITI_FILE3 = ''
+					OR ITI_FILE4 IS NULL OR ITI_FILE4 = '' OR ITI_FILE5 IS NULL OR ITI_FILE5 = ''
+					 -->
+				)
+			</if>
+			<if test='ri_existrecommend != null and "N".equals(ri_existrecommend)'>
+				AND 0 >= (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = IT.ITEM_CD)
+			</if>
+			<if test="ri_itstext != null">
+				AND ITEM_CD IN ( SELECT DISTINCT(ITS_ITEMCD) FROM ITEMSEARCH WHERE <foreach collection="ri_itstext" item="its_text" separator="OR" open="(" close=")"> (ITS_TEXT LIKE #{"its_text"} + '%')</foreach> )
+			</if>
+			
+			<!-- 프론트 품목 즐겨찾기 조건 -->
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>
+<!--		<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>-->
+				AND ITB.ITB_ITEMCD IS NOT NULL
+			</if>
+			<if test='ri_linety != null and "Y".equals(ri_linety)'>
+				AND IT.LINE_TY = 'Y'
+			</if>
+			<if test='ri_linety != null and "N".equals(ri_linety)'>
+				AND (IT.LINE_TY = 'N' OR IT.LINE_TY IS NULL)
+			</if>
+			AND ((IT.STOCK_TY != 'N') OR (IT.STOCK_TY IS NULL) )
+		</where>
+	</select>
+	
+	<select id="list" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+			<choose>
+				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+				<otherwise>ORDER BY (SELECT 1)</otherwise>
+			</choose>
+			) AS ROWNUM
+			, XX.* FROM (
+		SELECT IT.*, ITI.*
+			, (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = IT.ITEM_CD) AS RECOMMEND_ITEM_COUNT
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid)'>
+			<!-- <if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid)'> -->
+				, (CASE WHEN ITB.ITB_ITEMCD IS NULL THEN 'N' ELSE 'Y' END) AS BOOKMARK_YN
+				, ITB_SORT 
+			</if>
+			<if test='where != null and ("excel".equals(where) or "frontexcel".equals(where))'>
+				, DBMS_LOB.SUBSTR(
+					(SELECT WM_CONCAT(DESC1 + '(' + ITR_RECITEMCD + ')' + '@D@') FROM (SELECT ITR2.ITR_ITEMCD, ITR2.ITR_RECITEMCD, IT2.DESC1 FROM ITEMRECOMMEND ITR2 LEFT JOIN O_ITEM_NEW IT2 ON ITR2.ITR_RECITEMCD = IT2.ITEM_CD ORDER BY ITR_SORT ASC) WHERE ITR_ITEMCD = IT.ITEM_CD GROUP BY ITR_ITEMCD)
+					, 4000, 1
+				) AS ITEM_RECOMMENDS
+			</if>
+			, CASE WHEN SALES_CD1 = 'A' AND (SALES_CD2 IN ('02','06','US1') OR (SALES_CD2 = '76' AND PLAN_FMLY = 'H15') ) THEN 'Y' ELSE 'N' END AS FIREPROOF_YN
+			<!-- 2025-08-20 hsg 내화구조 제품 관련 팝업창 추가 -->
+			, CASE WHEN SALES_CD3 IN ('DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000') THEN 'Y' ELSE 'N' END AS FIREPROOF_ITEM_YN
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid)'>
+			<!-- <if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid)'> -->
+				LEFT JOIN ITEMBOOKMARK ITB ON IT.ITEM_CD = ITB.ITB_ITEMCD AND ITB.ITB_USERID = #{r_itbuserid}
+			</if>
+		<where>
+			<choose>
+				<when test='r_itemdeliverytype != null and "Y".equals(r_itemdeliverytype)'>
+					AND ITEM_CD IN ('65440', '63111', '254636', '177306') /*('W1', 'R1', 'P1', 'F3', 'F2', 'F1')*/
+				</when>
+				<when test='r_itemdeliverytype != null and "ALL".equals(r_itemdeliverytype)'>
+				</when>
+				<otherwise>
+					AND ITEM_CD NOT IN ('65440', '63111', '254636', '177306') /*('W1', 'R1', 'P1', 'F3', 'F2', 'F1')*/
+				</otherwise>
+			</choose>
+			
+			<if test="r_itemcd != null and r_itemcd != '' ">AND ITEM_CD = #{r_itemcd}</if>
+			<if test="rl_itemcd != null and rl_itemcd != '' ">AND ITEM_CD LIKE '%' + #{rl_itemcd} + '%'</if>
+			<if test="r_salescd1nm != null and r_salescd1nm != '' ">AND SALES_CD1_NM = #{r_salescd1nm}</if>
+			<if test="r_salescd2nm != null and r_salescd2nm != '' ">AND SALES_CD2_NM = #{r_salescd2nm}</if>
+			<if test="r_salescd3nm != null and r_salescd3nm != '' ">AND SALES_CD3_NM = #{r_salescd3nm}</if>
+			<if test="r_salescd4nm != null and r_salescd4nm != '' ">AND SALES_CD4_NM = #{r_salescd4nm}</if>
+			<if test="r_desc1 != null and r_desc1 != '' ">AND UPPER(DESC1) = UPPER(#{r_desc1})</if>
+			<if test="rl_desc1 != null and rl_desc1 != '' ">AND UPPER(DESC1) LIKE UPPER('%' + TRIM(#{rl_desc1}) + '%')</if>
+			<if test="r_desc2 != null and r_desc2 != '' ">AND UPPER(DESC2) = UPPER(#{r_desc2})</if>
+			<if test="rl_desc2 != null and rl_desc2 != '' ">AND UPPER(DESC2) LIKE UPPER('%' + TRIM(#{rl_desc2}) + '%')</if>
+			<if test="rl_searchtext != null and rl_searchtext != '' ">AND SEARCH_TEXT LIKE '%' + #{rl_searchtext} + '%'</if>
+			<if test="rl_thicknm != null and rl_thicknm != '' ">AND THICK_NM LIKE '%' + #{rl_thicknm} + '%'</if>
+			<if test="rl_widthnm != null and rl_widthnm != '' ">AND WIDTH_NM LIKE '%' + #{rl_widthnm} + '%'</if>
+			<if test="rl_lengthnm != null and rl_lengthnm != '' ">AND LENGTH_NM LIKE '%' + #{rl_lengthnm} + '%'</if>
+			<if test='ri_existimageyn != null and "N".equals(ri_existimageyn)'>
+				AND (
+					ITI_FILE1 IS NULL OR ISNULL(ITI_FILE1, ' ') = ' '
+					<!--  
+					OR  ITI_FILE2 IS NULL OR ITI_FILE2 = '' OR ITI_FILE3 IS NULL OR ITI_FILE3 = ''
+					OR ITI_FILE4 IS NULL OR ITI_FILE4 = '' OR ITI_FILE5 IS NULL OR ITI_FILE5 = ''
+					 -->
+				)
+			</if>
+			<if test='ri_existrecommend != null and "N".equals(ri_existrecommend)'>
+				AND 0 >= (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = IT.ITEM_CD)
+			</if>
+			<if test="ri_itstext != null">
+				AND ITEM_CD IN ( SELECT DISTINCT(ITS_ITEMCD) FROM ITEMSEARCH WHERE <foreach collection="ri_itstext" item="its_text" separator="OR" open="(" close=")"> (ITS_TEXT LIKE #{"its_text"} + '%')</foreach> )
+			</if>
+			
+			<!-- 프론트 품목 즐겨찾기 조건 -->
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>
+<!--		<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>-->
+				AND ITB.ITB_ITEMCD IS NOT NULL
+			</if>
+			<if test='ri_linety != null and "Y".equals(ri_linety)'>
+				AND IT.LINE_TY = 'Y'
+			</if>
+			<if test='ri_linety != null and "N".equals(ri_linety)'>
+				AND (IT.LINE_TY = 'N' OR IT.LINE_TY IS NULL)
+			</if>
+			AND ((IT.STOCK_TY != 'N') OR (IT.STOCK_TY IS NULL) )
+		</where>
+		
+		<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if> -->
+		) XX ) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+		<!-- <where>
+			<if test="r_endrow != null and r_endrow != ''"><![CDATA[ROWNUM <= #{r_endrow}]]></if>		
+		</where> )
+		<where>
+			<if test="r_startrow != null and r_startrow != ''"><![CDATA[RR >= #{r_startrow}]]></if>
+		</where> -->
+	</select>
+	
+	<select id="itemManageCnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*)
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid)'>
+<!--			<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid)'>-->
+				LEFT JOIN ITEMBOOKMARK ITB ON IT.ITEM_CD = ITB.ITB_ITEMCD AND ITB.ITB_USERID = #{r_itbuserid}
+			</if>
+		<where>
+			<choose>
+				<when test='r_itemdeliverytype != null and "Y".equals(r_itemdeliverytype)'>
+					AND ITEM_CD IN ('65440', '63111', '254636', '177306') 
+				</when>
+				<when test='r_itemdeliverytype != null and "ALL".equals(r_itemdeliverytype)'>
+				</when>
+				<otherwise>
+					AND ITEM_CD NOT IN ('65440', '63111', '254636', '177306')
+				</otherwise>
+			</choose>
+			<!-- 2024-10-22 hsg 구분방법은 O_ITEM_NEW.SALES_CD3 항목의 값이 아래 목록에 해당하는 품목만 대상으로 합니다
+			QMS 대상 품목 기준값 : 'DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000' -->
+			AND 	IT.SALES_CD3 IN ('DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000')
+
+			<if test="r_itemcd != null and r_itemcd != '' ">AND ITEM_CD = #{r_itemcd}</if>
+			<if test="rl_itemcd != null and rl_itemcd != '' ">AND ITEM_CD LIKE '%' + #{rl_itemcd} + '%'</if>
+			<if test="r_salescd1nm != null and r_salescd1nm != '' ">AND SALES_CD1_NM = #{r_salescd1nm}</if>
+			<if test="r_salescd2nm != null and r_salescd2nm != '' ">AND SALES_CD2_NM = #{r_salescd2nm}</if>
+			<if test="r_salescd3nm != null and r_salescd3nm != '' ">AND SALES_CD3_NM = #{r_salescd3nm}</if>
+			<if test="r_salescd4nm != null and r_salescd4nm != '' ">AND SALES_CD4_NM = #{r_salescd4nm}</if>
+			<if test="r_desc1 != null and r_desc1 != '' ">AND UPPER(DESC1) = UPPER(#{r_desc1})</if>
+			<if test="rl_desc1 != null and rl_desc1 != '' ">AND UPPER(DESC1) LIKE UPPER('%' + TRIM(#{rl_desc1}) + '%')</if>
+			<if test="r_desc2 != null and r_desc2 != '' ">AND UPPER(DESC2) = UPPER(#{r_desc2})</if>
+			<if test="rl_desc2 != null and rl_desc2 != '' ">AND UPPER(DESC2) LIKE UPPER('%' + TRIM(#{rl_desc2}) + '%')</if>
+			<if test="rl_searchtext != null and rl_searchtext != '' ">AND SEARCH_TEXT LIKE '%' + #{rl_searchtext} + '%'</if>
+			<if test="rl_thicknm != null and rl_thicknm != '' ">AND THICK_NM LIKE '%' + #{rl_thicknm} + '%'</if>
+			<if test="rl_widthnm != null and rl_widthnm != '' ">AND WIDTH_NM LIKE '%' + #{rl_widthnm} + '%'</if>
+			<if test="rl_lengthnm != null and rl_lengthnm != '' ">AND LENGTH_NM LIKE '%' + #{rl_lengthnm} + '%'</if>
+			<if test='ri_existimageyn != null and "N".equals(ri_existimageyn)'>
+				AND (
+					ITI_FILE1 IS NULL OR ISNULL(ITI_FILE1, ' ') = ' '
+					<!--  
+					OR  ITI_FILE2 IS NULL OR ITI_FILE2 = '' OR ITI_FILE3 IS NULL OR ITI_FILE3 = ''
+					OR ITI_FILE4 IS NULL OR ITI_FILE4 = '' OR ITI_FILE5 IS NULL OR ITI_FILE5 = ''
+					 -->
+				)
+			</if>
+			<if test='ri_existrecommend != null and "N".equals(ri_existrecommend)'>
+				AND 0 >= (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = IT.ITEM_CD)
+			</if>
+			<if test="ri_itstext != null">
+				AND ITEM_CD IN ( SELECT DISTINCT(ITS_ITEMCD) FROM ITEMSEARCH WHERE <foreach collection="ri_itstext" item="its_text" separator="OR" open="(" close=")"> (ITS_TEXT LIKE #{"its_text"} + '%')</foreach> )
+			</if>
+			
+			<!-- 프론트 품목 즐겨찾기 조건 -->
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>
+<!--		<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>-->
+				AND ITB.ITB_ITEMCD IS NOT NULL
+			</if>
+			<if test='ri_linety != null and "Y".equals(ri_linety)'>
+				AND IT.LINE_TY = 'Y'
+			</if>
+			<if test='ri_linety != null and "N".equals(ri_linety)'>
+				AND (IT.LINE_TY = 'N' OR IT.LINE_TY IS NULL)
+			</if>
+		</where>
+	</select>
+	
+	<select id="itemManageList" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+				ROW_NUMBER() OVER(
+				<choose>
+					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+					<otherwise>ORDER BY (SELECT 1)</otherwise>
+				</choose>
+				) AS ROWNUM
+				, XX.* FROM (
+		SELECT IT.ITEM_CD,
+			IT.DESC1, 
+			IT.DESC2, 
+			(CASE WHEN IT.LINE_TY IS NULL THEN 'N'
+				ELSE IT.LINE_TY
+				END) AS  LINE_TY,
+			IT.SALES_CD1_NM,
+			IT.SALES_CD2_NM,
+			IT.SALES_CD3_NM,
+			IT.UNIT4
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid)'>
+			<!-- <if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid)'> -->
+				LEFT JOIN ITEMBOOKMARK ITB ON IT.ITEM_CD = ITB.ITB_ITEMCD AND ITB.ITB_USERID = #{r_itbuserid}
+			</if>
+		<where>
+			<choose>
+				<when test='r_itemdeliverytype != null and "Y".equals(r_itemdeliverytype)'>
+					AND ITEM_CD IN ('65440', '63111', '254636', '177306') /*('W1', 'R1', 'P1', 'F3', 'F2', 'F1')*/
+				</when>
+				<when test='r_itemdeliverytype != null and "ALL".equals(r_itemdeliverytype)'>
+				</when>
+				<otherwise>
+					AND ITEM_CD NOT IN ('65440', '63111', '254636', '177306') /*('W1', 'R1', 'P1', 'F3', 'F2', 'F1')*/
+				</otherwise>
+			</choose>
+			<!-- 2024-10-22 hsg 구분방법은 O_ITEM_NEW.SALES_CD3 항목의 값이 아래 목록에 해당하는 품목만 대상으로 합니다
+			QMS 대상 품목 기준값 : 'DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000' -->
+			AND 	IT.SALES_CD3 IN ('DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000')
+
+			<if test="r_itemcd != null and r_itemcd != '' ">AND ITEM_CD = #{r_itemcd}</if>
+			<if test="rl_itemcd != null and rl_itemcd != '' ">AND ITEM_CD LIKE '%' + #{rl_itemcd} + '%'</if>
+			<if test="r_salescd1nm != null and r_salescd1nm != '' ">AND SALES_CD1_NM = #{r_salescd1nm}</if>
+			<if test="r_salescd2nm != null and r_salescd2nm != '' ">AND SALES_CD2_NM = #{r_salescd2nm}</if>
+			<if test="r_salescd3nm != null and r_salescd3nm != '' ">AND SALES_CD3_NM = #{r_salescd3nm}</if>
+			<if test="r_salescd4nm != null and r_salescd4nm != '' ">AND SALES_CD4_NM = #{r_salescd4nm}</if>
+			<if test="r_desc1 != null and r_desc1 != '' ">AND UPPER(DESC1) = UPPER(#{r_desc1})</if>
+			<if test="rl_desc1 != null and rl_desc1 != '' ">AND UPPER(DESC1) LIKE UPPER('%' + TRIM(#{rl_desc1}) + '%')</if>
+			<if test="r_desc2 != null and r_desc2 != '' ">AND UPPER(DESC2) = UPPER(#{r_desc2})</if>
+			<if test="rl_desc2 != null and rl_desc2 != '' ">AND UPPER(DESC2) LIKE UPPER('%' + TRIM(#{rl_desc2}) + '%')</if>
+			<if test="rl_searchtext != null and rl_searchtext != '' ">AND SEARCH_TEXT LIKE '%' + #{rl_searchtext} + '%'</if>
+			<if test="rl_thicknm != null and rl_thicknm != '' ">AND THICK_NM LIKE '%' + #{rl_thicknm} + '%'</if>
+			<if test="rl_widthnm != null and rl_widthnm != '' ">AND WIDTH_NM LIKE '%' + #{rl_widthnm} + '%'</if>
+			<if test="rl_lengthnm != null and rl_lengthnm != '' ">AND LENGTH_NM LIKE '%' + #{rl_lengthnm} + '%'</if>
+			<if test='ri_existimageyn != null and "N".equals(ri_existimageyn)'>
+				AND (
+					ITI_FILE1 IS NULL OR ISNULL(ITI_FILE1, ' ') = ' '
+				)
+			</if>
+			<if test='ri_existrecommend != null and "N".equals(ri_existrecommend)'>
+				AND 0 >= (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = IT.ITEM_CD)
+			</if>
+			<if test="ri_itstext != null">
+				AND ITEM_CD IN ( SELECT DISTINCT(ITS_ITEMCD) FROM ITEMSEARCH WHERE <foreach collection="ri_itstext" item="its_text" separator="OR" open="(" close=")"> (ITS_TEXT LIKE #{"its_text"} + '%')</foreach> )
+			</if>
+			
+			<!-- 프론트 품목 즐겨찾기 조건 -->
+			<if test='r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>
+<!--		<if test='where != null and ("front".equals(where) or "frontexcel".equals(where)) and r_itbuserid != null and !"".equals(r_itbuserid) and r_checkitembookmark != null and "Y".equals(r_checkitembookmark)'>-->
+				AND ITB.ITB_ITEMCD IS NOT NULL
+			</if>
+			<if test='ri_linety != null and "Y".equals(ri_linety)'>
+				AND IT.LINE_TY = 'Y'
+			</if>
+			<if test='ri_linety != null and "N".equals(ri_linety)'>
+				AND (IT.LINE_TY = 'N' OR IT.LINE_TY IS NULL)
+			</if>
+		</where>
+		
+		<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if> -->
+		) XX ) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+		<!-- <where>
+			<if test="r_endrow != null and r_endrow != ''"><![CDATA[ROWNUM <= #{r_endrow}]]></if>		
+		</where> )
+		<where>
+			<if test="r_startrow != null and r_startrow != ''"><![CDATA[RR >= #{r_startrow}]]></if>
+		</where> -->
+	</select>
+	
+	<select id="listForCategory" parameterType="hashmap" resultType="hashmap">
+		SELECT CT.* FROM(
+		
+		SELECT ${r_groupby} AS CATEGORY_NAME
+			<!-- 
+			<if test='r_ctlevel != null and "1".equals(r_ctlevel)'>SALES_CD1_NM AS CATEGORY_NAME</if>
+			<if test='r_ctlevel != null and "2".equals(r_ctlevel)'>SALES_CD2_NM AS CATEGORY_NAME</if>
+			<if test='r_ctlevel != null and "3".equals(r_ctlevel)'>SALES_CD3_NM AS CATEGORY_NAME</if>
+			<if test='r_ctlevel != null and "4".equals(r_ctlevel)'>SALES_CD4_NM AS CATEGORY_NAME</if>
+			 -->
+		FROM O_ITEM_NEW
+		<where>
+			<if test="r_salescd1nm != null and r_salescd1nm != '' ">AND SALES_CD1_NM = #{r_salescd1nm}</if>
+			<if test="r_salescd2nm != null and r_salescd2nm != '' ">AND SALES_CD2_NM = #{r_salescd2nm}</if>
+			<if test="r_salescd3nm != null and r_salescd3nm != '' ">AND SALES_CD3_NM = #{r_salescd3nm}</if>
+			<if test="r_salescd4nm != null and r_salescd4nm != '' ">AND SALES_CD4_NM = #{r_salescd4nm}</if>
+		</where>
+
+		<if test=" r_groupby != null and r_groupby != '' ">GROUP BY ${r_groupby}</if>
+		) CT
+		<where>
+			ISNULL(CT.CATEGORY_NAME, ' ') != ' '
+		</where>
+		
+		ORDER BY CT.CATEGORY_NAME ASC
+	</select>
+	
+	<!-- ##################################### -->
+	<!-- ####### ITEMINFO Table Start. ####### -->
+	<!-- ##################################### -->
+	
+	<update id="mergeInfo" parameterType="hashmap">
+		MERGE INTO ITEMINFO
+		<!-- 2024-11-06 hsg PlayStation4 mybatis의 sql 파일은 XML로 작성하는데, 흔히 사용하는 SQL의 주석처리 방법 dashdash은 XML에서 사용하는 문법이 아니기 때문에 발생. 
+		- - USING DUAL ON (ITI_ITEMCD = #{m_itiitemcd})-->
+		USING (SELECT 1 AS dual) AS D ON (ITI_ITEMCD = #{m_itiitemcd})
+		WHEN MATCHED THEN 
+			UPDATE SET 
+				ITI_PALLET = #{m_itipallet}
+				<if test="m_itisearchword != null and m_itisearchword != ''">
+				, ITI_SEARCHWORD = #{m_itisearchword}
+				</if>
+				, ITI_LINK = #{m_itilink}
+				<if test="m_itifile1 != null and m_itifile1 != ''">
+					, ITI_FILE1 = #{m_itifile1}
+					, ITI_FILE1TYPE = #{m_itifile1type}
+				</if>
+				<if test="m_itifile2 != null and m_itifile2 != ''">
+					, ITI_FILE2 = #{m_itifile2}
+					, ITI_FILE2TYPE = #{m_itifile2type}
+				</if>
+				<if test="m_itifile3 != null and m_itifile3 != ''">
+					, ITI_FILE3 = #{m_itifile3}
+					, ITI_FILE3TYPE = #{m_itifile3type}
+				</if>
+				<if test="m_itifile4 != null and m_itifile4 != ''">
+					, ITI_FILE4 = #{m_itifile4}
+					, ITI_FILE4TYPE = #{m_itifile4type}
+				</if>
+				<if test="m_itifile5 != null and m_itifile5 != ''">
+					, ITI_FILE5 = #{m_itifile5}
+					, ITI_FILE5TYPE = #{m_itifile5type}
+				</if>
+				, ITI_SORT = #{m_itisort}
+				, ITI_MOID = #{m_itiinid}
+				, ITI_MODATE = GETDATE()
+		WHEN NOT MATCHED THEN
+			INSERT (
+				ITI_ITEMCD
+				, ITI_PALLET
+				, ITI_SEARCHWORD
+				, ITI_LINK
+				, ITI_FILE1
+				, ITI_FILE1TYPE
+				, ITI_FILE2
+				, ITI_FILE2TYPE
+				, ITI_FILE3
+				, ITI_FILE3TYPE
+				, ITI_FILE4
+				, ITI_FILE4TYPE
+				, ITI_FILE5
+				, ITI_FILE5TYPE
+				, ITI_SORT
+				, ITI_INID
+				, ITI_INDATE
+			)VALUES(
+				#{m_itiitemcd}
+				, #{m_itipallet}
+				, #{m_itisearchword}
+				, #{m_itilink}
+				, #{m_itifile1}
+				, #{m_itifile1type}
+				, #{m_itifile2}
+				, #{m_itifile2type}
+				, #{m_itifile3}
+				, #{m_itifile3type}
+				, #{m_itifile4}
+				, #{m_itifile4type}
+				, #{m_itifile5}
+				, #{m_itifile5type}
+				, #{m_itisort}
+				, #{m_itiinid}
+				, GETDATE()
+			) ;
+	</update>
+	
+	<update id="upInfoForFile" parameterType="hashmap">
+		UPDATE ITEMINFO ITI
+		<set>
+			<if test='r_delfile1 != null and "Y".equals(r_delfile1)'>ITI_FILE1 = NULL, ITI_FILE1TYPE = NULL,</if>
+			<if test='r_delfile2 != null and "Y".equals(r_delfile2)'>ITI_FILE2 = NULL, ITI_FILE2TYPE = NULL,</if>
+			<if test='r_delfile3 != null and "Y".equals(r_delfile3)'>ITI_FILE3 = NULL, ITI_FILE3TYPE = NULL,</if>
+			<if test='r_delfile4 != null and "Y".equals(r_delfile4)'>ITI_FILE4 = NULL, ITI_FILE4TYPE = NULL,</if>
+			<if test='r_delfile5 != null and "Y".equals(r_delfile5)'>ITI_FILE5 = NULL, ITI_FILE5TYPE = NULL,</if>
+		</set>
+		<where>
+			AND ITI_ITEMCD = #{r_itiitemcd}
+		</where>
+	</update>
+
+	<select id="oneInfo" parameterType="hashmap" resultType="hashmap">
+		SELECT ITI.*
+		FROM ITEMINFO ITI
+		<where>
+			<if test="r_itiitemcd != null and r_itiitemcd != '' ">AND ITI_ITEMCD = #{r_itiitemcd}</if>
+			<if test="r_itipallet != null and r_itipallet != '' ">AND ITI_PALLET = #{r_itipallet}</if>
+			<if test="r_itifile1 != null and r_itifile1 != '' ">AND ITI_FILE1 = #{r_itifile1}</if>
+			<if test="r_itifile1type != null and r_itifile1type != '' ">AND ITI_FILE1TYPE = #{r_itifile1type}</if>
+			<if test="r_itifile2 != null and r_itifile2 != '' ">AND ITI_FILE2 = #{r_itifile2}</if>
+			<if test="r_itifile2type != null and r_itifile2type != '' ">AND ITI_FILE2TYPE = #{r_itifile2type}</if>
+			<if test="r_itifile3 != null and r_itifile3 != '' ">AND ITI_FILE3 = #{r_itifile3}</if>
+			<if test="r_itifile3type != null and r_itifile3type != '' ">AND ITI_FILE3TYPE = #{r_itifile3type}</if>
+			<if test="r_itifile4 != null and r_itifile4 != '' ">AND ITI_FILE4 = #{r_itifile4}</if>
+			<if test="r_itifile4type != null and r_itifile4type != '' ">AND ITI_FILE4TYPE = #{r_itifile4type}</if>
+			<if test="r_itifile5 != null and r_itifile5 != '' ">AND ITI_FILE5 = #{r_itifile5}</if>
+			<if test="r_itifile5type != null and r_itifile5type != '' ">AND ITI_FILE5TYPE = #{r_itifile5type}</if>
+		</where>
+	</select>
+
+	<!-- ########################################## -->
+	<!-- ####### ITEMRECOMMEND Table Start. ####### -->
+	<!-- ########################################## -->
+	
+	<insert id="inRecommend" parameterType="hashmap">
+		INSERT INTO ITEMRECOMMEND(
+			ITR_ITEMCD
+			, ITR_RECITEMCD
+			, ITR_SORT
+		)VALUES(
+			#{m_itritemcd}
+			, #{m_itrrecitemcd}
+			, #{m_itrsort}
+		)
+	</insert>
+	
+	<update id="inRecommendByArr" parameterType="hashmap">
+		<foreach collection="itemRecommendList" item="itemRecommend" index="index" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+		INTO ITEMRECOMMEND(
+			ITR_ITEMCD
+			, ITR_RECITEMCD
+			, ITR_SORT
+		)VALUES(
+			#{itemRecommend.ITR_ITEMCD}
+			, #{itemRecommend.ITR_RECITEMCD}
+			, #{itemRecommend.ITR_SORT}
+		)
+        </foreach>
+        
+		<!-- 	
+		INSERT INTO ITEMRECOMMEND(
+			ITR_ITEMCD
+			, ITR_RECITEMCD
+			, ITR_SORT
+		)VALUES
+		<foreach collection="itemRecommendList" item="itemRecommend" separator=" , ">
+            (#{itemRecommend.ITR_ITEMCD}, #{itemRecommend.ITR_RECITEMCD}, #{itemRecommend.ITR_SORT})
+        </foreach>
+         -->
+	</update>
+	
+	<delete id="delRecommend" parameterType="hashmap">
+		DELETE FROM ITEMRECOMMEND
+		<where>
+			AND ITR_ITEMCD = #{r_itritemcd}
+		</where>
+	</delete>
+	
+	<select id="listRecommend" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+				ROW_NUMBER() OVER(
+				<choose>
+					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+					<otherwise>ORDER BY (SELECT 1)</otherwise>
+				</choose>
+				) AS ROWNUM
+				, XX.* FROM (
+		
+		SELECT ITR.*, IT.*, ITI.*
+			, (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = IT.ITEM_CD) AS RECOMMEND_ITEM_COUNT
+		FROM ITEMRECOMMEND ITR
+			LEFT JOIN O_ITEM_NEW IT ON ITR.ITR_RECITEMCD = IT.ITEM_CD
+			LEFT JOIN ITEMINFO ITI ON ITR.ITR_RECITEMCD = ITI.ITI_ITEMCD
+		<where>
+			<if test="r_itritemcd != null and r_itritemcd != '' ">AND ITR_ITEMCD = #{r_itritemcd}</if>
+			<if test="r_itemcd != null and r_itemcd != '' ">AND ITEM_CD = #{r_itemcd}</if>
+		</where>
+		
+		<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if> -->
+		) XX ) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+		<!-- <where>
+			<if test="r_endrow != null and r_endrow != ''"><![CDATA[ROWNUM <= #{r_endrow}]]></if>		
+		</where> )
+		<where>
+			<if test="r_startrow != null and r_startrow != ''"><![CDATA[RR >= #{r_startrow}]]></if>
+		</where> -->
+	</select>
+
+	<!-- ########################################## -->
+	<!-- ####### ITEMSEARCH Table Start. ####### -->
+	<!-- ########################################## -->
+	
+	<insert id="inSearch" parameterType="hashmap">
+		INSERT INTO ITEMRECOMMEND(
+			ITS_ITEMCD
+			, ITS_TEXT
+			, ITS_TYPE
+		)VALUES(
+			#{m_itsitemcd}
+			, #{m_itstext}
+			, #{m_itstype}
+		)
+	</insert>
+	
+	<update id="inSearchByArr" parameterType="hashmap">
+		<foreach collection="itemSearchList" item="itemSearch" index="index" separator=" " open="INSERT ALL" close="SELECT * FROM DUAL">
+		INTO ITEMSEARCH(
+			ITS_ITEMCD
+			, ITS_TEXT
+			, ITS_TYPE
+		)VALUES(
+			#{itemSearch.ITS_ITEMCD}
+			, #{itemSearch.ITS_TEXT}
+			, #{itemSearch.ITS_TYPE}
+		)
+        </foreach>
+        
+		<!-- 
+		INSERT INTO ITEMSEARCH(
+			ITS_ITEMCD
+			, ITS_TEXT
+			, ITS_TYPE
+		)VALUES
+		<foreach collection="itemSearchList" item="itemSearch" separator=" , ">
+            (#{itemSearch.ITS_ITEMCD}, #{itemSearch.ITS_TEXT}, #{itemSearch.ITS_TYPE})
+        </foreach>
+         -->
+	</update>
+	
+	<delete id="delSearch" parameterType="hashmap">
+		DELETE FROM ITEMSEARCH
+		<where>
+			AND ITS_ITEMCD = #{r_itsitemcd}
+		</where>
+	</delete>
+	
+	<!-- ########################################## -->
+	<!-- ####### ITEMBOOKMARK Table Start. ####### -->
+	<!-- ########################################## -->
+	
+	<insert id="mergeBookmark" parameterType="hashmap">
+		MERGE INTO ITEMBOOKMARK
+		USING (SELECT 1 AS dual) AS D ON (ITB_ITEMCD = #{m_itbitemcd} AND ITB_USERID = #{m_itbuserid})
+		WHEN MATCHED THEN 
+			UPDATE SET 
+				ITB_SORT = <choose>
+					<when test="m_itbsort != null and m_itbsort != '' ">#{m_itbsort}</when>
+					<otherwise>(SELECT ISNULL(MAX(ITB_SORT), 0)+1 FROM ITEMBOOKMARK WHERE ITB_USERID = #{m_itbuserid})</otherwise>
+				</choose>
+				, ITB_INID = #{m_itbinid}
+				<!-- 2024-11-06 hsg PlayStation4 , SYSDATE를 GETDATE()로 수정 -->
+				, ITB_INDATE = GETDATE()
+		WHEN NOT MATCHED THEN
+			INSERT (
+				ITB_ITEMCD
+				, ITB_USERID
+				, ITB_SORT
+				, ITB_INID
+				, ITB_INDATE
+			)VALUES(
+				#{m_itbitemcd}
+				, #{m_itbuserid}
+				, <choose>
+					<when test="m_itbsort != null and m_itbsort != '' ">#{m_itbsort}</when>
+					<otherwise>(SELECT ISNULL(MAX(ITB_SORT), 0)+1 FROM ITEMBOOKMARK WHERE ITB_USERID = #{m_itbuserid})</otherwise>
+				</choose>
+				, #{m_itbinid}
+				<!-- 2024-11-06 hsg PlayStation4 , SYSDATE를 GETDATE()로 수정 -->
+				, GETDATE()
+			) ;
+	</insert>
+	
+	<select id="listBookmarkForInsert" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM ITEMBOOKMARK
+		<where>
+			<if test="r_itbuserid != null and r_itbuserid != '' ">AND ITB_USERID = #{r_itbuserid}</if>
+			<if test="r_itbitemcd != null and r_itbitemcd != '' ">AND ITB_ITEMCD = #{r_itbitemcd}</if>
+			<if test="rni_itbitemcd != null">
+				AND ITB_ITEMCD NOT IN <foreach collection="rni_itbitemcd" item="itb_itemcd" separator="," open="(" close=")">#{itb_itemcd}</foreach>
+			</if>
+		</where>
+	</select>
+	
+	<delete id="delBookmark" parameterType="hashmap">
+		DELETE FROM ITEMBOOKMARK
+		<where>
+			AND ITB_USERID = #{r_itbuserid}
+			<if test="ri_itbitemcd != null">
+				AND ITB_ITEMCD IN <foreach collection="ri_itbitemcd" item="itb_itemcd" separator="," open="(" close=")">#{itb_itemcd}</foreach>
+			</if>
+		</where>
+	</delete>
+	
+	<select id="cntForBookmark" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) FROM ITEMBOOKMARK ITB LEFT JOIN O_ITEM_NEW IT ON ITB.ITB_ITEMCD = IT.ITEM_CD
+		<where>
+			<if test="r_itbuserid != null and r_itbuserid != '' ">AND ITB.ITB_USERID = #{r_itbuserid}</if>
+			<choose>
+				<when test='r_itemdeliverytype != null and "Y".equals(r_itemdeliverytype)'>
+					AND IT.ITEM_CD IN ('W1', 'R1', 'P1', 'F3', 'F2', 'F1')
+				</when>
+				<when test='r_itemdeliverytype != null and "ALL".equals(r_itemdeliverytype)'>
+				</when>
+				<otherwise>
+					AND IT.ITEM_CD NOT IN ('W1', 'R1', 'P1', 'F3', 'F2', 'F1')
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+	
+	<select id="listItemMcu" parameterType="hashmap" resultType="hashmap">
+		<!-- SELECT ITM.ITEM_CD  FROM O_ITEM_MCU ITM
+		<where>
+			<if test="r_itemmcu != null and r_itemmcu != '' "> AND ITM.ITEM_MCU = #{r_itemmcu}</if>
+			<if test="r_desc1 != null and r_desc1 != '' "> AND REGEXP_REPLACE(ITM.DESC1, ' |,' ,'') = REGEXP_REPLACE(#{r_desc1}, ' |,' ,'')</if>
+		</where>
+		GROUP BY ITM.ITEM_CD -->
+		
+		SELECT ITM.ITEM_CD  
+		FROM O_ITEM_MCU ITM
+		LEFT JOIN
+			O_ITEM_NEW OIN 
+			ON OIN.ITEM_CD = ITM.ITEM_CD
+		<where>
+			AND (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL)
+			<if test="r_itemmcu != null and r_itemmcu != '' "> AND ITM.ITEM_MCU = #{r_itemmcu}</if>
+			<if test="r_desc1 != null and r_desc1 != '' "> AND REPLACE(ITM.DESC1,' ','') = REPLACE(#{r_desc1},' ','')</if>
+		</where>
+		GROUP BY ITM.ITEM_CD
+	</select>
+	
+	<update id="updateLineTy" parameterType="hashmap">
+		UPDATE O_ITEM_NEW
+		SET LINE_TY = #{r_lineTy}
+		WHERE ITEM_CD = #{r_itemCd}
+	</update>
+	
+	<!-- 납품처 사용 품목 기록 삭제할 데이터 insert 2025-08-20 psy-->
+	<insert id="inShipToUse" parameterType="hashmap">
+		INSERT INTO O_ITEM_SHIPTOUSE(
+			ITEM_CD, SHIPTO_CD, USE_YN
+		)VALUES(
+			#{m_itemcd}, #{m_shiptocd}, 'Y'
+		)
+	</insert>
+	
+	<!-- 주문등록 납품처 선택 시 사용했던 품목 모두 출력 2025-05-22 ijy -->
+	<select id="getShiptoCustOrderAllItemListAjax" parameterType="hashmap" resultType="hashmap">
+        SELECT 
+               E.ITI_FILE1,
+               C.ITEM_CD,
+               C.DESC1,
+               C.DESC2,
+               C.THICK_NM,
+               C.WIDTH_NM,
+               C.LENGTH_NM,
+               C.UNIT4,
+               E.ITI_PALLET,
+               E.ITI_LINK,
+               CASE WHEN C.SALES_CD1 = 'A'
+                     AND (C.SALES_CD2 IN ('02','06','US1') OR (C.SALES_CD2 = '76' AND C.PLAN_FMLY = 'H15') )
+                    THEN 'Y' 
+                    ELSE 'N' 
+                END AS FIREPROOF_YN,
+               (SELECT COUNT(*) FROM ITEMRECOMMEND F WHERE F.ITR_ITEMCD = C.ITEM_CD) AS RECOMMEND_ITEM_COUNT,
+               <!-- 2025-08-20 hsg 내화구조 제품 관련 팝업창 추가 -->
+               CASE
+                   WHEN C.SALES_CD3 IN ('DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000')
+                        THEN 'Y'
+                   ELSE 'N'
+               END AS FIREPROOF_ITEM_YN,
+               D.CNT,
+               D.INSERT_DT
+          FROM O_ITEM_NEW C
+         INNER JOIN (
+               SELECT A.ITEM_CD, COUNT(*) CNT , MAX(A.INSERT_DT) INSERT_DT <!-- 수량, 최근일시 둘 중에 하나로 정렬하면 될듯 -->
+                 FROM O_CUST_ORDER_D A 
+                INNER JOIN O_CUST_ORDER_H B 
+                   ON A.REQ_NO = B.REQ_NO 
+                <!--O_ITEM_SHIPTOUSE 테이블은 납품처가 주문한 품목 이력에 대해 삭제할 이력을 저장한다.-->
+                <!-- INNER JOIN O_ITEM_SHIPTOUSE T ON A.ITEM_CD = T.ITEM_CD AND B.SHIPTO_CD = T.SHIPTO_CD AND T.USE_YN = 'Y' -->
+                LEFT JOIN O_ITEM_SHIPTOUSE T ON A.ITEM_CD = T.ITEM_CD AND B.SHIPTO_CD = T.SHIPTO_CD AND T.USE_YN='Y'
+                
+                WHERE B.SHIPTO_CD = #{m_shiptocd} <!-- 납품처 코드 -->
+                AND T.ITEM_CD IS NULL
+                GROUP BY A.ITEM_CD
+                
+               ) D
+            ON C.ITEM_CD = D.ITEM_CD
+          LEFT OUTER JOIN ITEMINFO E
+            ON C.ITEM_CD = E.ITI_ITEMCD
+         WHERE C.ITEM_CD NOT IN ('65440', '63111', '254636', '177306') <!-- 기본 검색 조건은 주문등록 품목검색 팝업과 동일하게 -->
+           AND ((C.STOCK_TY != 'N') OR (C.STOCK_TY IS NULL))
+        <choose>
+           <when test="r_orderby != null and r_orderby != ''">ORDER BY ${r_orderby}</when>
+           <otherwise>ORDER BY ISNULL(E.ITI_SORT, 9999999) ASC, C.DESC1 ASC</otherwise>
+        </choose>
+	</select>
+</mapper>

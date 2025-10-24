@@ -1,0 +1,135 @@
+
+
+/* *********** eorder.orderAddressBookmark.cnt *********** */
+;
+
+	SELECT	COUNT(*)
+	  FROM	ORDERADDRESSBOOKMARK OAB
+	 -- WHERE	OAB_USERID = '10177560'
+	 WHERE	OAB_USERID = '10178191'
+;
+
+
+	SELECT	COUNT(*)
+	  FROM	ORDERADDRESSBOOKMARK OAB
+	 -- WHERE	OAB_USERID = '10177560'
+	 WHERE	OAB_USERID = '10178191'
+	   AND	ISNULL(OAB_ADD1, '') LIKE '%%'
+	   AND	ISNULL(OAB_TEL1, '') LIKE '%%'
+	   AND	ISNULL(OAB_TEL2, '') LIKE '%%'
+	   AND	ISNULL(OAB_RECEIVER, '') LIKE '%%'
+;
+
+
+
+	SELECT	COUNT(*)
+	  FROM	ORDERADDRESSBOOKMARK OAB
+	 WHERE	OAB_USERID = '10177560'
+	   AND	ISNULL(OAB_ADD1,'') LIKE '%' + '대구' + '%'
+;
+
+
+
+/* *********** eorder.orderAddressBookmark.list *********** */
+
+	SELECT	*
+	  FROM	(
+				SELECT 
+						ROW_NUMBER() OVER( ORDER BY OAB_INDATE DESC ) AS ROWNUM
+						, XX.*
+				  FROM	(
+							SELECT	OAB.*
+							  FROM	ORDERADDRESSBOOKMARK OAB
+							 -- WHERE	OAB_USERID = '10177560'
+							 WHERE	OAB_USERID = '10178191'
+						) XX
+			) S
+	 WHERE	ROWNUM BETWEEN 1 AND 10
+;
+
+
+
+	SELECT	*
+	  FROM	(
+				SELECT 
+						ROW_NUMBER() OVER( ORDER BY OAB_INDATE DESC ) AS ROWNUM
+						, XX.*
+				  FROM	(
+							SELECT	OAB.*
+							  FROM	ORDERADDRESSBOOKMARK OAB
+							 -- WHERE	OAB_USERID = '10177560'
+							 WHERE	OAB_USERID = '10178191'
+							   AND	ISNULL(OAB_ADD1, '') LIKE '%%'
+							   AND	ISNULL(OAB_TEL1, '') LIKE '%%'
+							   AND	ISNULL(OAB_TEL2, '') LIKE '%%'
+							   AND	ISNULL(OAB_RECEIVER, '') LIKE '%%'
+						) XX
+			) S
+	 WHERE	ROWNUM BETWEEN 1 AND 10
+;
+
+
+
+	SELECT	*
+	FROM	(
+				SELECT 
+						ROW_NUMBER() OVER( ORDER BY OAB_INDATE DESC ) AS ROWNUM
+						, XX.*
+				FROM	(
+							SELECT	OAB.*
+							  FROM	ORDERADDRESSBOOKMARK OAB
+							 WHERE	OAB_USERID = '10177560'
+							   AND	ISNULL(OAB_ADD1,'') LIKE '%' + '대구' + '%' 
+		) XX ) S
+		 WHERE ROWNUM BETWEEN 1 AND 10
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

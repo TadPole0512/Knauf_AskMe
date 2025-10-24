@@ -1,0 +1,180 @@
+http://localhost:8080/eorder/admin/report/deliveryReport.lime
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\ReportCtrl.java
+
+
+40	/**
+41	 * 납품확인서 폼.
+42	 * @작성일 : 2020. 5. 4.
+43	 * @작성자 : kkyu
+44	 */
+45	@GetMapping(value="deliveryReport")
+46	public String deliveryReport(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+47		String today = Converter.dateToStr("yyyy-MM-dd");
+48		model.addAttribute("insdate", today);
+49		model.addAttribute("inedate", today);
+50
+51		return "admin/report/deliveryReport";
+52	}
+
+
+/admin/base/getShiptoListBySalesOrderAjax.lime
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java
+
+296	/**
+297	 * 납품확인서 폼 > 납품처 리스트 가져오기 By O_SALESORDER Ajax.
+298	 * @작성일 : 2020. 6. 1.
+299	 * @작성자 : kkyu
+300	 */
+301	@ResponseBody
+302	@PostMapping(value="/admin/base/getShiptoListBySalesOrderAjax")
+303	public Object getShiptoListBySalesOrderAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+304		return customerSvc.getShipToListBySalesOrder(params, req, loginDto);
+305	}
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CustomerSvc.java
+
+
+167	/**
+168	 * 납품처 리스트 가져오기 By O_SALESORDER.
+169	 * @작성일 : 2020. 6. 1.
+170	 * @작성자 : kkyu
+171	 * @param
+172	 */
+173	public Map<String, Object> getShipToListBySalesOrder(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+174		Map<String, Object> resMap = new HashMap<>();
+175
+176		String authority = loginDto.getAuthority();
+177		if(StringUtils.equals("CO", authority) && StringUtils.equals("CT", authority)) {
+178			params.put("r_custcd", loginDto.getCustCd());
+179			if(StringUtils.equals("CT", authority)) {
+180				params.put("r_shiptocd", loginDto.getShiptoCd());
+181			}
+182		}
+183
+184		//String r_actualshipsdt = Converter.toStr(params.get("r_actualshipsdt"));
+185		//String r_actualshipedt = Converter.toStr(params.get("r_actualshipedt"));
+186		String r_custcd = Converter.toStr(params.get("r_custcd"));
+187		if(StringUtils.equals("", r_custcd)) throw new LimeBizException(MsgCode.DATA_REQUIRE_ERROR2);
+188
+189		List<Map<String, Object>> list = salesOrderDao.getOrderShipNmGroup(params); // 2024-11-01 HSG GOLDENTOOTH 이곳에서 호출한 메서드에서 오류 발생
+190		resMap.put("list", list);
+191		resMap.put("data", list);
+192
+193		return resMap;
+194	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\SalesOrderDao.java
+
+49	public List<Map<String, Object>> getOrderShipNmGroup(Map<String, Object> svcMap) {
+50		return sqlSession.selectList("eorder.o_salesorder.getOrderShipNmGroup", svcMap);
+51	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_salesorder.xml
+
+
+345	<!-- 2024-10-02 hsg SHIPTO_CD가 공백('')으로 되어 있어서 SHIPTO_CD를 GROUP BY에 추가한 다음 조회 때 컬럼값을 가져오도록 수정 -->
+346	<select id="getOrderShipNmGroup" parameterType="hashmap" resultType="hashmap">
+347		SELECT
+348			SHIPTO_CD,
+349			SHIPTO_NM
+350		FROM
+351			O_SALESORDER
+352		<where>
+353				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+354				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+355				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+356				<!-- 2024-10-29 HSG  대상오더 추출기준 : STATUS1 >= '580' AND STATUS1 <> '980' -->
+357				AND	STATUS1 <![CDATA[>=]]> '580'
+358				AND STATUS1 <![CDATA[<>]]> '980'
+359			</where>
+360		GROUP BY
+361			SHIPTO_NM, SHIPTO_CD
+362		ORDER BY SHIPTO_NM ASC
+363	</select>
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+
+[JDE : O_SALESORDER.xml]
+
+	<!-- 2024-10-02 hsg SHIPTO_CD가 공백('')으로 되어 있어서 SHIPTO_CD를 GROUP BY에 추가한 다음 조회 때 컬럼값을 가져오도록 수정 -->
+	<select id="getOrderShipNmGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			SHIPTO_CD,
+			SHIPTO_NM
+		FROM
+			O_SALESORDER
+		<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			</where>
+		GROUP BY
+			SHIPTO_NM, SHIPTO_CD
+		ORDER BY SHIPTO_NM ASC
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

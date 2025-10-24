@@ -1,0 +1,423 @@
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** QMS 조회 및 등록 : http://localhost:8080/eorder/admin/order/qmsOrderList.lime *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\qmsOrderList.jsp *********** */
+
+
+667	// 조회
+	function dataSearch() {
+		$('#detailListDivId').hide();
+
+		var searchData = getSearchData();
+
+		// 조회조건으로 납품처 조회
+		setShipTo();
+
+		$('#gridList').setGridParam({
+			postData : searchData
+		}).trigger("reloadGrid");
+	}
+
+
+
+
+
+633	function getSearchData(){
+		var r_ordersdt = $('input[name="r_ordersdt"]').val();
+		var r_orderedt = $('input[name="r_orderedt"]').val();
+		var r_actualshipsdt = $('input[name="r_actualshipsdt"]').val();
+		var r_actualshipedt = $('input[name="r_actualshipedt"]').val();
+		var rl_salesrepnm = $('input[name="rl_salesrepnm"]').val();
+		var rl_orderno = $('input[name="rl_orderno"]').val();
+		var qmsIdToDown = $('input[name="qmsIdToDown"]').val();
+		var r_custcd = $('input[name="r_custcd"]').val();
+		var r_shiptocd = $('select[name="r_shiptocd"] option:selected').val();
+
+		var qms_status	= $('input[name="qms_status"]:checked').val();
+		var qms_status2 = $('input[name="qms_status2"]:checked').val();
+		var qms_status3 = $('input[name="qms_status3"]:checked').val();
+		var qms_preyn	= $('input[name="qms_preyn"]:checked').val();
+
+		var sData = {
+			r_ordersdt : r_ordersdt
+			, r_orderedt : r_orderedt
+			, r_actualshipsdt : r_actualshipsdt
+			, r_actualshipedt : r_actualshipedt
+			, rl_salesrepnm : rl_salesrepnm
+			, rl_orderno : rl_orderno
+			, qmsIdToDown : qmsIdToDown
+			, r_custcd : r_custcd
+			, r_shiptocd : r_shiptocd
+			, qms_status : qms_status
+			, qms_status2: qms_status2
+			, qms_status3: qms_status3
+			, qms_preyn	 : qms_preyn
+		};
+		return sData;
+	}
+
+
+
+556	// 납품처 불러오기.
+	function setShipTo(cust_cd){
+		var r_shiptocd = $('select[name="r_shiptocd"] option:selected').val();
+
+		var searchData = getSearchData();
+		$.ajax({
+			async : false,
+			url : '${url}/admin/order/getShiptoListAjax.lime',
+			cache : false,
+			type : 'POST',
+			dataType: 'json',
+			data : searchData,
+			success : function(data){
+				$('select[name="r_shiptocd"]').empty();
+
+				var textHtml = '';
+				var selected = '';
+				textHtml += '<option value="">선택하세요</option>';
+				$(data.list).each(function(i,e){
+
+					if(r_shiptocd == e.SHIPTO_CD){
+						selected = 'seleted';
+					}
+
+					textHtml += '<option value="'+e.SHIPTO_CD+'">'+e.SHIPTO_NM+'</option>';
+				});
+
+				$('select[name="r_shiptocd"]').append(textHtml);
+
+				// 기존 납품처가 있다면 자동선택
+				$('select[name="r_shiptocd"]').val(r_shiptocd).attr('selected', 'selected');
+
+			},
+			error : function(request,status,error){
+				alert('Error');
+			}
+		});
+	}
+
+
+
+
+
+/* *********** 납품처 불러오기. : /admin/order/getShiptoListAjax.lime *********** */
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java *********** */
+
+
+1182	/**
+	 * 납품처 리스트 가져오기 Ajax.
+	 * @작성일 : 2020. 5. 30.
+	 * @작성자 : kkyu
+	 */
+	@ResponseBody
+	@PostMapping(value="/admin/order/getShiptoListAjax")
+	public Object getShiptoListAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		params.put("where", "admin");
+
+		// 내부사용자 웹주문현황	> 별도 권한 설정.
+		orderSvc.setParamsForAdminOrderList(params, req, loginDto, model);
+
+		return orderSvc.getShipToList(params, req, loginDto);
+	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+3150	/**
+	 * QMS 납품처 가져오기
+	 * @작성일 : 2021. 5. 24.
+	 * @작성자 : jsh
+	 */
+	public Map<String, Object> getShipToList(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+		Map<String, Object> resMap = new HashMap<>();
+
+		String where = Converter.toStr(params.get("where"));
+
+		String r_ordersdt = Converter.toStr(params.get("r_ordersdt")); // 주문일자 검색 시작일.
+		String r_orderedt = Converter.toStr(params.get("r_orderedt")); // 주문일자 검색 종료일.
+		String r_actualshipsdt = Converter.toStr(params.get("r_actualshipsdt")); // 출고일자 검색 시작일.
+		String r_actualshipedt = Converter.toStr(params.get("r_actualshipedt")); // 출고일자; 검색 종료일.
+		//String r_requestsdt = Converter.toStr(params.get("r_requestsdt")); // 납품요청일 검색 시작일.
+		//String r_requestedt = Converter.toStr(params.get("r_requestedt")); // 납품요청일; 검색 종료일.
+		if(!StringUtils.equals("", r_ordersdt)) r_ordersdt = r_ordersdt.replaceAll("-", "");
+		if(!StringUtils.equals("", r_orderedt)) r_orderedt = r_orderedt.replaceAll("-", "");
+		if(!StringUtils.equals("", r_actualshipsdt)) r_actualshipsdt = r_actualshipsdt.replaceAll("-", "");
+		if(!StringUtils.equals("", r_actualshipedt)) r_actualshipedt = r_actualshipedt.replaceAll("-", "");
+		//if(!StringUtils.equals("", r_requestsdt)) r_requestsdt = r_requestsdt.replaceAll("-", "");
+		//if(!StringUtils.equals("", r_requestedt)) r_requestedt = r_requestedt.replaceAll("-", "");
+
+		String rl_salesrepnm = Converter.toStr(params.get("rl_salesrepnm")); // 영업사원
+		String rl_orderno = Converter.toStr(params.get("rl_orderno")); // 어다반허
+		String r_custcd = Converter.toStr(params.get("r_custcd")); // 거래처
+		String r_shiptocd = Converter.toStr(params.get("r_shiptocd")); // 납품처
+
+		params.put("r_ordersdt", r_ordersdt);
+		params.put("r_orderedt", r_orderedt);
+		params.put("r_actualshipsdt", r_actualshipsdt);
+		params.put("r_actualshipedt", r_actualshipedt);
+		params.put("rl_salesrepnm", rl_salesrepnm);
+		params.put("rl_orderno", rl_orderno);
+		params.put("r_custcd", r_custcd);
+		params.put("r_shiptocd", r_shiptocd);
+
+		// QMS 상태 조회
+		String wherebody_status = "";
+		String qms_status  = params.get("qms_status") !=null?params.get("qms_status").toString():"";
+		String qms_status2 = params.get("qms_status2")!=null?params.get("qms_status2").toString():"";
+		String qms_status3 = params.get("qms_status3")!=null?params.get("qms_status3").toString():"";
+
+		//QMS 사전입력 여부
+		String qms_preyn   = params.get("qms_preyn")!=null?params.get("qms_preyn").toString():"";
+
+		if (!qms_status.equals("ALL")) {
+			// QMS 생성 미완료
+			if(qms_status.equals("N")) {
+				wherebody_status += "SF_GETQMSID(ORDERNO,LINE_NO) IS NULL";
+			}
+			// QMS 생성완료
+			if(qms_status.equals("Y")) {
+				if(wherebody_status.length() > 1) {
+					wherebody_status+= " OR ";
+				}
+				wherebody_status += "SF_GETQMSID(ORDERNO,LINE_NO) IS NOT NULL";
+			}
+		}
+
+		if (!qms_status2.equals("ALL")) {
+			// MAIL 발송 미완료
+			if(qms_status2.equals("N")) {
+				if(wherebody_status.length() > 1) {
+					wherebody_status+= " AND ";
+				}
+				wherebody_status += "SF_GETMAILYN(ORDERNO,LINE_NO) = 'N' ";
+			}
+
+			// MAIL 발송완료
+			if(qms_status2.equals("Y")) {
+				if(wherebody_status.length() > 1) {
+					wherebody_status+= " AND ";
+				}
+				wherebody_status += "SF_GETMAILYN(ORDERNO,LINE_NO) = 'Y' ";
+			}
+		}
+
+		if (!qms_status3.equals("ALL")) {
+			// QMS 회신 미완료
+			if(qms_status3.equals("N")) {
+				if(wherebody_status.length() > 1) {
+					wherebody_status+= " AND ";
+				}
+				wherebody_status += "SF_GETFILEYN(ORDERNO,LINE_NO) = 'N' ";
+			}
+
+			// QMS 회신완료
+			if(qms_status3.equals("Y")) {
+				if(wherebody_status.length() > 1) {
+					wherebody_status+= " AND ";
+				}
+				wherebody_status += "SF_GETFILEYN(ORDERNO,LINE_NO) = 'Y' ";
+			}
+		}
+
+		if (!qms_preyn.equals("ALL")) {
+			// QMS 사전입력
+			if(qms_preyn.equals("Y")) {
+				if(wherebody_status.length() > 1) {
+					wherebody_status+= " AND ";
+				}
+				wherebody_status += "Sf_getpreorderyn(SO.cust_po) = 'Y' ";
+			}
+
+			// QMS 사후입력건
+			if(qms_preyn.equals("N")) {
+				if(wherebody_status.length() > 1) {
+					wherebody_status+= " AND ";
+				}
+				wherebody_status += "Sf_getpreorderyn(SO.cust_po) = 'N' ";
+			}
+		}
+
+		if(!qms_status.equals("ALL") || !qms_status2.equals("ALL") || !qms_status3.equals("ALL") || !qms_preyn.equals("ALL")) {
+			params.put("wherebody_status", wherebody_status);
+		}
+
+
+		// 페이징 없이 End.
+
+		String r_orderby = "";
+		String sidx = Converter.toStr(params.get("sidx")); //정렬기준컬럼
+		String sord = Converter.toStr(params.get("sord")); //내림차순,오름차순
+		r_orderby = sidx + " " + sord;
+	//	2024-10-16 hsg 별칭 오류가 나서 수정. SO -> XX)
+		if(StringUtils.equals("", sidx)) { r_orderby = "XX.ORDERNO DESC, XX.CUST_PO DESC "; } //디폴트 지정
+
+		params.put("r_orderby", r_orderby);
+
+		List<Map<String, Object>> list = this.getQmsOrderShiptoList(params);
+		System.out.println("======================qms list==============================");
+		//System.out.println(list);
+		resMap.put("list", list);
+		resMap.put("data", list);
+
+		resMap.put("where", where);
+
+		return resMap;
+	}
+
+
+
+/* *********** List<Map<String, Object>> list = this.getQmsOrderShiptoList(params); *********** */
+
+3141	/**
+	 * Get 현장 가져오기
+	 * @작성일 : 2021. 5. 24.
+	 * @작성자 : jsh
+	 */
+	public List<Map<String, Object>> getQmsOrderShiptoList(Map<String, Object> svcMap){
+		return qmsOrderDao.getShipToList(svcMap);
+	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+196	   public List<Map<String, Object>> getShipToList(Map<String, Object> svcMap) {
+		return sqlSession.selectList("eorder.o_qmsorder.getShipToList", svcMap);
+	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+1296	<select id="getShipToList" parameterType="hashmap" resultType="hashmap">
+	/* eorder.o_qmsorder.getShipToList */
+		SELECT YY.SHIPTO_CD, YY.SHIPTO_NM FROM (SELECT KK.* FROM (
+			SELECT
+			ROW_NUMBER() OVER(
+				<choose>
+					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+					<otherwise>ORDER BY (SELECT 1)</otherwise>
+				</choose>
+			) AS ROWNUM
+			, XX.* FROM (SELECT ORDERNO,LINE_NO
+			,dbo.SF_GETQMSID(ORDERNO,LINE_NO)AS QMS_ARR
+			,dbo.SF_GETQMSID(ORDERNO,LINE_NO)AS QMS_ARR_TXT
+			,dbo.SF_GETQMSQTY(ORDERNO,LINE_NO)AS QMS_ARR_QTY
+			,dbo.SF_GETQMSSHIPTO(ORDERNO,LINE_NO)AS QMS_ARR_SHIPTO
+			,dbo.SF_GETMAILYN(ORDERNO,LINE_NO) AS MAIL_YN
+			,dbo.SF_GETFILEYN(ORDERNO,LINE_NO) AS FILE_YN
+			,ITEM_CD,ORDERTY ,CUST_PO ,CUST_CD ,CUST_NM,
+			CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(ORDER_DT, 0,4), '-'), SUBSTRING(ORDER_DT, 5, 2)), '-'), SUBSTRING(ORDER_DT, 7, 2)) AS ORDER_DT,
+			CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(ACTUAL_SHIP_DT, 0,4), '-'), SUBSTRING(ACTUAL_SHIP_DT, 5, 2)), '-'), SUBSTRING(ACTUAL_SHIP_DT, 7, 2)) AS ACTUAL_SHIP_DT,
+			SHIPTO_CD, SHIPTO_NM, RTRIM(CONCAT(ADD1, ADD2)) AS ADDR, ITEM_DESC, LOTN, ORDER_QTY, UNIT, SALESREP_NM
+		FROM qms_salesorder SO
+		<where>
+			<if test="wherebody_status != null and wherebody_status != '' ">
+				${wherebody_status}
+			</if>
+
+			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">
+				AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'
+				<!-- AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%' -->
+			</if>
+			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%' </if>
+			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD	= #{r_custcd}</if>
+			<!-- <if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_NM LIKE '%' + #{r_shiptocd} + '%'</if> -->
+			<!-- 관리자 권한에 따른 조건절 -->
+
+			<if test="r_adminauthority != null and r_adminauthority != '' ">
+				<if test='"AD".equals(r_adminauthority)'>
+				</if>
+				<if test='"CS".equals(r_adminauthority)'>
+					AND SO.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+				</if>
+				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+					<if test='"SH".equals(r_adminauthority)'>
+						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+					</if>
+					<if test='"SM".equals(r_adminauthority)'>
+						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+					</if>
+					<if test='"SR".equals(r_adminauthority)'>
+						AND SO.SALESREP_CD = #{r_adminuserid}
+					</if>
+				</if>
+				<if test='"MK".equals(r_adminauthority)'>
+
+				</if>
+			</if>
+			<!-- End. -->
+		</where>
+		) XX
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+		)KK ) YY GROUP BY YY.SHIPTO_CD, YY.SHIPTO_NM
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

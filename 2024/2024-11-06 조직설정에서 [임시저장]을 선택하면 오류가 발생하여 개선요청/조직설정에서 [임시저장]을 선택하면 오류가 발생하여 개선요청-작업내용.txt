@@ -1,0 +1,91 @@
+
+			<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR(GETDATE(), 'yyyy-MM-dd'))을 MSSQL문법(CONVERT(DATE, GETDATE(), 102))으로 변경 -->
+			, CONVERT(DATE, GETDATE(), 102)
+
+CONVERT(CHAR(19), DATETIME, 120)
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_user.xml
+
+<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR(GETDATE(), 'yyyy-MM-dd'))을 MSSQL문법(CONVERT(DATE, GETDATE(), 102))으로 변경 -->
+801	, TEL_NO, AGREE_YN, INSERT_DT, CUST_CD, DEPT_CD, JDEID, INSERTID, LEFT (CONVERT(nvarchar(19), GETDATE(), 120), LEN(CONVERT(nvarchar(19), GETDATE(), 120))-3)
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cssalesmap.xml
+
+
+20	<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR(GETDATE(), 'yyyy-MM-dd'))을 MSSQL문법(CONVERT(DATE, GETDATE(), 102))으로 변경 -->
+21	, CONVERT(DATE, GETDATE(), 102)
+
+
+28	<!-- 2024-11-06 hsg PlayStation4 mybatis의 sql 파일은 XML로 작성하는데, 흔히 사용하는 SQL의 주석처리 방법 dashdash은 XML에서 사용하는 문법이 아니기 때문에 발생. USING DUAL ON (CSUSERID = #{m_csuserid} AND SALESUSERID = #{m_salesuserid}) -->
+
+
+67	<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR(GETDATE(), 'yyyy-MM-dd'))을 MSSQL문법(CONVERT(DATE, GETDATE(), 102))으로 변경 -->
+68	UPDATE_DT = CONVERT(DATE, GETDATE(), 102),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR(GETDATE(), 'yyyy-MM-dd'))을 MSSQL문법(CONVERT(DATE, GETDATE(), 102))으로 변경 -->
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\fireproof.xml	
+	
+31	<!-- 2024-11-06 hsg PlayStation5 오라클 문법인 nvl에서 mssql 문법인 isnull로 변경 -->
+32	,(SELECT ISNULL(MAX(DISPLAYORDER),0)+1 FROM O_FIREPROOFMASTER)
+	
+	
+	
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\loginAuth.xml	
+	
+11	<!-- 2024-11-06 hsg PlayStation5 오라클 문법인 SYSDATE에서 mssql 문법인 GETDATE()로 변경 -->
+12	,  LA_INDATE = GETDATE()
+	
+	
+	
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cssalesmap.xml	
+	
+	
+20	<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR)을 MSSQL문법(FORMAT)으로 변경 -->
+21	, FORMAT(GETDATE(), 'YYYY-MM-DD')
+	
+	
+35	<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR)을 MSSQL문법(FORMAT)으로 변경 -->
+36	, UPDATE_DT = FORMAT(GETDATE(), 'YYYY-MM-DD')
+	
+	
+54	<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR)을 MSSQL문법(FORMAT)으로 변경 -->
+55	, FORMAT(GETDATE(), 'YYYY-MM-DD')
+	
+	
+66	<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR)을 MSSQL문법(FORMAT)으로 변경 -->
+67	UPDATE_DT = FORMAT(GETDATE(), 'YYYY-MM-DD'),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,24 @@
+-- 쿼테이션관리 메뉴 및 권한 추가 쿼리.
+
+--메뉴 테이블에 별도 시퀀스는 없는듯? 운영 반영할때 시퀀스 번호 확인 후 수정필요. 수정시 아래 테이블들의 MN_SEQ 데이터도 수정.
+INSERT INTO MENU (MN_SEQ, MN_NAME, MN_DEPTH, MN_PARENT, MN_MENU1, MN_MENU2, MN_MENU3, MN_SORT1, MN_SORT2, MN_SORT3, MN_LINK, MN_USE, MN_BASE) 
+VALUES (49, '쿼테이션관리', 2, 27, 27, 49, NULL, 7, 4, NULL, 'admin/item/itemEditQuotationListExcel.lime', 'Y', 'N');
+
+INSERT INTO MENUURL (MU_SEQ, MU_URL, MU_MNSEQ, MU_AUTH, MU_DESC, MU_PARAM)
+VALUES (137, '/admin/item/itemEditQuotationListExcel.lime', 49, 'W', '쿼테이션 품목 일괄 엑셀대량 수정 폼', NULL);
+
+INSERT INTO ROLEMENU (RM_RLSEQ, RM_MNSEQ, RM_AUTH) VALUES(2, 49, 'W');
+
+
+-- 쿼테이션 검증 테이블 생성 쿼리.
+CREATE TABLE EORDER.dbo.O_QUOTATION_VERIFICATION (
+	QUOTE_QT char(10) COLLATE Korean_Wansung_CI_AS NOT NULL,
+	ITEM_CD varchar(25) COLLATE Korean_Wansung_CI_AS NOT NULL,
+	INSERTID varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	INDATE datetime2(0) NULL,
+	UPDATEID varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	MODATE datetime2(0) NULL
+	CONSTRAINT XPKO_O_QUOTATION_VERIFICATION PRIMARY KEY (QUOTE_QT,ITEM_CD)
+);
+
+-- DROP TABLE EORDER.dbo.O_QUOTATION_VERIFICATION;

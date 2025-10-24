@@ -1,0 +1,945 @@
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** QMS 조회 및 등록 > QMS 출력 : http://localhost:8080/eorder/front/report/qmsReport.lime *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\qmsOrderList.jsp *********** */
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java *********** */
+
+
+422	   /**
+423	 * QMS 조회 및 등록.
+424	 * @작성일 : 2021. 3. 29.
+425	 * @작성자 : jihye lee
+426	 */
+427	@RequestMapping(value="qmsOrderList")
+428	public String qmsItemList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+429		//model.addAttribute("salesOrderStatus", StatusUtil.SALESORDER.getMap()); // 출하상태 Map형태로 가져오기.
+430		//model.addAttribute("salesOrderStatusToJson", StatusUtil.SALESORDER.getMapToJson()); // 출하상태 JSON형태로 가져오기.
+431		//model.addAttribute("qmlStatusList", StatusUtil.QMS.getList()); // QMS 상태 List<Map>형태로 가져오기.
+432
+433		// 주문일 세팅.
+434		// jsh 시작일자 -90일 기본값 적용
+435		//Calendar cal = Calendar.getInstance();
+436		/*Date toDayDate = Converter.dateAdd(new Date(),5,-90);
+437		String toDay = Converter.dateToStr("yyyy-MM-dd",toDayDate);
+438		String fromDay = Converter.dateToStr("yyyy-MM-dd");
+439		model.addAttribute("ordersdt", toDay);
+440		model.addAttribute("orderedt", fromDay);*/
+441
+442		Calendar cal = Calendar.getInstance();
+443		cal.add(Calendar.DATE, -90);
+444		Map<String, Object> quater = Converter.getQuaterDate(cal);
+445		model.addAttribute("ordersdt", quater.get("ordersdt"));
+446		model.addAttribute("orderedt", quater.get("orderedt"));
+447
+448		model.addAttribute("preYear", quater.get("preYear"));
+449		model.addAttribute("preQuat", quater.get("preQuat"));
+450
+451		// 내부사용자 웹주문현황	> 별도 권한 설정.
+452		orderSvc.setParamsForAdminOrderList(params, req, loginDto, model);
+453
+454		List<Map<String, Object>> orderYearList = orderSvc.getQmsOrderYearList(params, req);
+455		List<Map<String, Object>> releaseYearList = orderSvc.getQmsReleaseYearList(params, req);
+456
+457		model.addAttribute("orderYearList", orderYearList);
+458		model.addAttribute("releaseYearList", releaseYearList);
+459
+460		// 현재날짜 기준 직전분기
+461		/*String preYear = fromDay.substring(0,4) + "년";
+462		String preQuat = "";
+463		String tmpYear = fromDay.substring(0,4);
+464		String tmpDay = fromDay.substring(5);
+465		String[] rangeDay = tmpDay.split("-");
+466		if(Integer.parseInt(rangeDay[0]) <= 3) {
+467			preYear = String.valueOf(Integer.parseInt(fromDay.substring(0,4)) - 1) + "년";
+468			preQuat = "4분기";
+469		}else if(Integer.parseInt(rangeDay[0]) >= 4 && Integer.parseInt(rangeDay[0]) <= 6){
+470			preQuat = "1분기";
+471		}else if(Integer.parseInt(rangeDay[0]) >= 7 && Integer.parseInt(rangeDay[0]) <= 9){
+472			preQuat = "2분기";
+473		}else{
+474			preQuat = "3분기";
+475		}
+476
+477		model.addAttribute("preYear", preYear);
+478		model.addAttribute("preQuat", preQuat);*/
+479
+480		return "admin/order/qmsOrderList";
+481	}
+
+
+
+
+/* *********** List<Map<String, Object>> orderYearList = orderSvc.getQmsOrderYearList(params, req); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+3367	public List<Map<String, Object>> getQmsOrderYearList(Map<String, Object> params, HttpServletRequest req) {
+3368		return qmsOrderDao.getQmsOrderYearList(params);
+3369	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+232	   public List<Map<String, Object>> getQmsOrderYearList(Map<String, Object> svcMap) {
+233		return sqlSession.selectList("eorder.o_qmsorder.getQmsOrderYearList", svcMap);
+234	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+1566	<select id="getQmsOrderYearList" parameterType="hashmap" resultType="hashmap">
+1567	/* eorder.o_qmsorder.getQmsOrderYearList */
+1568	SELECT SUBSTRING(ACTUAL_SHIP_DT,1,4) AS QMS_YEAR
+1569		  ,SUBSTRING(ACTUAL_SHIP_DT,1,4)+'년' AS QMS_YEAR_NM
+1570		  /*,SUBSTRING(ACTUAL_SHIP_DT,1,4)*/
+1571		  ,( CASE SUBSTRING(ACTUAL_SHIP_DT,5,2)
+1572			WHEN '01' THEN '1' WHEN '02' THEN '1' WHEN '03' THEN '1'
+1573			WHEN '04' THEN '2' WHEN '05' THEN '2' WHEN '06' THEN '2'
+1574			WHEN '07' THEN '3' WHEN '08' THEN '3' WHEN '09' THEN '3'
+1575			WHEN '10' THEN '4' WHEN '11' THEN '4' WHEN '12' THEN '4' END )+'Q' AS QMS_DELN_QUAT
+1576		  /*,SUBSTRING(ACTUAL_SHIP_DT,1,4)*/
+1577		  ,( CASE SUBSTRING(ACTUAL_SHIP_DT,5,2)
+1578			WHEN '01' THEN '1' WHEN '02' THEN '1' WHEN '03' THEN '1'
+1579			WHEN '04' THEN '2' WHEN '05' THEN '2' WHEN '06' THEN '2'
+1580			WHEN '07' THEN '3' WHEN '08' THEN '3' WHEN '09' THEN '3'
+1581			WHEN '10' THEN '4' WHEN '11' THEN '4' WHEN '12' THEN '4' END )+'분기' AS QMS_DELN_QUAT_NM
+1582	  FROM QMS_SALESORDER
+1583	GROUP BY SUBSTRING(ACTUAL_SHIP_DT,1,4)
+1584		,( CASE SUBSTRING(ACTUAL_SHIP_DT,5,2)
+1585			WHEN '01' THEN '1' WHEN '02' THEN '1' WHEN '03' THEN '1'
+1586			WHEN '04' THEN '2' WHEN '05' THEN '2' WHEN '06' THEN '2'
+1587			WHEN '07' THEN '3' WHEN '08' THEN '3' WHEN '09' THEN '3'
+1588			WHEN '10' THEN '4' WHEN '11' THEN '4' WHEN '12' THEN '4' END )
+1589	ORDER BY SUBSTRING(ACTUAL_SHIP_DT,1,4) DESC
+1590		,( CASE SUBSTRING(ACTUAL_SHIP_DT,5,2)
+1591			WHEN '01' THEN '1' WHEN '02' THEN '1' WHEN '03' THEN '1'
+1592			WHEN '04' THEN '2' WHEN '05' THEN '2' WHEN '06' THEN '2'
+1593			WHEN '07' THEN '3' WHEN '08' THEN '3' WHEN '09' THEN '3'
+1594			WHEN '10' THEN '4' WHEN '11' THEN '4' WHEN '12' THEN '4' END ) DESC
+1595	</select>
+
+
+
+
+
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** QMS 조회 및 등록 > QMS 출력 : http://localhost:8080/eorder/front/report/qmsReport.lime *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\front\report\qmsReport.jsp *********** */
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\front\FReportCtrl.java *********** */
+
+132	   /**
+133	 * qmsReport
+134	 * @작성일 : 2021. 5. 9.
+135	 * @작성자 : an
+136	 */
+137	@RequestMapping(value="qmsReport" ,method= {RequestMethod.GET,RequestMethod.POST})
+138	public String qmsReport(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+139		// 내부사용자 웹주문현황	> 별도 권한 설정.
+140		orderSvc.setParamsForAdminOrderList(params, req, loginDto, model);
+141		String qmsId = "";
+142		String qmsIdTxt = null;
+143		String pageType = null;
+144
+145
+146		if(params.get("page_type")!= null) {
+147			pageType = params.get("page_type").toString();
+148		}else {
+149			pageType = "qmsReport";
+150		}
+151
+152		// 단일 선택 업로드
+153		if(pageType.equals("qmsReport")) {
+154			if(params.get("qmsId")!= null) {
+155				qmsIdTxt = params.get("qmsId").toString();
+156			}
+157			qmsId = qmsIdTxt;
+158
+159		} else if(pageType.equals("qmsAllReport")) {
+160			qmsIdTxt = "";
+161			List<Map<String, Object>> qmsPopList = orderSvc.getQmsPopList(params);
+162			for(int i = 0; i < qmsPopList.size(); i++) {
+163				qmsIdTxt += qmsPopList.get(i).get("QMS_ORD_NO");
+164				if(i < qmsPopList.size()-1) {
+165					qmsIdTxt += ",";
+166				}
+167			}
+168			qmsId = qmsIdTxt;
+169
+170			//정렬조건 오류 방지 초기화
+171			params.put("r_orderby", null);
+172		}
+173
+174		int qmsIdSize = qmsId.split(",").length;
+175
+176		List<Map<String, Object>> reportList = new ArrayList<Map<String, Object>>();
+177
+178		Map<String, Object> result = new HashMap<>();
+179
+180		params.put("work", "mod");
+181
+182		for(int i = 0; i < qmsIdSize; i++) {
+183
+184			result = new HashMap<>();
+185
+186		 // QMS 시퀀스와 함께 입력된 경우 처리
+187			if(qmsId.split(",")[i].indexOf("-") > 0) {
+188				String[] qmsArr = qmsId.split(",")[i].split("-");
+189				params.put("qmsId", qmsArr[0]);
+190				params.put("qmsSeq", qmsArr[1]);
+191			}else {
+192			  //기본 qms 시퀀스 입력
+193			  params.put("qmsSeq",params.get("qmsSeq")!=null?params.get("qmsSeq"):1);
+194			}
+195
+196			/*
+197			 * 회사 직인
+198			 */
+199			Map<String, Object> resMap = configSvc.getConfigList(params);
+200			//model.addAttribute("configList", resMap);
+201			result.put("configList", resMap);
+202
+203			/*
+204			 *	MAST
+205			 */
+206			List<Map<String, Object>> getQmsPopMastList = orderSvc.getQmsPopMastList(params);
+207			//model.addAttribute("qmsMastList", getQmsPopMastList);
+208			//result.put("qmsMastList", getQmsPopMastList);
+209			/*
+210			 *	ITEM
+211			 */
+212			List<Map<String, Object>> getQmsPopDetlGridList = orderSvc.getQmsPopDetlGridList(params);
+213			//model.addAttribute("qmsPopDetlGridList", getQmsPopDetlGridList);
+214			result.put("qmsPopDetlGridList", getQmsPopDetlGridList);
+215			/*
+216			 *	FIREPROOF CONSTRUCTION TYPE
+217			 */
+218			List<Map<String, Object>> getQmsFireproofList = orderSvc.getQmsFireproofList(params);
+219			//model.addAttribute("qmsFireproofList", getQmsFireproofList);
+220			result.put("qmsFireproofList", getQmsFireproofList);
+221
+222			String FIRETIME_05 = "N";
+223			String FIRETIME_10 = "N";
+224			String FIRETIME_15 = "N";
+225			String FIRETIME_20 = "N";
+226			String FIRETIME_30 = "N";
+227			String BEAM_CHECK = "N";
+228			String PILLAR_CHECK = "N";
+229			String NONWALL_CHECK = "N";
+230			String STRUCT_NM = "";
+231			String Q_RECOG_NUM = "";
+232			int count = 0;
+233			for(Map<String, Object> m : getQmsFireproofList) {
+234				if(m.get("CHK_YN").toString().compareTo("Y") == 0) {
+235					switch(m.get("FIRETIME").toString()) {
+236						case "0.5":
+237							FIRETIME_05 = "Y";
+238							break;
+239						case "1":
+240							FIRETIME_10 = "Y";
+241							break;
+242						case "1.5":
+243							FIRETIME_15 = "Y";
+244							break;
+245						case "2":
+246							FIRETIME_20 = "Y";
+247							break;
+248						case "3":
+249							FIRETIME_30 = "Y";
+250							break;
+251						default:
+252							break;
+253					}
+254
+255					String fType = m.get("FIREPROOFTYPE").toString();
+256					int idx_l = fType.lastIndexOf("(");
+257					int idx_r = fType.lastIndexOf(")");
+258					String s1 = idx_l<fType.length() ? fType.substring(0, idx_l) : "";
+259					String s2 = idx_r<fType.length() ? fType.substring(idx_l+1, idx_r) : "";
+260					STRUCT_NM = String.format("%s%s%s", STRUCT_NM, count==0 ? "" : ",", s1);
+261					Q_RECOG_NUM = String.format("%s%s%s", Q_RECOG_NUM, count==0 ? "" : ",", s2);
+262					count++;
+263
+264					if(s1.toUpperCase().contains("BEAM"))
+265						BEAM_CHECK="Y";
+266					else if(s1.toUpperCase().contains("COLUMN"))
+267						PILLAR_CHECK="Y";
+268					else if(s1.contains("기둥-3"))
+269						PILLAR_CHECK="Y";
+270					else
+271						NONWALL_CHECK="Y";
+272				}
+273			}
+274
+275			if(getQmsPopMastList.size() > 0) {
+276				Map<String, Object> map = getQmsPopMastList.get(0);
+277				map.put("FIRETIME_05", FIRETIME_05);
+278				map.put("FIRETIME_10", FIRETIME_10);
+279				map.put("FIRETIME_15", FIRETIME_15);
+280				map.put("FIRETIME_20", FIRETIME_20);
+281				map.put("FIRETIME_30", FIRETIME_30);
+282				map.put("STRUCT_NM", STRUCT_NM);
+283				map.put("Q_RECOG_NUM", Q_RECOG_NUM);
+284				map.put("BEAM_CHECK", BEAM_CHECK);
+285				map.put("PILLAR_CHECK", PILLAR_CHECK);
+286				map.put("NONWALL_CHECK", NONWALL_CHECK);
+287			}
+288
+289			result.put("qmsMastList", getQmsPopMastList);
+290
+291			reportList.add(result);
+292
+293		}
+294
+295		model.addAttribute("reportList", reportList);
+296
+297		return "front/report/qmsReport";
+298	}
+
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+2336	/**
+2337	 * Get QMS getQmsPopEmailGridList.
+2338	 * @작성일 : 2020. 5. 4.
+2339	 * @작성자 : jsh
+2340	 */
+2341	public List<Map<String, Object>> getQmsPopList(Map<String, Object> params){
+2342		Map<String, Object> resMap = new HashMap<>();
+2343
+2344		String where = Converter.toStr(params.get("where"));
+2345
+2346		String r_ordersdt = Converter.toStr(params.get("r_ordersdt")); // 주문일자 검색 시작일.
+2347		String r_orderedt = Converter.toStr(params.get("r_orderedt")); // 주문일자 검색 종료일.
+2348		String r_actualshipsdt = Converter.toStr(params.get("r_actualshipsdt")); // 출고일자 검색 시작일.
+2349		String r_actualshipedt = Converter.toStr(params.get("r_actualshipedt")); // 출고일자; 검색 종료일.
+2350		if(!StringUtils.equals("", r_ordersdt)) r_ordersdt = r_ordersdt.replaceAll("-", "");
+2351		if(!StringUtils.equals("", r_orderedt)) r_orderedt = r_orderedt.replaceAll("-", "");
+2352		if(!StringUtils.equals("", r_actualshipsdt)) r_actualshipsdt = r_actualshipsdt.replaceAll("-", "");
+2353		if(!StringUtils.equals("", r_actualshipedt)) r_actualshipedt = r_actualshipedt.replaceAll("-", "");
+2354
+2355		String rl_salesrepnm = Converter.toStr(params.get("rl_salesrepnm")); // 영업사원
+2356		String rl_orderno = Converter.toStr(params.get("rl_orderno")); // 어다반허
+2357		String r_custcd = Converter.toStr(params.get("r_custcd")); // 거래처
+2358		String r_shiptocd = Converter.toStr(params.get("r_shiptocd")); // 납품처
+2359
+2360		params.put("r_ordersdt", r_ordersdt);
+2361		params.put("r_orderedt", r_orderedt);
+2362		params.put("r_actualshipsdt", r_actualshipsdt);
+2363		params.put("r_actualshipedt", r_actualshipedt);
+2364		params.put("rl_salesrepnm", rl_salesrepnm);
+2365		params.put("rl_orderno", rl_orderno);
+2366		params.put("r_custcd", r_custcd);
+2367		params.put("r_shiptocd", r_shiptocd);
+2368
+2369		// QMS 상태 조회
+2370		String wherebody_status = "";
+2371		String qms_status  = params.get("qms_status") !=null?params.get("qms_status").toString():"";
+2372		String qms_status2 = params.get("qms_status2")!=null?params.get("qms_status2").toString():"";
+2373		String qms_status3 = params.get("qms_status3")!=null?params.get("qms_status3").toString():"";
+2374
+2375		//QMS 사전입력 여부
+2376		String qms_preyn   = params.get("qms_preyn")!=null?params.get("qms_preyn").toString():"";
+2377
+2378		if (!qms_status.equals("ALL")) {
+2379			// QMS 생성 미완료
+2380			if(qms_status.equals("N")) {
+2381				wherebody_status += "SF_GETQMSID(ORDERNO,LINE_NO) IS NULL";
+2382			}
+2383			// QMS 생성완료
+2384			if(qms_status.equals("Y")) {
+2385				if(wherebody_status.length() > 1) {
+2386					wherebody_status+= " OR ";
+2387				}
+2388				wherebody_status += "SF_GETQMSID(ORDERNO,LINE_NO) IS NOT NULL";
+2389			}
+2390		}
+2391
+2392		if (!qms_status2.equals("ALL")) {
+2393			// MAIL 발송 미완료
+2394			if(qms_status2.equals("N")) {
+2395				if(wherebody_status.length() > 1) {
+2396					wherebody_status+= " AND ";
+2397				}
+2398				wherebody_status += "SF_GETMAILYN(ORDERNO,LINE_NO) = 'N' ";
+2399			}
+2400
+2401			// MAIL 발송완료
+2402			if(qms_status2.equals("Y")) {
+2403				if(wherebody_status.length() > 1) {
+2404					wherebody_status+= " AND ";
+2405				}
+2406				wherebody_status += "SF_GETMAILYN(ORDERNO,LINE_NO) = 'Y' ";
+2407			}
+2408		}
+2409
+2410		if (!qms_status3.equals("ALL")) {
+2411			// QMS 회신 미완료
+2412			if(qms_status3.equals("N")) {
+2413				if(wherebody_status.length() > 1) {
+2414					wherebody_status+= " AND ";
+2415				}
+2416				wherebody_status += "SF_GETFILEYN(ORDERNO,LINE_NO) = 'N' ";
+2417			}
+2418
+2419			// QMS 회신완료
+2420			if(qms_status3.equals("Y")) {
+2421				if(wherebody_status.length() > 1) {
+2422					wherebody_status+= " AND ";
+2423				}
+2424				wherebody_status += "SF_GETFILEYN(ORDERNO,LINE_NO) = 'Y' ";
+2425			}
+2426		}
+2427
+2428		if (!qms_preyn.equals("ALL")) {
+2429			// QMS 사전입력
+2430			if(qms_preyn.equals("Y")) {
+2431				if(wherebody_status.length() > 1) {
+2432					wherebody_status+= " AND ";
+2433				}
+2434				wherebody_status += "Sf_getpreorderyn(SO.cust_po) = 'Y' ";
+2435			}
+2436
+2437			// QMS 사후입력건
+2438			if(qms_preyn.equals("N")) {
+2439				if(wherebody_status.length() > 1) {
+2440					wherebody_status+= " AND ";
+2441				}
+2442				wherebody_status += "Sf_getpreorderyn(SO.cust_po) = 'N' ";
+2443			}
+2444		}
+2445
+2446		if(!qms_status.equals("ALL") || !qms_status2.equals("ALL") || !qms_status3.equals("ALL") || !qms_preyn.equals("ALL")) {
+2447			params.put("wherebody_status", wherebody_status);
+2448		}
+2449
+2450		System.out.println(params);
+2451		int totalCnt = qmsOrderDao.cnt(params);
+2452		System.out.println(totalCnt);
+2453
+2454		// End.
+2455
+2456		String r_orderby = "";
+2457		String sidx = Converter.toStr(params.get("sidx")); //정렬기준컬럼
+2458		String sord = Converter.toStr(params.get("sord")); //내림차순,오름차순
+2459		r_orderby = sidx + " " + sord;
+2460	//	2024-10-16 hsg 별칭 오류가 나서 수정. SO -> XX)
+2461		if(StringUtils.equals("", sidx)) { r_orderby = "XX.ORDERNO DESC, XX.CUST_PO DESC "; } //디폴트 지정
+2462
+2463		params.put("r_orderby", r_orderby);
+2464
+2465		return qmsOrderDao.getQmsPopList(params);
+2466	}
+
+
+
+
+/* ***********	int totalCnt = qmsOrderDao.cnt(params); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+25	public int cnt(Map<String, Object> svcMap) {
+26		return sqlSession.selectOne("eorder.o_qmsorder.cnt", svcMap);
+27	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+38	<select id="cnt" parameterType="hashmap" resultType="int">
+39	/* eorder.o_qmsorder.cnt */
+40		SELECT COUNT(*)
+41		FROM qms_salesorder SO
+42		LEFT JOIN O_ITEM_NEW OIN
+43			ON OIN.ITEM_CD = SO.ITEM_CD
+44			/*2024-09-30 hsg LINE_TY에 'Y'값이 없어 죠회가 되지 않아. LEFT JOIN 시 조건을 걸었음 */
+45			and OIN.LINE_TY = 'Y'
+46		<where>
+47			/*2024-09-30 hsg LINE_TY에 'Y'값이 없어 죠회가 되지 않아. LEFT JOIN 시로 취치를 옮김 */
+48			/* AND OIN.LINE_TY = 'Y' */
+49			1 = 1
+50			<if test="wherebody_status != null and wherebody_status != '' ">
+51				${wherebody_status}
+52			</if>
+53			<!-- 2024-10-22 hsg 구분방법은 O_ITEM_NEW.SALES_CD3 항목의 값이 아래 목록에 해당하는 품목만 대상으로 합니다
+54			QMS 대상 품목 기준값 : 'DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000' -->
+55			AND		OIN.SALES_CD3 IN ('DAP11400', 'DAP11500', 'DAP11600', 'DAP11700', 'DAP12400', 'DAP12500', 'DAP12800', 'DAP12900', 'DAP13000')
+56			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+57			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+58			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+59			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+60			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">
+61				AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'
+62			</if>
+63			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%' </if>
+64			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD	= #{r_custcd}</if>
+65			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+66			<!-- 관리자 권한에 따른 조건절 -->
+67
+68			<if test="r_adminauthority != null and r_adminauthority != '' ">
+69				<if test='"AD".equals(r_adminauthority)'>
+70				</if>
+71				<if test='"CS".equals(r_adminauthority)'>
+72					AND SO.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+73				</if>
+74				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+75					<if test='"SH".equals(r_adminauthority)'>
+76						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+77					</if>
+78					<if test='"SM".equals(r_adminauthority)'>
+79						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+80					</if>
+81					<if test='"SR".equals(r_adminauthority)'>
+82						AND SO.SALESREP_CD = #{r_adminuserid}
+83					</if>
+84				</if>
+85				<if test='"MK".equals(r_adminauthority)'>
+86
+87				</if>
+88			</if>
+89			<!-- End. -->
+90		</where>
+91	</select>
+
+
+
+
+
+
+/* *********** qmsOrderDao.getQmsPopList(params); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+162	   public List<Map<String, Object>> getQmsPopList(Map<String, Object> svcMap) {
+163		return sqlSession.selectList("eorder.o_qmsorder.getQmsPopList", svcMap);
+164	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+953	<select id="getQmsPopList" parameterType="hashmap" resultType="hashmap">
+954	/* eorder.o_qmsorder.getQmsPopList */
+955	SELECT RANK() OVER(ORDER BY QMS_ORD_NO) AS RNUM
+956		  ,XX.*
+957	  FROM (SELECT A.QMS_ID+'-'+A.QMS_SEQ AS QMS_ORD_NO
+958		  ,A.QMS_ID
+959		  ,A.QMS_SEQ
+960		  ,C.QMS_FILE_ORG_NM
+961		  ,C.QMS_FILE_NM
+962		  ,C.QMS_FILE_ID
+963		  ,C.QMS_FILE_EXT
+964		  ,C.QMS_FILE_TYPE
+965		  ,A.SHIPTO_NM
+966		  ,CASE WHEN (SELECT COUNT(*) FROM (SELECT D.QMS_ID,D.ORDERNO FROM QMS_ORD_DETL D GROUP BY D.QMS_ID,D.ORDERNO)DD WHERE DD.QMS_ID = A.QMS_ID) > 1 THEN 'N' ELSE 'Y' END AS QMS_SPLIT_YN
+967		  ,B.CUST_NM
+968		  ,B.ADD1 +' '+ B.ADD2 + B.ADD3 + B.ADD4 AS CUST_ADDR
+969		  ,dbo.SF_GETQMSBIZNO(B.TAX_ID) AS CUST_BIZ_NO
+970		  ,B.ZIP_CD
+971		  ,B.SALESREP_CD
+972		  ,B.SALESREP_NM
+973		  ,B.TEAM_CD
+974		  ,B.TEAM_NM
+975		  ,B.MAILING_NM
+976		  ,(SELECT MM.SHIPTOREP_NM
+977			  FROM (
+978			SELECT ROW_NUMBER() OVER (ORDER BY M.CREATETIME DESC) AS R1
+979				  ,M.*
+980			  FROM QMS_ORD_MAIL M
+981			   )MM
+982		   WHERE MM.QMS_ID = A.QMS_ID
+983		   AND MM.QMS_SEQ  = A.QMS_SEQ
+984		   AND MM.R1 = 1) AS SHIPTOREP_NM
+985		  ,ISNULL((SELECT MM.SHIPTO_EMAIL
+986			  FROM (
+987			SELECT ROW_NUMBER() OVER (ORDER BY M.CREATETIME DESC) AS R1
+988				  ,M.*
+989			  FROM QMS_ORD_MAIL M
+990			   )MM
+991		   WHERE MM.QMS_ID = A.QMS_ID
+992		   AND MM.QMS_SEQ  = A.QMS_SEQ
+993		   AND MM.R1 = 1),A.SHIPTO_EMAIL) AS SHIPTO_EMAIL
+994		   ,(SELECT CONVERT(VARCHAR, MM.CREATETIME, 120) AS SEND_DT
+995			  FROM (
+996			SELECT ROW_NUMBER() OVER (ORDER BY M.CREATETIME DESC) AS R1
+997				  ,M.*
+998			  FROM QMS_ORD_MAIL M
+999			   )MM
+1000		   WHERE MM.QMS_ID = A.QMS_ID
+1001		   AND MM.QMS_SEQ  = A.QMS_SEQ
+1002		   AND MM.R1 = 1) AS SEND_DT
+1003	 FROM
+1004	 (SELECT QMS_ID,QMS_SEQ,CUST_CD,SHIPTO_NM,SHIPTO_EMAIL
+1005	  FROM
+1006	(SELECT B.*
+1007	   FROM QMS_ORD_DETL A
+1008		   ,QMS_ORD_MAST B
+1009		   ,(SELECT * FROM QMS_SALESORDER SO
+1010		   <where>
+1011			<if test="wherebody_status != null and wherebody_status != '' ">
+1012				${wherebody_status}
+1013			</if>
+1014
+1015			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+1016			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+1017			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+1018			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+1019			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">
+1020				AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'
+1021				<!-- AND SO.SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%' -->
+1022			</if>
+1023			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%' </if>
+1024			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD	= #{r_custcd}</if>
+1025			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+1026			<!-- 관리자 권한에 따른 조건절 -->
+1027
+1028			<if test="r_adminauthority != null and r_adminauthority != '' ">
+1029				<if test='"AD".equals(r_adminauthority)'>
+1030				</if>
+1031				<if test='"CS".equals(r_adminauthority)'>
+1032					AND SO.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+1033				</if>
+1034				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+1035					<if test='"SH".equals(r_adminauthority)'>
+1036						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+1037					</if>
+1038					<if test='"SM".equals(r_adminauthority)'>
+1039						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+1040					</if>
+1041					<if test='"SR".equals(r_adminauthority)'>
+1042						AND SO.SALESREP_CD = #{r_adminuserid}
+1043					</if>
+1044				</if>
+1045				<if test='"MK".equals(r_adminauthority)'>
+1046
+1047				</if>
+1048			</if>
+1049			<!-- End. -->
+1050		</where>
+1051		)SO
+1052	  WHERE A.QMS_ID = B.QMS_ID
+1053		AND A.QMS_SEQ = B.QMS_SEQ
+1054		AND A.ORDERNO = SO.ORDERNO
+1055		AND A.LINE_NO = SO.LINE_NO
+1056		<!-- AND A.CUST_PO = SO.CUST_PO -->
+1057		AND A.DELETEYN = 'N'
+1058		AND B.DELETEYN = 'N'
+1059		) XX
+1060	 GROUP BY XX.QMS_ID,QMS_SEQ, XX.CUST_CD, XX.SHIPTO_NM, XX.SHIPTO_EMAIL)A
+1061	, O_CUSTOMER B
+1062	,(SELECT * FROM (SELECT RANK() OVER(PARTITION BY QMS_ID,QMS_SEQ ORDER BY QMS_FILE_ID DESC) AS R1
+1063		,F.* FROM QMS_ORD_FILE F)F WHERE F.R1 = 1) C
+1064	WHERE A.QMS_ID	= C.QMS_ID
+1065	  AND A.QMS_SEQ = C.QMS_SEQ
+1066	  AND A.CUST_CD = B.CUST_CD
+1067	   <if test="qmsIdArr != null and qmsIdArr != ''">
+1068	   AND A.QMS_ID+'-'+A.QMS_SEQ IN
+1069		<foreach collection="qmsIdArr" item="arr" index="index"	 open="(" close=")" separator=",">
+1070			#{arr}
+1071		</foreach>
+1072	   </if>
+1073	   <if test="qmsIdToDown != null and qmsIdToDown != ''">
+1074	   AND A.QMS_ID+'-'+A.QMS_SEQ IN
+1075		<foreach collection="qmsIdToDown" item="arr2" index="index"	 open="(" close=")" separator=",">
+1076			#{arr2}
+1077		</foreach>
+1078	   </if>
+1079	   )XX
+1080	</select>
+
+
+
+
+
+
+
+
+
+
+/* *********** 회사 직인 : Map<String, Object> resMap = configSvc.getConfigList(params); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\ConfigSvc.java *********** */
+
+
+55	/**
+56	 * 환경설정 리스트 가져오기
+57	 * @param params
+58	 */
+59	public Map<String, Object> getConfigList(Map<String,Object> params) {
+60		Map<String, Object> resMap = new HashMap<>();
+61		List<Map<String, Object>> configList = configDao.list( params );
+62
+63		for( Map<String, Object> config : configList ){
+64			resMap.put( Converter.toStr( config.get("CF_ID") ), config.get("CF_VALUE") );
+65		}
+66		return resMap;
+67	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ConfigDao.java *********** */
+
+
+19	public List<Map<String, Object>> list(Map<String, Object> svcMap){
+20		return sqlSession.selectList("eorder.config.list", svcMap);
+21	}
+
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\config.xml *********** */
+
+
+5	<select id="list" parameterType="hashmap" resultType="hashmap">
+6		SELECT * FROM (
+7			SELECT ROW_NUMBER() OVER(
+8			<choose>
+9				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+10				<otherwise>ORDER BY (SELECT 1)</otherwise>
+11			</choose>
+12			) AS ROWNUM
+13			, XX.*
+14		FROM (
+15			SELECT * FROM CONFIG
+16			<where>
+17				<if test="r_cfid != null and r_cfid != ''">AND CF_ID = #{r_cfid}</if>
+18				<if test="ri_cfid != null and ri_cfid != ''">
+19					AND CF_ID IN <foreach collection="ri_cfid" item="cf_id" separator="," open="(" close=")">#{cf_id}</foreach>
+20				</if>
+21			</where>
+22			) XX
+23		) S
+24		<where>
+25			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >
+26				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+27			</if>
+28		</where>
+29	</select>
+
+
+
+
+/* *********** MAST : List<Map<String, Object>> getQmsPopMastList = orderSvc.getQmsPopMastList(params); *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\front\FReportCtrl.java *********** */
+
+
+2180	/**
+2181	 * QMS 오더 신규 입력 목록
+2182	 * @작성일 : 2021. 5. 3.
+2183	 * @작성자 : jsh
+2184	 */
+2185	public List<Map<String, Object>> getQmsPopMastList(Map<String, Object> params){
+2186
+2187		List<Map<String, Object>> qmsPopList = qmsOrderDao.getQmsPopMastList(params);
+2188		return qmsPopList;
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+126	   public List<Map<String, Object>> getQmsPopMastList(Map<String, Object> svcMap) {
+127		return sqlSession.selectList("eorder.o_qmsorder.getQmsPopMastList", svcMap);
+128	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+731	<select id="getQmsPopMastList" parameterType="hashmap" resultType="hashmap">
+732		/* eorder.o_qmsorder.getQmsPopMastList */
+733		SELECT A.*
+734			  ,CASE WHEN (SELECT COUNT(*) FROM (SELECT QMS_ID,ORDERNO FROM QMS_ORD_DETL GROUP BY QMS_ID,ORDERNO) Q WHERE Q.QMS_ID = A.QMS_ID) > 1 THEN 'N' ELSE 'Y' END AS QMS_SPLIT_YN
+735			  ,B.CUST_NM
+736			  <!-- 2024-10-24 HSG QMS 내화구조 품질관리서 수정. ,B.ADD1 +' '+ B.ADD2 + B.ADD3 + B.ADD4 AS CUST_ADDR -->
+737			  , B.ADD1 AS CUST_ADDR
+738			  ,dbo.SF_GETQMSBIZNO(B.TAX_ID) AS CUST_BIZ_NO
+739			  ,B.ZIP_CD
+740			  ,B.SALESREP_CD
+741			  ,B.SALESREP_NM
+742			  ,B.TEAM_CD
+743			  ,B.TEAM_NM
+744			  ,B.MAILING_NM
+745			  ,dbo.SF_GETQMSACTIVEYN(QMS_ID) AS ACTIVEYN
+746		  FROM QMS_ORD_MAST A
+747		 LEFT JOIN O_CUSTOMER B ON A.CUST_CD = B.CUST_CD
+748		 WHERE A.QMS_ID = #{qmsId}
+749			<if test="work != null and work.equals( 'mod' )">
+750			AND A.QMS_SEQ = #{qmsSeq}
+751			</if>
+752			<if test="work != null and work.equals( 'split' )">
+753			AND A.DELETEYN <![CDATA[ <> ]]> 'Y'
+754			</if>
+755			<if test="work != null and work.equals( 'write' )">
+756			AND A.DELETEYN <![CDATA[ <> ]]> 'Y'
+757			</if>
+758			<if test="work == null">
+759			AND A.DELETEYN = 'N'
+760			</if>
+761			<!-- AND DELETEYN = 'N' -->
+762	</select>
+
+
+
+
+
+
+/* *********** ITEM : List<Map<String, Object>> getQmsPopDetlGridList = orderSvc.getQmsPopDetlGridList(params); *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+187	   /**
+188	 * Get QMS getQmsPopDetlGridList.
+189	 * @작성일 : 2020. 5. 4.
+190	 * @작성자 : jsh
+191	 */
+192	public List<Map<String, Object>> getQmsPopDetlGridList(Map<String, Object> svcMap){
+193		return qmsOrderDao.getQmsPopDetlGridList(svcMap);
+194	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+21	public List<Map<String, Object>> getQmsPopDetlGridList(Map<String, Object> svcMap) {
+22		return sqlSession.selectList("eorder.o_qmsorder.getQmsPopDetlGridList", svcMap);
+23	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+807	<select id="getQmsPopDetlGridList" parameterType="hashmap" resultType="hashmap">
+808		/* eorder.o_qmsorder.getQmsPopDetlGridList */
+809		SELECT /*ROWNUM RR,*/ XX.* ,B.QMS_ID, B.QMS_SEQ ,B.QMS_REMARK ,B.QMS_DETL_ID ,B.QMS_ID +'-'+ CONVERT(VARCHAR, B.QMS_SEQ) AS QMS_ORD_NO
+810				,(SELECT CASE WHEN COUNT(Q.QMS_ORD_QTY) > 0 THEN SUM(Q.QMS_ORD_QTY) ELSE 0 END
+811					  FROM QMS_ORD_DETL Q , QMS_ORD_MAST M
+812					 WHERE Q.QMS_ID = M.QMS_ID AND Q.QMS_SEQ = M.QMS_SEQ AND Q.DELETEYN = 'N' AND M.DELETEYN = 'N'
+813					   AND Q.ORDERNO = XX.ORDERNO AND Q.LINE_NO = XX.LINE_NO AND Q.ITEM_CD = XX.ITEM_CD AND Q.LOTNO = XX.LOTN ) AS QMS_ORD_BALANCE
+814				 ,CASE WHEN ISNULL(B.QMS_ORD_QTY,0) = 0
+815					  THEN XX.ORDER_QTY - (SELECT CASE WHEN COUNT(Q.QMS_ORD_QTY) > 0 THEN SUM(Q.QMS_ORD_QTY) ELSE 0 END
+816											  FROM QMS_ORD_DETL Q , QMS_ORD_MAST M
+817											 WHERE Q.QMS_ID = M.QMS_ID AND Q.QMS_SEQ = M.QMS_SEQ AND Q.DELETEYN = 'N' AND M.DELETEYN = 'N'
+818											   AND Q.ORDERNO = XX.ORDERNO AND Q.LINE_NO = XX.LINE_NO AND Q.ITEM_CD = XX.ITEM_CD AND Q.LOTNO = XX.LOTN )
+819					  ELSE B.QMS_ORD_QTY END AS QMS_ORD_QTY
+820				,CASE WHEN (SELECT COUNT(*) FROM (SELECT QMS_ID,ORDERNO FROM QMS_ORD_DETL GROUP BY QMS_ID,ORDERNO) Q WHERE Q.QMS_ID = A.QMS_ID) > 1 THEN 'N' ELSE 'Y' END AS QMS_SPLIT_YN
+821		  FROM (SELECT ORDERNO,LINE_NO ,ITEM_CD,ORDERTY , CUST_PO, CUST_NM,
+822			CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(ORDER_DT, 0,4), '-'), SUBSTRING(ORDER_DT, 5, 2)), '-'), SUBSTRING(ORDER_DT, 7, 2)) AS ORDER_DT,
+823			CONCAT(CONCAT(CONCAT(CONCAT(SUBSTRING(ACTUAL_SHIP_DT, 0,4), '-'), SUBSTRING(ACTUAL_SHIP_DT, 5, 2)), '-'), SUBSTRING(ACTUAL_SHIP_DT, 7, 2)) AS ACTUAL_SHIP_DT,
+824			SHIPTO_NM, RTRIM(CONCAT(ADD1, ADD2)) AS ADDR, ITEM_DESC, LOTN, ORDER_QTY, UNIT, SALESREP_NM
+825		  FROM qms_salesorder SO) XX
+826			  ,QMS_ORD_MAST A
+827			  ,QMS_ORD_DETL B
+828		 WHERE A.QMS_ID	  = B.QMS_ID
+829		   AND A.QMS_SEQ  = B.QMS_SEQ
+830		   AND B.ORDERNO  = XX.ORDERNO
+831		   AND B.LINE_NO  = XX.LINE_NO
+832		   AND A.QMS_ID	  = #{qmsId}
+833		   AND A.QMS_SEQ  = #{qmsSeq}
+834	</select>
+
+
+
+
+
+
+
+
+
+/* *********** FIREPROOF CONSTRUCTION TYPE : List<Map<String, Object>> getQmsFireproofList = orderSvc.getQmsFireproofList(params); *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+2220	/**
+2221	 * QMS 오더 내화구조 입력 목록
+2222	 * @작성일 : 2021. 5. 3.
+2223	 * @작성자 : jsh
+2224	 */
+2225	public List<Map<String, Object>> getQmsFireproofList(Map<String, Object> params){
+2226
+2227		List<Map<String, Object>> qmsPopList = qmsOrderDao.getQmsFireproofList(params);
+2228		return qmsPopList;
+2229	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+134	   public List<Map<String, Object>> getQmsFireproofList(Map<String, Object> svcMap) {
+135		return sqlSession.selectList("eorder.o_qmsorder.getQmsFireproofList", svcMap);
+136	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+786	<select id="getQmsFireproofList" parameterType="hashmap" resultType="hashmap">
+787		/* eorder.o_qmsorder.getQmsFireproofList */
+788		SELECT A.KEYCODE
+789			  ,A.FIREPROOFTYPE
+790			  ,A.FIRETIME
+791			  ,A.FILENAME
+792			  ,CEILING((SELECT COUNT(*) FROM O_FIREPROOFMASTER F WHERE F.FIRETIME = A.FIRETIME AND F.ACTIVE = 'Y' ) / 4) AS ROWSPAN_CNT
+793			  ,ROW_NUMBER() OVER (PARTITION BY A.FIRETIME ORDER BY A.KEYCODE ASC) AS RNUM
+794			  ,ROW_NUMBER() OVER (ORDER BY A.KEYCODE ASC) AS RCNT
+795			  ,(SELECT COUNT(F.FIRETIME) FROM O_FIREPROOFMASTER F WHERE F.ACTIVE = 'Y') AS RLAST
+796			  ,CASE WHEN DENSE_RANK() OVER (PARTITION BY A.FIRETIME ORDER BY A.KEYCODE DESC) = 1 THEN 'Y' ELSE 'N' END AS LAST_YN
+797			  ,CASE WHEN (B.KEYCODE IS NOT NULL AND B.DELETEYN='N') THEN 'Y' ELSE 'N' END AS CHK_YN
+798		  FROM O_FIREPROOFMASTER A
+799		  LEFT OUTER JOIN QMS_ORD_FRCN B
+800			ON A.KEYCODE = B.KEYCODE
+801		   AND B.QMS_ID	 = #{qmsId}
+802		   AND B.QMS_SEQ = #{qmsSeq}
+803		 WHERE A.ACTIVE = 'Y'
+804		 ORDER BY A.FIRETIME,A.DISPLAYORDER
+805	</select>

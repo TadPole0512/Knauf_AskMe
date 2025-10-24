@@ -1,0 +1,62 @@
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\front\order\orderAdd.jsp
+
+
+786	// 2024-11-07 hsg otterBro 공지 상세(크나우프석고보드 배송안내서) 팝업 띄우기.
+787	function boardViewPop(obj, bdSeq){
+788
+789		if(!isApp()){
+790			// 팝업 세팅.
+791			var widthPx = 955;
+792			var heightPx = 720;
+793			var options = 'toolbar=no, location=no, status=no, directories=no, channelmode=no, menubar=no, scrollbars=yes, resizable=yes, width='+widthPx+', height='+heightPx;
+794
+795			$('form[name="frmNoticePop"]').find('input[name="r_bdseq"]').val(bdSeq);
+796
+797			window.open('', 'noticeViewPop', options);
+798			$('form[name="frmNoticePop"]').prop('action', '${url}/front/board/noticeViewPop.lime');
+799			$('form[name="frmNoticePop"]').submit();
+800
+801		}
+802		else{
+803			// 모달팝업
+804			//$('#boardViewPopMId').modal('show');
+805			var link = '${url}/front/board/noticeViewPop.lime?r_bdseq='+bdSeq+'&layer_pop=Y&';
+806			// 부모창refresh
+807			$(document).on('hidden.bs.modal', function (e) {   // bootstrap modal refresh
+808			   $(e.target).removeData('bs.modal');
+809			});
+810			$('#boardViewPopMId').modal({
+811				remote: link
+812			});
+813		}
+814	}
+
+
+
+863	<%-- 2024-11-07 hsg otterBro 공지 상세(크나우프석고보드 배송안내서) 팝업 띄우기. 팝업 배송안내서 form --%>
+864	<form name="frmNoticePop" method="post" target="noticeViewPop">
+865		<input name="pop" type="hidden" value="1" />
+866		<input name="r_bdseq" type="hidden" value="" />
+867	</form>
+
+
+
+931	<%-- 2024-11-07 hsg otterBro 크나우프석고보드(bd_seq:2262) 배송안내서 팝업. 배송비 안내 버튼. --%>
+932	<button type="button" class="btn btn-green order-save-btn" onclick="boardViewPop(this, '2262');">배송안내서</button> <%-- 배송안내서 --%>
+
+
+
+
+
+
+-- INSERT INTO BOARD (BD_SEQ, BD_ID, BD_TYPE, BD_DISPLAYTYPE, BD_TITLE, BD_CONTENT, BD_FILE, BD_FILETYPE, BD_IMAGE, BD_IMAGETYPE, BD_FILEYN, BD_NOTICEYN, BD_USEYN, BD_MOID, BD_INID, BD_MODATE, BD_INDATE, BD_REPLY, BD_REPLYYN, VIEW_CNT, BD_TYPE3, BD_TYPE2)
+-- VALUES(2262, 'notice', NULL, 'user', '크나우프석고보드 배송안내서', '<p><img alt="" src="/eorder/data/editor/공지사항5.png" style="height:623px; width:1100px" /></p>', '크나우프석고보드_배송안내서.pdf', 'application/pdf', NULL, NULL, 'N', 'Y', 'Y', '0080002338', '0080002338', '2024-11-06 16:38:21.000000', '2024-11-06 16:34:03.000000', NULL, 'N', 0, NULL, NULL);
+
+http://localhost:8080/eorder/data/editor/공지사항5.png
+
+
+C:\STS_EORDER\workspace\.metadata\.plugins\org.eclipse.wst.server.core\tmp1\wtpwebapps\eorder\data\board
+
+C:\STS_EORDER\workspace\.metadata\.plugins\org.eclipse.wst.server.core\tmp1\wtpwebapps\eorder\data\board\크나우프석고보드_배송안내서.pdf
+

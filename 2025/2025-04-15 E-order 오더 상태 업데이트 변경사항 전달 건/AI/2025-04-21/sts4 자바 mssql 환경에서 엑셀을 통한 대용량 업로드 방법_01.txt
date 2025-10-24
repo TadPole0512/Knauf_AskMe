@@ -1,0 +1,306 @@
+sts4, java, mssql 환경에서 엑셀을 통한 대용량 업로드 방법 알려줘
+최종적으로는 설명한 것을 기반으로 동작하는 예제도 자세하게 만들어주고, 주석문도 꼼꼼하게 적어줘
+
+사용자가 입력하는 엑셀파일의 헤더(제목)는 아래와 같다고 할 수 있지만, 사용자마다 헤더가 일치하지는 않고, 또 셀의 위치가 사용자마다 다를 수가 있어. 아래의 헤더는 참조용이야.
+Sales Document	Sales Document Item	Created On	Document Date	Time	Created By	Sales Document Type	Sales Organization	Billing block	Billing block description	Purchase order no.	Customer	Country SoldToParty	Search term A	Search term B	Customer group 3	Ship-to	Ship-To Party	Ship-to Country	Region Ship-to	Country ShipToParty	Order reason	Order reason	Delivery block	Delivery block	Shipping Conditions	Requested deliv.date	Loading Date	Arrival time	Delivery status	Overall status	Item Category	Reason for rejection	Reason for rejection	Material	Material Description	Order Quantity	Cumul.confirmed qty	Sales Unit	Total quantity	Allocation Unit	Quantity allocated	Allocation Plant	Allocation Ext. Material Group	Allocation Sub-Segment	Allocation Segment	Difference quantity	Difference in %	Allocation period	Pricing Date	Net Value	Document Currency	Plant	Storage Location	Quotation number	ABC Indicator	Main material group	Name	Name 2	Name 3	Name 4	City	Postal Code	Street	House Number	Search Term 1	Search Term 2	Delivery	Delivery item	Shipment Number	Invoice	Invoice item	IC invoice	Item IC invoice	Gross Weight	Net Weight	Weight Unit	Gross Weight US	Net Weight US	Weight unit US	Predecessr	Special proc. indicator	Payer	Freight forwarder	Truck load %	Partial truck load %		Shipping Point/Receiving Pt	Pricing Ref. Matl	Distribution Channel	Name 1	Overall CreditStatus	Ext. Material Group	Ext. matl grp descr.	Subseg.	Subseg. Descr.	Seg.	Seg. Descr.	Pricing Partner
+엑셀파일에서 헤더(제목) 셀 중에서 내가 사용하고 싶은 셀은 Sales Document Type	Purchase order no.	Reason for rejection	Sales Document	Sales Document Item	Delivery status	Overall status 만 필요해. 이 셀들도 엑셀파일의 헤더의 셀 순서가 정해져 있지가 않아서 필요한 셀을 찾아야만 해
+
+해당 자료를 기반으로 DB에 UPDATE를 해야하는 Table은 O_SALESORDER, QMS_SALESORDER 테이블이야.
+아래는 엑셀에 있는 값에 따라 update를 해야하는 테이블과 컬럼명, 그리고 해달 컬럼의 값이야.
+    1. SalesDocument, Sales Document Item*100를 AND조건으로 활용하여 O_SALESORDER, QMS_SALESORDER 테이블에서 ORDERNO, LINE_NO와 매칭되는 데이터를 찾아야 함
+    2. 매칭한 값의 Reason for rejection 값 여부 ,DS(Delivery status), OS(Overall status)의 값에 따라 E-order에서 ORDER의 상태 값 UPDATE					
+        i. Reason for rejection Code가 Null이 아닌 경우					
+		    A. 해당 ORDER의 STATUS1 – 980, STATUS – 999, STATUS_DESC – 오더취소			
+        ii. DS가 C인 경우					
+		    A. 해당 ORDER의 STATUS1 – 580, STATUS – 620, STATUTS_DESC – 배송완료			
+        iii. DS가 Null And OS가 C인 경우					
+		    A. 해당 ORDER의 STATUS – 580, STATUS – 620, STATUS_DESC – 배송완료			
+
+
+Spring 웹에서 사용자가 직접 파일을 업로드하는 방식으로 해서 데이터 저장 방식은 JDBC (PreparedStatement)를 이용했으면 좋겠어
+
+
+
+테이블 구조는 아래와 같아.
+
+CREATE TABLE EORDER.dbo.O_SALESORDER (
+	ORDERNO bigint NOT NULL,
+	ORDERTY varchar(4) COLLATE Korean_Wansung_CI_AS NOT NULL,
+	LINE_NO bigint NOT NULL,
+	ORDER_DT varchar(8) COLLATE Korean_Wansung_CI_AS NULL,
+	REQUEST_DT varchar(8) COLLATE Korean_Wansung_CI_AS NULL,
+	ACTUAL_SHIP_DT varchar(8) COLLATE Korean_Wansung_CI_AS NULL,
+	CUST_NM varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPTO_NM varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD1 varchar(180) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD2 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD4 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	ZIP_CD varchar(12) COLLATE Korean_Wansung_CI_AS NULL,
+	COMPANY varchar(5) COLLATE Korean_Wansung_CI_AS NULL,
+	PLANT_CD varchar(12) COLLATE Korean_Wansung_CI_AS NULL,
+	PLANT_DESC varchar(60) COLLATE Korean_Wansung_CI_AS NULL,
+	ITEM_CD varchar(25) COLLATE Korean_Wansung_CI_AS NULL,
+	ITEM_DESC varchar(60) COLLATE Korean_Wansung_CI_AS NULL,
+	ORDER_QTY bigint NULL,
+	UNIT varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	PRIMARY_QTY bigint NULL,
+	UNIT1 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	SECOND_QTY bigint NULL,
+	UNIT2 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	WEIGHT float NULL,
+	WEIGHT_UNIT varchar(2) COLLATE Korean_Wansung_CI_AS NULL,
+	PRICE bigint NULL,
+	AMOUNT bigint NULL,
+	STATUS1 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	STATUS2 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	STATUS_DESC varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	DRIVER_PHONE varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPMENT_CD_SAP varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	CUST_PO varchar(70) COLLATE Korean_Wansung_CI_AS NULL,
+	ORDER_TAKER varchar(12) COLLATE Korean_Wansung_CI_AS NULL,
+	HOLD_CODE varchar(2) COLLATE Korean_Wansung_CI_AS NULL,
+	SALESREP_CD bigint NULL,
+	TRUCK_NO varchar(20) COLLATE Korean_Wansung_CI_AS NULL,
+	SALESREP_NM varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	TEAM_CD varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	TEAM_NM varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	BUILDING_TYPE varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	INSERT_DT varchar(20) COLLATE Korean_Wansung_CI_AS NULL,
+	TRANS_TY varchar(2) COLLATE Korean_Wansung_CI_AS NULL,
+	RECEIVER varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	DUMMY varchar(30) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD3 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	REQUEST_TIME varchar(4) COLLATE Korean_Wansung_CI_AS NULL,
+	LIFNR_NAME1 varchar(35) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPMENT_CD_3PL varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPMENT_CD varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPTO_CD varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	CUST_CD varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPTO_NM2 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	INVOICE_FLAG varchar(1) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPPING_FLAG varchar(1) COLLATE Korean_Wansung_CI_AS NULL,
+	DELIVERY_NO varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	DELIVERY_SEC_NO varchar(4) COLLATE Korean_Wansung_CI_AS NULL,
+	LOTN varchar(20) COLLATE Korean_Wansung_CI_AS NULL,
+	CONSTRAINT SYS_C005844 PRIMARY KEY (ORDERNO,ORDERTY,LINE_NO)
+);
+
+
+
+
+
+
+
+
+=========================================================================================
+
+
+
+
+<!-- pom.xml 예시 -->
+<dependency>
+  <groupId>org.apache.poi</groupId>
+  <artifactId>poi-ooxml</artifactId>
+  <version>5.2.3</version>
+</dependency>
+<!-- StreamingReader 사용 (엑셀을 메모리 풀리지 않고 순회) -->
+<dependency>
+  <groupId>com.monitorjbl</groupId>
+  <artifactId>xlsx-streamer</artifactId>
+  <version>2.2.0</version>
+</dependency>
+
+
+
+if(reason != null && !reason.isEmpty()) {
+  status1="980"; status2="999"; desc="오더취소";
+} else if("C".equalsIgnoreCase(ds)) {
+  status1="580"; status2="620"; desc="배송완료";
+} else if(ds==null && "C".equalsIgnoreCase(os)) {
+  status1="580"; status2="620"; desc="배송완료";
+} else {
+  continue; // 업데이트 대상 아님
+}
+
+
+
+
+
+
+public class OrderUpdateDto {
+    private long orderNo;
+    private long lineNo;
+    private String reason, ds, os;
+    // getters/setters
+}
+
+
+
+
+@Service
+public class SalesOrderExcelService {
+
+    @Autowired
+    private DataSource dataSource;
+
+    /** 업로드된 엑셀 파싱 후 DB 업데이트 */
+    public void uploadAndUpdate(MultipartFile file) throws Exception {
+        List<OrderUpdateDto> list = parseExcel(file);
+        batchUpdate(list);
+    }
+
+    /** Apache POI StreamingReader로 헤더→행 단위 파싱 */
+    private List<OrderUpdateDto> parseExcel(MultipartFile file) throws Exception {
+        List<OrderUpdateDto> result = new ArrayList<>();
+        // 모니터JBL StreamingReader 사용
+        try (InputStream is = file.getInputStream();
+             Workbook wb = StreamingReader.builder()
+                   .rowCacheSize(100)
+                   .bufferSize(4096)
+                   .open(is)) {
+
+            Sheet sheet = wb.getSheetAt(0);
+            Iterator<Row> rows = sheet.iterator();
+            if (!rows.hasNext()) return result;
+
+            // 1) 헤더 매핑
+            Row header = rows.next();
+            Map<String, Integer> hdr = new HashMap<>();
+            List<String> targets = Arrays.asList(
+              "Sales Document Type", "Purchase order no.",
+              "Reason for rejection","Sales Document",
+              "Sales Document Item","Delivery status","Overall status"
+            );
+            for (Cell c : header) {
+                String name = c.getStringCellValue().trim();
+                if(targets.contains(name)) {
+                    hdr.put(name, c.getColumnIndex());
+                }
+            }
+            // 2) 본문 파싱
+            while (rows.hasNext()) {
+                Row r = rows.next();
+                OrderUpdateDto dto = new OrderUpdateDto();
+                dto.setOrderNo((long) getNumericCell(r, hdr.get("Sales Document")));
+                dto.setLineNo((long) getNumericCell(r, hdr.get("Sales Document Item")) * 100);
+                dto.setReason(getStringCell(r, hdr.get("Reason for rejection")));
+                dto.setDs(getStringCell(r, hdr.get("Delivery status")));
+                dto.setOs(getStringCell(r, hdr.get("Overall status")));
+                result.add(dto);
+            }
+        }
+        return result;
+    }
+
+    /** 숫자 셀 읽기(빈칸→0) */
+    private double getNumericCell(Row r, int idx) {
+        Cell c = r.getCell(idx, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        return c!=null && c.getCellType()==CellType.NUMERIC
+             ? c.getNumericCellValue() : 0;
+    }
+    /** 문자열 셀 읽기(빈칸→null) */
+    private String getStringCell(Row r, int idx) {
+        Cell c = r.getCell(idx, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        if(c==null) return null;
+        if(c.getCellType()==CellType.STRING) return c.getStringCellValue().trim();
+        return c.toString().trim();
+    }
+
+    /** JDBC Batch로 두 테이블 업데이트 */
+    private void batchUpdate(List<OrderUpdateDto> list) throws SQLException {
+        String sql1 = "UPDATE EORDER.dbo.O_SALESORDER "
+                    + "SET STATUS1=?, STATUS2=?, STATUS_DESC=? "
+                    + "WHERE ORDERNO=? AND LINE_NO=?";
+        String sql2 = "UPDATE QMS_SALESORDER "
+                    + "SET STATUS1=?, STATUS2=?, STATUS_DESC=? "
+                    + "WHERE ORDERNO=? AND LINE_NO=?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps1 = conn.prepareStatement(sql1);
+             PreparedStatement ps2 = conn.prepareStatement(sql2)) {
+
+            conn.setAutoCommit(false);
+            int batchSize = 500, count = 0;
+
+            for (OrderUpdateDto dto : list) {
+                // 1) 상태 결정
+                String s1=null, s2=null, desc=null;
+                if (dto.getReason()!=null) {
+                    s1="980"; s2="999"; desc="오더취소";
+                } else if ("C".equalsIgnoreCase(dto.getDs())) {
+                    s1="580"; s2="620"; desc="배송완료";
+                } else if (dto.getDs()==null && "C".equalsIgnoreCase(dto.getOs())) {
+                    s1="580"; s2="620"; desc="배송완료";
+                } else {
+                    continue; // 업데이트 대상 아님
+                }
+                // 2) PreparedStatement에 파라미터 세팅
+                for (PreparedStatement ps : Arrays.asList(ps1, ps2)) {
+                    ps.setString(1, s1);
+                    ps.setString(2, s2);
+                    ps.setString(3, desc);
+                    ps.setLong(4, dto.getOrderNo());
+                    ps.setLong(5, dto.getLineNo());
+                    ps.addBatch();
+                }
+                if (++count % batchSize == 0) {
+                    ps1.executeBatch();
+                    ps2.executeBatch();
+                    conn.commit();
+                }
+            }
+            // 남은 배치
+            ps1.executeBatch();
+            ps2.executeBatch();
+            conn.commit();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+@RestController
+@RequestMapping("/sales")
+public class SalesOrderExcelController {
+
+    @Autowired
+    private SalesOrderExcelService service;
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> uploadExcel(@RequestParam("file") MultipartFile file) {
+        try {
+            service.uploadAndUpdate(file);
+            return ResponseEntity.ok("엑셀 업로드 및 상태 업데이트 완료");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body("오류 발생: " + e.getMessage());
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

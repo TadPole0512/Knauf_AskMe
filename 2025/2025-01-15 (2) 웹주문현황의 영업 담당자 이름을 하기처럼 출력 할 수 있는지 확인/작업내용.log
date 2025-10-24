@@ -1,0 +1,87 @@
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주문접수 *********** */
+/* ***************************************************************************************************************************************** */
+
+/* *********** O_ORDER_CONFIRM_H 테이블에 SALEREP_NM, SALESREP_CD 컬럼 추가 *********** */
+
+O_ORDER_CONFIRM_H 테이블에 SALEREP_NM(varchar(40)), SALESREP_CD(varchar(10)) 컬럼 추가
+
+ALTER	TABLE O_ORDER_CONFIRM_H
+  ADD	SALESREP_NM varchar(40) NULL,
+	SALESREP_CD varchar(10) NULL
+;
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** location	C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+
+844 svcMap.put("m_salesrepcd", Converter.toInt(custOrderH.get("SALESREP_CD")));// 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정
+845 svcMap.put("m_salesrepnm", custOrderH.get("SALESREP_NM"));// 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정
+
+
+
+926 svcMap.put("m_salesrepcd", Converter.toInt(custOrderH.get("SALESREP_CD")));// 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정
+927 svcMap.put("m_salesrepnm", custOrderH.get("SALESREP_NM"));// 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정
+
+
+
+1133    svcMap.put("m_salesrepcd", Converter.toInt(custOrderH.get("SALESREP_CD")));// 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정
+1134    svcMap.put("m_salesrepnm", custOrderH.get("SALESREP_NM"));// 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml *********** */
+
+
+121	<select id="one" parameterType="hashmap" resultType="hashmap">
+
+128	<!-- 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 함께 조회한다. -->
+129 , CU.SALESREP_CD, CU.SALESREP_NM
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_order_confirm_h.xml *********** */
+
+4	<insert id="in" parameterType="hashmap">
+
+
+22	, SALESREP_CD<!-- 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정 -->
+    , SALESREP_NM<!-- 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정 -->
+
+
+53 	, #{m_salesrepcd}<!-- 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정 -->
+54  , #{m_salesrepnm}<!-- 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 설정 -->
+
+
+
+236	<select id="list" parameterType="hashmap" resultType="hashmap">
+
+249 <!-- 2015-01-17 hsg Fisherman Suplex. 거래처 담당자가 주기적으로 바뀌기에 당시에 있었던 오더들에 대해서는 담당자가 저장 되어야 합니다.라는 요청에 의해 거래처 담당자를 함께 조회한다. , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM -->
+250	, CU.SALESREP_CD AS SALESUSERID, CU.SALESREP_NM AS SALESUSER_NM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

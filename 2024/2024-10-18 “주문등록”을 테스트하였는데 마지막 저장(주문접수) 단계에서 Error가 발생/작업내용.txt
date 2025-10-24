@@ -1,0 +1,137 @@
+orderAddressBookmark.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+5		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+6		<selectKey keyProperty="oabSeq" resultType="long" order="BEFORE">
+7    		SELECT MAX(OAB_SEQ)+1 FROM ORDERADDRESSBOOKMARK;
+8    	</selectKey>
+
+
+
+22			<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+23<!-- 			- - USQ_ORDERADDRESSBOOKMARK.NEXTVAL -->
+24<!-- 			NEXT VALUE FOR USQ_ORDERADDRESSBOOKMARK -->
+25			#{oabSeq}
+
+
+-------------------------------------------------------------------
+
+orderHeaderHistory.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+5		<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+6		<selectKey keyProperty="ohhSeq" resultType="long" order="BEFORE">
+7   		SELECT MAX(OHH_SEQ)+1 FROM APPPUSH;
+8    	</selectKey>
+
+
+
+		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+19<!-- 			USQ_ORDERHEADERHISTORY.NEXTVAL -->
+			#{ohhSeq}
+
+
+
+-------------------------------------------------------------------
+
+popup.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+
+5		<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+		<selectKey keyProperty="puSeq" resultType="long" order="BEFORE">
+    		SELECT MAX(PU_SEQ)+1 FROM POPUP;
+    	</selectKey>
+
+
+30		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+<!-- 			USQ_POPUP.NEXTVAL, -->
+			#{puSeq}
+
+
+
+
+-------------------------------------------------------------------
+
+test.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+
+5		<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+		<selectKey keyProperty="ts0" resultType="long" order="BEFORE">
+    		SELECT MAX(TS_0)+1 FROM TEST_L;
+    	</selectKey>
+
+
+14		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+<!-- 			USQ_TESTLSEQ.NEXTVAL -->
+			#{ts0}
+
+
+
+
+-------------------------------------------------------------------
+
+tosConfig.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+
+5		<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+		<selectKey keyProperty="tscSeq" resultType="long" order="BEFORE">
+    		SELECT MAX(TSC_SEQ)+1 FROM TOSCONFIG;
+    	</selectKey>
+
+
+19		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+<!-- 	    	 - - USQ_TOSCONFIG.NEXTVAL -->
+<!-- 	    	 NEXT VALUE FOR USQ_TOSCONFIG -->
+			#{tscSeq}
+
+
+
+-------------------------------------------------------------------
+
+
+userPswdHistory.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+5		<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+		<selectKey keyProperty="uphSeq" resultType="long" order="BEFORE">
+    		SELECT MAX(UPH_SEQ)+1 FROM USERPSWDHISTORY;
+    	</selectKey>
+
+
+14		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+			<!-- USQ_USERPSWDHISTORY.NEXTVAL -->
+<!-- 			NEST VALUE FOR USQ_USERPSWDHISTORY -->
+			#{uphSeq}
+
+
+
+in2
+
+
+28		<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+		<selectKey keyProperty="uphSeq2" resultType="long" order="BEFORE">
+    		SELECT MAX(UPH_SEQ)+1 FROM USERPSWDHISTORY;
+    	</selectKey>
+
+
+
+37		<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+<!-- 			USQ_USERPSWDHISTORY.NEXTVAL -->
+			#{uphSeq}
+
+

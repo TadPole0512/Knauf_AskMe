@@ -1,0 +1,747 @@
+https://eordertest.knaufapac.kr/eorder/admin/mypage/csSalesUserList.lime
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\MypageCtrl.java
+
+
+36	/**
+	 * 조직설정 폼.
+	 * @작성일 : 2020. 3. 10.
+	 * @작성자 : kkyu
+	 */
+	@GetMapping(value="csSalesUserList")
+	public String csSalesUserList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		String[] ri_authority = {"SH", "SM", "SR"};
+		params.put("ri_authority", ri_authority);
+		userSvc.getUserList(params);
+		
+		
+		return "admin/mypage/csSalesUserList";
+	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\UserSvc.java
+
+
+124	public List<Map<String, Object>> getUserList(Map<String, Object> svcMap){
+		return userDao.list(svcMap);
+	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\UserDao.java
+
+
+40	public List<Map<String, Object>> list(Map<String, Object> svcMap) {
+		return sqlSession.selectList("eorder.o_user.list", svcMap);
+	}
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_user.xml
+
+
+447	<select id="list" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+				<choose>
+					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+					<otherwise>ORDER BY (SELECT 1)</otherwise>
+				</choose>
+			) AS ROWNUM
+			, XX.* 
+		FROM (
+		SELECT LIST.* FROM (	
+		SELECT US.*, CU.CUST_NM
+			, CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT (SELECT USER_NM FROM O_USER WHERE USERID = CSM.CSUSERID)FROM O_CSSALESMAP CSM WHERE CSM.SALESUSERID = US.USERID AND CSM.FIXEDYN = 'Y')
+				ELSE '' END CS_SALESUSER
+			, CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT COUNT(*) FROM O_CUSTOMER WHERE SALESREP_CD = US.USERID)
+				ELSE -1 END CUSTOMER_CNT
+			<if test="r_csuserid != null and r_csuserid != '' ">
+				, (SELECT FIXEDYN FROM O_CSSALESMAP WHERE US.AUTHORITY IN ('SH','SM','SR') AND CSUSERID = #{r_csuserid} AND SALESUSERID = US.USERID) AS SALES_FIXEDYN
+			</if>	
+		FROM O_USER US
+		LEFT JOIN O_CUSTOMER CU ON CU.CUST_CD = US.CUST_CD
+		<where>
+			AND USERID NOT IN ('9', '1', '2','3', '4', '5', '6')
+			<if test="r_userid != null and r_userid != '' ">AND US.USERID = #{r_userid}</if>
+			<if test="rl_userid != null and rl_userid != '' ">AND US.USERID LIKE '%' + #{rl_userid} + '%'</if>
+			<if test="r_userpwd != null and r_userpwd != '' ">AND US.USER_PWD = dbo.UDF_SETPASSWORD(#{r_userpwd})</if>
+			<if test="r_passchangeyn != null and r_passchangeyn != '' ">AND US.PASSCHANGE_YN = #{r_passchangeyn}</if>
+			<if test="r_usernm != null and r_usernm != '' ">AND US.USER_NM = #{r_usernm}</if>
+			<if test="rl_usernm != null and rl_usernm != '' ">AND US.USER_NM LIKE '%' + #{rl_usernm} + '%'</if>
+			<if test="r_authority != null and r_authority != '' ">AND US.AUTHORITY = #{r_authority}</if>
+			<if test="rn_authority != null and rn_authority != '' ">AND US.AUTHORITY != #{rn_authority}</if>
+			<if test="rl_telno != null and rl_telno != '' ">AND TEL_NO LIKE '%' + #{rl_telno} + '%'</if>
+			<if test="r_agreeyn != null and r_agreeyn != '' ">AND AGREE_YN = #{r_agreeyn}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND US.CUST_CD = #{r_custcd}</if>
+			<if test="r_deptcd != null and r_deptcd != '' ">AND US.DEPT_CD = #{r_deptcd}</if>
+			<if test="r_jdeid != null and r_jdeid != '' ">AND JDEID = #{r_jdeid}</if>
+			<if test="rl_teamnm != null and rl_teamnm != '' ">AND TEAM_NM LIKE '%' + #{rl_teamnm} + '%'</if>
+			<if test="r_teamcd != null and r_teamcd != '' ">AND TEAM_CD = #{r_teamcd}</if>
+			<if test="rl_cellno != null and rl_cellno != '' ">AND CELL_NO LIKE '%' + #{rl_cellno} + '%'</if>
+			<if test="rl_dummy != null and rl_dummy != '' ">AND US.DUMMY LIKE '%' + #{rl_dummy} + '%'</if>
+			<if test="r_failcnt != null and r_failcnt != '' ">AND FAIL_CNT = #{r_failcnt}</if>
+			<if test="r_userdepth != null and r_userdepth != '' ">AND USER_DEPTH = #{r_userdepth}</if>
+			<if test="r_usercate1 != null and r_usercate1 != '' ">AND USER_CATE1 = #{r_usercate1}</if>
+			<if test="r_usercate2 != null and r_usercate2 != '' ">AND USER_CATE2 = #{r_usercate2}</if>
+			<if test="r_usercate3 != null and r_usercate3 != '' ">AND USER_CATE3 = #{r_usercate3}</if>
+			<if test="r_usercate4 != null and r_usercate4 != '' ">AND USER_CATE4 = #{r_usercate4}</if>
+			<if test="ri_useruse != null">
+				AND USER_USE IN <foreach collection="ri_useruse" item="user_use" separator="," open="(" close=")">#{user_use}</foreach>
+			</if>
+			<if test="ri_authority != null">
+   				AND AUTHORITY IN <foreach collection="ri_authority" item="authority" separator="," open="(" close=")">#{authority}</foreach>
+ 			</if>
+ 			<if test="rni_authority != null">
+   				AND AUTHORITY NOT IN <foreach collection="rni_authority" item="authority" separator="," open="(" close=")">#{authority}</foreach>
+ 			</if>
+ 			
+ 			<if test="r_userposition != null and r_userposition != '' ">AND USER_POSITION = #{r_userposition}</if>
+ 			<if test="rl_userposition != null and rl_userposition != '' ">AND USER_POSITION LIKE '%' + #{rl_userposition} + '%'</if>
+ 			<if test="r_useremail != null and r_useremail != '' ">AND USER_EMAIL = #{r_useremail}</if>
+ 			<if test="rl_useremail != null and rl_useremail != '' ">AND USER_EMAIL LIKE '%' + #{rl_useremail} + '%'</if>
+ 			<if test="r_useruse != null and r_useruse != '' ">AND USER_USE = #{r_useruse}</if>
+			<if test="r_userview != null and r_userview != '' ">AND USER_VIEW = #{r_userview}</if>
+			<if test="r_userdepth != null and r_userdepth != '' ">AND USER_DEPTH = #{r_userdepth}</if>
+			<if test="r_userparent != null and r_userparent != '' ">AND USER_PARENT = #{r_userparent}</if>
+			<if test="r_usercate1 != null and r_usercate1 != '' ">AND USER_CATE1 = #{r_usercate1}</if>
+			<if test="r_usercate2 != null and r_usercate2 != '' ">AND USER_CATE2 = #{r_usercate2}</if>
+			<if test="r_usercate3 != null and r_usercate3 != '' ">AND USER_CATE3 = #{r_usercate3}</if>
+			<if test="r_usercate4 != null and r_usercate4 != '' ">AND USER_CATE4 = #{r_usercate4}</if>
+			<if test="r_usersort1 != null and r_usersort1 != '' ">AND USER_SORT1 = #{r_usersort1}</if>
+			<if test="r_usersort2 != null and r_usersort2 != '' ">AND USER_SORT2 = #{r_usersort2}</if>
+			<if test="r_usersort3 != null and r_usersort3 != '' ">AND USER_SORT3 = #{r_usersort3}</if>
+			<if test="r_usersort4 != null and r_usersort4 != '' ">AND USER_SORT4 = #{r_usersort4}</if>
+			<if test="r_usereorder != null and r_usereorder != '' ">AND USER_EORDER = #{r_usereorder}</if>
+			<if test="rl_name_code != null and rl_name_code != ''">AND (USERID LIKE '%'+ #{rl_name_code} + '%' OR USER_NM LIKE '%'+ #{rl_name_code} + '%')</if>
+			
+			<if test="rni_userid != null">
+				AND USERID NOT IN <foreach collection="rni_userid" item="userid" separator="," open="(" close=")">#{userid}</foreach>
+			</if>
+			
+			<!-- 영업사원 : 관리자 권한에 따른 조건절 -->
+ 			<if test='page_type != null and "orderlist_salesuser".equals(page_type)'>
+	 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+	 				<if test='"AD".equals(r_adminauthority)'>
+	 				</if>
+	 				<if test='"CS".equals(r_adminauthority)'>
+	 					AND USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+	 				</if>
+	 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+	 					<if test='"SH".equals(r_adminauthority)'>
+	 						AND USERID IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SM".equals(r_adminauthority)'>
+	 						AND USERID IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SR".equals(r_adminauthority)'>
+	 						AND USERID = #{r_adminuserid}
+	 					</if>
+	 				</if>
+	 				<if test='"MK".equals(r_adminauthority)'>	
+	 				</if>
+	 			</if>
+ 			</if>
+		</where>
+		) LIST
+		<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if> -->
+		) XX ) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+http://localhost:8080/eorder/admin/mypage/csSalesUserList.lime
+
+
+getGridList()
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\MypageCtrl.java
+
+51	/**
+	 * 조직설정 폼 > 영업사원 전체 리스트 가져오기 Ajax.
+	 * @작성일 : 2020. 3. 10.
+	 * @작성자 : kkyu
+	 */
+	@ResponseBody
+	@PostMapping(value="getCsSalesUserListAjax")
+	public Object getCsSalesUserListAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		String[] ri_authority = {"SH", "SM", "SR"};
+		params.put("ri_authority", ri_authority);
+		params.put("r_csuserid", loginDto.getUserId());
+		
+		String[] rni_userid = {"19000101"}; // 비사용자그룹
+		params.put("rni_userid", rni_userid);
+		
+		return userSvc.getUserList(params, req, loginDto);
+	}
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\UserSvc.java
+
+
+672	/**
+	 * 사용자(내부 및 외부 사용자) 리스트 가져오기.
+	 * @작성일 : 2020. 3. 2.
+	 * @작성자 : kkyu
+	 * @param r_gridselectyn : Y=내부사용자 > 시스템  > 사용자현황 페이지에서 trgrid를 선택했을때. /admin/system/adminUserConfig.jsp.
+	 */
+	public Map<String, Object> getUserList(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+		Map<String, Object> resMap = new HashMap<>();
+//		Map<String, Object> svcMap = new HashMap<>();
+
+		String r_gridselectyn = Converter.toStr(params.get("r_gridselectyn"));
+		String r_authority = Converter.toStr(params.get("r_authority"));
+		String r_userid = Converter.toStr(params.get("r_userid"));
+		String r_userdepth = Converter.toStr(params.get("r_userdepth"));
+		
+		String rl_userid = Converter.toStr(params.get("rl_userid")); // 검색조건.
+		String rl_usernm = Converter.toStr(params.get("rl_usernm")); // 검색조건.
+		String ri_userusearr = Converter.toStr(params.get("ri_userusearr")); // 검색조건.
+		logger.debug("r_gridselectyn : {}", r_gridselectyn);
+		logger.debug("r_authority : {}", r_authority);
+		logger.debug("r_userid : {}", r_userid);
+		logger.debug("r_userdepth : {}", r_userdepth);
+		logger.debug("rl_userid : {}", rl_userid);
+		logger.debug("rl_usernm : {}", rl_usernm);
+		
+		// Define Paramter Only for ExcelDown.
+		if(StringUtils.equals("", r_gridselectyn)) r_gridselectyn = Converter.toStr(params.get("excel_gridselectyn")); 
+		if(StringUtils.equals("", r_authority)) r_authority = Converter.toStr(params.get("excel_authority")); 
+		if(StringUtils.equals("", r_userid)) r_userid = Converter.toStr(params.get("excel_userid")); 
+		if(StringUtils.equals("", r_userdepth)) r_userdepth = Converter.toStr(params.get("excel_userdepth")); 
+		
+		if(!StringUtils.equals("", ri_userusearr)) params.put("ri_useruse", ri_userusearr.split(",", -1));
+		
+		if(StringUtils.equals("Y", r_gridselectyn)) {
+			params.put("r_userid", "");
+			params.put("r_userdepth", "");
+			params.put("r_authority", "");
+			
+			
+			
+			if(StringUtils.equals("1", r_userdepth)) {
+				if(StringUtils.equals("SH", r_authority) || StringUtils.equals("SM", r_authority) || StringUtils.equals("SR", r_authority)) { // 영업사원.
+					String[] ri_authority = {"SH","SM","SR"};
+					params.put("ri_authority", ri_authority);
+				}else {
+					params.put("r_authority", r_authority);
+				}
+			}
+			if(StringUtils.equals("2", r_userdepth)) {
+				if(StringUtils.equals("SH", r_authority) || StringUtils.equals("SM", r_authority) || StringUtils.equals("SR", r_authority)) { // 영업사원.
+					params.put("r_userdepth", "3");
+					params.put("r_usercate2", r_userid);
+				}else {
+					params.put("r_authority", r_authority);
+					params.put("r_usercate2", r_userid);
+				}
+			}
+			if(StringUtils.equals("3", r_userdepth)) { // 영업사원만.
+				if(StringUtils.equals("SH", r_authority) || StringUtils.equals("SM", r_authority) || StringUtils.equals("SR", r_authority)) { // 영업사원.
+					params.put("r_userdepth", "4");
+					params.put("r_usercate3", r_userid);
+				}else {}
+			}
+			if(StringUtils.equals("4", r_userdepth)) { // 영업사원만.
+				if(StringUtils.equals("SH", r_authority) || StringUtils.equals("SM", r_authority) || StringUtils.equals("SR", r_authority)) { // 영업사원.
+					params.put("r_userdepth", "4");
+					params.put("r_usercate4", r_userid);
+				}
+			}
+			if(StringUtils.equals("5", r_userdepth)) { // QMS
+                if(StringUtils.equals("SH", r_authority) || StringUtils.equals("SM", r_authority) || StringUtils.equals("SR", r_authority)) { // 영업사원.
+                    params.put("r_userdepth", "5");
+                    params.put("r_usercate5", r_userid);
+                }
+            }
+		}
+		
+		int totalCnt = userDao.cnt(params);
+
+		Pager pager = new Pager();
+		pager.gridSetInfo(totalCnt, params, req);
+		resMap.put("total", Converter.toInt(params.get("totpage")));
+		resMap.put("listTotalCount", totalCnt);
+		
+		// Start. Define Only For Form-Paging.
+		resMap.put("startnumber", params.get("startnumber"));
+		resMap.put("r_page", params.get("r_page"));
+		resMap.put("startpage", params.get("startpage"));
+		resMap.put("endpage", params.get("endpage"));
+		resMap.put("r_limitrow", params.get("r_limitrow"));
+		// End.
+		
+		String r_orderby = "";
+		String sidx = Converter.toStr(params.get("sidx")); //정렬기준컬럼
+		String sord = Converter.toStr(params.get("sord")); //내림차순,오름차순
+		r_orderby = sidx + " " + sord;
+		if(StringUtils.equals("", sidx)) { r_orderby = "USER_SORT1 ASC, USER_SORT2 ASC, USER_SORT3 ASC, USER_SORT4 ASC"; } //디폴트 지정
+		params.put("r_orderby", r_orderby);
+
+		// 엑셀 다운로드.
+		String where = Converter.toStr(params.get("where"));
+		if ("excel".equals(where)) {
+			params.remove("r_startrow");
+			params.remove("r_endrow");
+		}
+		
+		List<Map<String, Object>> list = this.getUserList(params);
+		resMap.put("list", list);
+		resMap.put("data", list);
+		
+		System.out.println("startnumber>>>" + resMap.get("startnumber"));
+		System.out.println("r_page>>>" + resMap.get("r_page"));
+		System.out.println("startpage>>>" + resMap.get("startpage"));
+		System.out.println("endpage>>>" + resMap.get("endpage"));
+		System.out.println("r_limitrow>>>" + resMap.get("r_limitrow"));
+		return resMap;
+	}
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\UserDao.java
+
+33	public int cnt(Map<String, Object> svcMap) {
+		return sqlSession.selectOne("eorder.o_user.cnt", svcMap);
+	}
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_user.xml
+
+
+306	<select id="cnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) FROM O_USER
+		<where>
+			AND USERID NOT IN ('9', '1', '2','3', '4', '5', '6')
+			<if test="r_userid != null and r_userid != '' ">AND USERID = #{r_userid}</if>
+			<if test="rl_userid != null and rl_userid != '' ">AND USERID LIKE '%' + #{rl_userid} + '%'</if>
+			<if test="r_userpwd != null and r_userpwd != '' ">AND USER_PWD = dbo.UDF_SETPASSWORD(#{r_userpwd})</if>
+			<!-- <if test="r_userpwd != null and r_userpwd != '' ">AND USER_PWD = '${@com.limenets.eorder.util.PasswordSHA@getShaPasswd(r_userpwd)}'</if> -->
+			<if test="r_passchangeyn != null and r_passchangeyn != '' ">AND PASSCHANGE_YN = #{r_passchangeyn}</if>
+			<if test="r_usernm != null and r_usernm != '' ">AND USER_NM = #{r_usernm}</if>
+			<if test="rl_usernm != null and rl_usernm != '' ">AND USER_NM LIKE '%' + #{rl_usernm} + '%'</if>
+			<if test="r_authority != null and r_authority != '' ">AND AUTHORITY = #{r_authority}</if>
+			<if test="rn_authority != null and rn_authority != '' ">AND AUTHORITY != #{rn_authority}</if>
+			<if test="rl_telno != null and rl_telno != '' ">AND TEL_NO LIKE '%' + #{rl_telno} + '%'</if>
+			<if test="r_agreeyn != null and r_agreeyn != '' ">AND AGREE_YN = #{r_agreeyn}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			<if test="r_deptcd != null and r_deptcd != '' ">AND DEPT_CD = #{r_deptcd}</if>
+			<if test="r_jdeid != null and r_jdeid != '' ">AND JDEID = #{r_jdeid}</if>
+			<if test="rl_teamnm != null and rl_teamnm != '' ">AND TEAM_NM LIKE '%' + #{rl_teamnm} + '%'</if>
+			<if test="r_teamcd != null and r_teamcd != '' ">AND TEAM_CD = #{r_teamcd}</if>
+			<if test="rl_cellno != null and rl_cellno != '' ">AND CELL_NO LIKE '%' + #{rl_cellno} + '%'</if>
+			<if test="rl_dummy != null and rl_dummy != '' ">AND DUMMY LIKE '%' + #{rl_dummy} + '%'</if>
+			<if test="r_failcnt != null and r_failcnt != '' ">AND FAIL_CNT = #{r_failcnt}</if>
+			<if test="r_userdepth != null and r_userdepth != '' ">AND USER_DEPTH = #{r_userdepth}</if>
+			<if test="r_usercate1 != null and r_usercate1 != '' ">AND USER_CATE1 = #{r_usercate1}</if>
+			<if test="r_usercate2 != null and r_usercate2 != '' ">AND USER_CATE2 = #{r_usercate2}</if>
+			<if test="r_usercate3 != null and r_usercate3 != '' ">AND USER_CATE3 = #{r_usercate3}</if>
+			<if test="r_usercate4 != null and r_usercate4 != '' ">AND USER_CATE4 = #{r_usercate4}</if>
+			<if test="ri_useruse != null">
+				AND USER_USE IN <foreach collection="ri_useruse" item="user_use" separator="," open="(" close=")">#{user_use}</foreach>
+			</if>
+			<if test="ri_authority != null">
+   				AND AUTHORITY IN <foreach collection="ri_authority" item="authority" separator="," open="(" close=")">#{authority}</foreach>
+ 			</if>
+			<if test="rni_authority != null">
+   				AND AUTHORITY NOT IN <foreach collection="rni_authority" item="authority" separator="," open="(" close=")">#{authority}</foreach>
+ 			</if>
+ 			<if test="r_userposition != null and r_userposition != '' ">AND USER_POSITION = #{r_userposition}</if>
+ 			<if test="rl_userposition != null and rl_userposition != '' ">AND USER_POSITION LIKE '%' + #{rl_userposition} + '%'</if>
+ 			<if test="r_useremail != null and r_useremail != '' ">AND USER_EMAIL = #{r_useremail}</if>
+ 			<if test="rl_useremail != null and rl_useremail != '' ">AND USER_EMAIL LIKE '%' + #{rl_useremail} + '%'</if>
+ 			<if test="r_useruse != null and r_useruse != '' ">AND USER_USE = #{r_useruse}</if>
+			<if test="r_userview != null and r_userview != '' ">AND USER_VIEW = #{r_userview}</if>
+			<if test="r_userdepth != null and r_userdepth != '' ">AND USER_DEPTH = #{r_userdepth}</if>
+			<if test="r_userparent != null and r_userparent != '' ">AND USER_PARENT = #{r_userparent}</if>
+			<if test="r_usercate1 != null and r_usercate1 != '' ">AND USER_CATE1 = #{r_usercate1}</if>
+			<if test="r_usercate2 != null and r_usercate2 != '' ">AND USER_CATE2 = #{r_usercate2}</if>
+			<if test="r_usercate3 != null and r_usercate3 != '' ">AND USER_CATE3 = #{r_usercate3}</if>
+			<if test="r_usercate4 != null and r_usercate4 != '' ">AND USER_CATE4 = #{r_usercate4}</if>
+			<if test="r_usersort1 != null and r_usersort1 != '' ">AND USER_SORT1 = #{r_usersort1}</if>
+			<if test="r_usersort2 != null and r_usersort2 != '' ">AND USER_SORT2 = #{r_usersort2}</if>
+			<if test="r_usersort3 != null and r_usersort3 != '' ">AND USER_SORT3 = #{r_usersort3}</if>
+			<if test="r_usersort4 != null and r_usersort4 != '' ">AND USER_SORT4 = #{r_usersort4}</if>
+			<if test="r_usereorder != null and r_usereorder != '' ">AND USER_EORDER = #{r_usereorder}</if>
+			<if test="rni_userid != null">
+				AND USERID NOT IN <foreach collection="rni_userid" item="userid" separator="," open="(" close=")">#{userid}</foreach>
+			</if>
+			
+			<!-- 영업사원 : 관리자 권한에 따른 조건절 -->
+ 			<if test='page_type != null and "orderlist_salesuser".equals(page_type)'>
+	 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+	 				<if test='"AD".equals(r_adminauthority)'>
+	 				</if>
+	 				<if test='"CS".equals(r_adminauthority)'>
+	 					AND USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+	 				</if>
+	 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+	 					<if test='"SH".equals(r_adminauthority)'>
+	 						AND USERID IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SM".equals(r_adminauthority)'>
+	 						AND USERID IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SR".equals(r_adminauthority)'>
+	 						AND USERID = #{r_adminuserid}
+	 					</if>
+	 				</if>
+	 				<if test='"MK".equals(r_adminauthority)'>
+	 					
+	 				</if>
+	 			</if>
+ 			</if>
+ 			
+		</where>
+	</select>
+	
+
+
+
+124	public List<Map<String, Object>> getUserList(Map<String, Object> svcMap){
+		return userDao.list(svcMap);
+	}
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\UserDao.java
+
+
+40	public List<Map<String, Object>> list(Map<String, Object> svcMap) {
+		return sqlSession.selectList("eorder.o_user.list", svcMap);
+	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_user.xml
+
+
+447	<select id="list" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+				<choose>
+					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+					<otherwise>ORDER BY (SELECT 1)</otherwise>
+				</choose>
+			) AS ROWNUM
+			, XX.* 
+		FROM (
+		SELECT LIST.* FROM (	
+		SELECT US.*, CU.CUST_NM
+			, CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT (SELECT USER_NM FROM O_USER WHERE USERID = CSM.CSUSERID)FROM O_CSSALESMAP CSM WHERE CSM.SALESUSERID = US.USERID AND CSM.FIXEDYN = 'Y')
+				ELSE '' END CS_SALESUSER
+			, CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT COUNT(*) FROM O_CUSTOMER WHERE SALESREP_CD = US.USERID)
+				ELSE -1 END CUSTOMER_CNT
+			<if test="r_csuserid != null and r_csuserid != '' ">
+				, (SELECT FIXEDYN FROM O_CSSALESMAP WHERE US.AUTHORITY IN ('SH','SM','SR') AND CSUSERID = #{r_csuserid} AND SALESUSERID = US.USERID) AS SALES_FIXEDYN
+			</if>	
+		FROM O_USER US
+		LEFT JOIN O_CUSTOMER CU ON CU.CUST_CD = US.CUST_CD
+		<where>
+			AND USERID NOT IN ('9', '1', '2','3', '4', '5', '6')
+			<if test="r_userid != null and r_userid != '' ">AND US.USERID = #{r_userid}</if>
+			<if test="rl_userid != null and rl_userid != '' ">AND US.USERID LIKE '%' + #{rl_userid} + '%'</if>
+			<if test="r_userpwd != null and r_userpwd != '' ">AND US.USER_PWD = dbo.UDF_SETPASSWORD(#{r_userpwd})</if>
+			<if test="r_passchangeyn != null and r_passchangeyn != '' ">AND US.PASSCHANGE_YN = #{r_passchangeyn}</if>
+			<if test="r_usernm != null and r_usernm != '' ">AND US.USER_NM = #{r_usernm}</if>
+			<if test="rl_usernm != null and rl_usernm != '' ">AND US.USER_NM LIKE '%' + #{rl_usernm} + '%'</if>
+			<if test="r_authority != null and r_authority != '' ">AND US.AUTHORITY = #{r_authority}</if>
+			<if test="rn_authority != null and rn_authority != '' ">AND US.AUTHORITY != #{rn_authority}</if>
+			<if test="rl_telno != null and rl_telno != '' ">AND TEL_NO LIKE '%' + #{rl_telno} + '%'</if>
+			<if test="r_agreeyn != null and r_agreeyn != '' ">AND AGREE_YN = #{r_agreeyn}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND US.CUST_CD = #{r_custcd}</if>
+			<if test="r_deptcd != null and r_deptcd != '' ">AND US.DEPT_CD = #{r_deptcd}</if>
+			<if test="r_jdeid != null and r_jdeid != '' ">AND JDEID = #{r_jdeid}</if>
+			<if test="rl_teamnm != null and rl_teamnm != '' ">AND TEAM_NM LIKE '%' + #{rl_teamnm} + '%'</if>
+			<if test="r_teamcd != null and r_teamcd != '' ">AND TEAM_CD = #{r_teamcd}</if>
+			<if test="rl_cellno != null and rl_cellno != '' ">AND CELL_NO LIKE '%' + #{rl_cellno} + '%'</if>
+			<if test="rl_dummy != null and rl_dummy != '' ">AND US.DUMMY LIKE '%' + #{rl_dummy} + '%'</if>
+			<if test="r_failcnt != null and r_failcnt != '' ">AND FAIL_CNT = #{r_failcnt}</if>
+			<if test="r_userdepth != null and r_userdepth != '' ">AND USER_DEPTH = #{r_userdepth}</if>
+			<if test="r_usercate1 != null and r_usercate1 != '' ">AND USER_CATE1 = #{r_usercate1}</if>
+			<if test="r_usercate2 != null and r_usercate2 != '' ">AND USER_CATE2 = #{r_usercate2}</if>
+			<if test="r_usercate3 != null and r_usercate3 != '' ">AND USER_CATE3 = #{r_usercate3}</if>
+			<if test="r_usercate4 != null and r_usercate4 != '' ">AND USER_CATE4 = #{r_usercate4}</if>
+			<if test="ri_useruse != null">
+				AND USER_USE IN <foreach collection="ri_useruse" item="user_use" separator="," open="(" close=")">#{user_use}</foreach>
+			</if>
+			<if test="ri_authority != null">
+   				AND AUTHORITY IN <foreach collection="ri_authority" item="authority" separator="," open="(" close=")">#{authority}</foreach>
+ 			</if>
+ 			<if test="rni_authority != null">
+   				AND AUTHORITY NOT IN <foreach collection="rni_authority" item="authority" separator="," open="(" close=")">#{authority}</foreach>
+ 			</if>
+ 			
+ 			<if test="r_userposition != null and r_userposition != '' ">AND USER_POSITION = #{r_userposition}</if>
+ 			<if test="rl_userposition != null and rl_userposition != '' ">AND USER_POSITION LIKE '%' + #{rl_userposition} + '%'</if>
+ 			<if test="r_useremail != null and r_useremail != '' ">AND USER_EMAIL = #{r_useremail}</if>
+ 			<if test="rl_useremail != null and rl_useremail != '' ">AND USER_EMAIL LIKE '%' + #{rl_useremail} + '%'</if>
+ 			<if test="r_useruse != null and r_useruse != '' ">AND USER_USE = #{r_useruse}</if>
+			<if test="r_userview != null and r_userview != '' ">AND USER_VIEW = #{r_userview}</if>
+			<if test="r_userdepth != null and r_userdepth != '' ">AND USER_DEPTH = #{r_userdepth}</if>
+			<if test="r_userparent != null and r_userparent != '' ">AND USER_PARENT = #{r_userparent}</if>
+			<if test="r_usercate1 != null and r_usercate1 != '' ">AND USER_CATE1 = #{r_usercate1}</if>
+			<if test="r_usercate2 != null and r_usercate2 != '' ">AND USER_CATE2 = #{r_usercate2}</if>
+			<if test="r_usercate3 != null and r_usercate3 != '' ">AND USER_CATE3 = #{r_usercate3}</if>
+			<if test="r_usercate4 != null and r_usercate4 != '' ">AND USER_CATE4 = #{r_usercate4}</if>
+			<if test="r_usersort1 != null and r_usersort1 != '' ">AND USER_SORT1 = #{r_usersort1}</if>
+			<if test="r_usersort2 != null and r_usersort2 != '' ">AND USER_SORT2 = #{r_usersort2}</if>
+			<if test="r_usersort3 != null and r_usersort3 != '' ">AND USER_SORT3 = #{r_usersort3}</if>
+			<if test="r_usersort4 != null and r_usersort4 != '' ">AND USER_SORT4 = #{r_usersort4}</if>
+			<if test="r_usereorder != null and r_usereorder != '' ">AND USER_EORDER = #{r_usereorder}</if>
+			<if test="rl_name_code != null and rl_name_code != ''">AND (USERID LIKE '%'+ #{rl_name_code} + '%' OR USER_NM LIKE '%'+ #{rl_name_code} + '%')</if>
+			
+			<if test="rni_userid != null">
+				AND USERID NOT IN <foreach collection="rni_userid" item="userid" separator="," open="(" close=")">#{userid}</foreach>
+			</if>
+			
+			<!-- 영업사원 : 관리자 권한에 따른 조건절 -->
+ 			<if test='page_type != null and "orderlist_salesuser".equals(page_type)'>
+	 			<if test="r_adminauthority != null and r_adminauthority != '' ">
+	 				<if test='"AD".equals(r_adminauthority)'>
+	 				</if>
+	 				<if test='"CS".equals(r_adminauthority)'>
+	 					AND USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+	 				</if>
+	 				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+	 					<if test='"SH".equals(r_adminauthority)'>
+	 						AND USERID IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SM".equals(r_adminauthority)'>
+	 						AND USERID IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+	 					</if>
+	 					<if test='"SR".equals(r_adminauthority)'>
+	 						AND USERID = #{r_adminuserid}
+	 					</if>
+	 				</if>
+	 				<if test='"MK".equals(r_adminauthority)'>	
+	 				</if>
+	 			</if>
+ 			</if>
+		</where>
+		) LIST
+		<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if> -->
+		) XX ) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+임시저장
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\mypage\csSalesUserList.jsp
+
+
+
+638	<button type="button" class="btn btn-github" onclick="dataIn(this);">임시저장</button>
+
+
+
+454// 임시저장.
+function dataIn(obj) {
+	$(obj).prop('disabled', true);
+	
+	var chk = $('#gridList').jqGrid('getGridParam','selarrrow');
+	chk += '';
+	var chkArr = chk.split(",");
+	if (chk == '') {
+		alert("선택 후 진행해 주십시오.");
+		$(obj).prop('disabled', false);
+		return false;
+	}
+
+	var uFormObj = $('form[name="uForm"]'); 
+	uFormObj.empty();
+	
+	uFormObj.append('<input type="hidden" name="m_fixedyn" value="N" />');
+	for(var i=0,j=chkArr.length; i<j; i++){
+		uFormObj.append('<input type="hidden" name="mi_salesuserid" value="'+chkArr[i]+'" />');	
+	}
+	var uFormData = uFormObj.serialize();
+	
+	if (confirm('임시저장 하시겠습니까?')) {
+		$.ajax({
+			async : false,
+			data : uFormData,
+			type : 'POST',
+			url : '${url}/admin/mypage/insertCsSalesMapAjax.lime',
+			success : function(data) {
+				if (data.RES_CODE == '0000') {
+					alert(data.RES_MSG);
+					dataSearch();
+				}else{
+					
+				}
+				$(obj).prop('disabled', false);
+			},
+			error : function(request,status,error){
+				alert('Error');
+				$(obj).prop('disabled', false);
+			}
+		});
+	}else{
+		$(obj).prop('disabled', false);
+	}
+}
+
+
+
+
+/admin/mypage/insertCsSalesMapAjax.lime
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\MypageCtrl.java
+
+
+82	/**
+	 * 조직설정 폼 > 임시저장 Ajax.
+	 * @작성일 : 2020. 3. 10.
+	 * @작성자 : kkyu
+	 */
+	@ResponseBody
+	@PostMapping(value="insertCsSalesMapAjax")
+	public Object insertCsSalesMapAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, Model model, LoginDto loginDto) throws Exception {
+		return userSvc.insertCsSalesMapTransaction(params, req, loginDto);
+	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\UserSvc.java
+
+
+101	/**
+	 * CSSALESMAP 임시저장.
+	 * @작성일 : 2020. 3. 10.
+	 * @작성자 : kkyu
+	 * @수정일 : 2020. 5. 18
+	 * @수정자 : lee
+	 * @수정내용 : CS유저 자신이 고정으로 등록된 데이터 임시저장 시 고정이 풀리는 현상 수정
+	 * @param mi_salesuserid : 영업사원 아이디 배열.
+	 */
+	public Map<String, Object> insertCsSalesMapTransaction(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+		//String m_fixedyn = Converter.toStr(params.get("m_fixedyn"));
+		String[] mi_salesuserid = req.getParameterValues("mi_salesuserid");
+		String userid = loginDto.getUserId();
+		if(!ArrayUtils.isEmpty(mi_salesuserid)) {
+
+			params.put("m_csuserid", userid);
+			params.put("m_insertid", userid);
+			for(String m_salesuserid : mi_salesuserid) {
+				params.put("r_csuserid", userid);
+				params.put("r_salesuserid", m_salesuserid);
+				params.put("r_fixedyn", "Y");
+
+				if(csSalesMapDao.cnt(params) < 1){
+ 					params.put("m_salesuserid", m_salesuserid);
+					csSalesMapDao.merge(params);
+				}
+
+			}
+		}
+		
+		return MsgCode.getResultMap(MsgCode.SUCCESS);
+	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CsSalesMapDao.java
+
+
+34	public int cnt(Map<String, Object> svcMap) {
+		return sqlSession.selectOne("eorder.o_cssalesmap.cnt", svcMap);
+	}
+
+
+19	public int merge(Map<String, Object> svcMap) {
+		return sqlSession.update("eorder.o_cssalesmap.merge", svcMap);
+	}
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cssalesmap.xml
+
+
+107	<select id="cnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) FROM O_CSSALESMAP CSM
+		<where>
+			<if test="r_csuserid != null and r_csuserid != '' ">AND CSUSERID = #{r_csuserid}</if>
+			<if test="r_salesuserid != null and r_salesuserid != '' ">AND SALESUSERID = #{r_salesuserid}</if>
+			<if test="r_salesusernm != null and r_salesusernm != '' ">AND SALESUSERNM = #{r_salesusernm}</if>
+			<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND SALESUSERNM LIKE '%' + #{rl_salesusernm} + '%'</if>
+			<if test="r_fixedyn != null and r_fixedyn != '' ">AND FIXEDYN = #{r_fixedyn}</if>
+		</where>
+	</select>
+
+
+26	<update id="merge" parameterType="hashmap">
+		MERGE INTO O_CSSALESMAP
+		-- USING DUAL ON (CSUSERID = #{m_csuserid} AND SALESUSERID = #{m_salesuserid})
+		USING (SELECT 1 AS dual) AS D ON (CSUSERID = #{m_csuserid} AND SALESUSERID = #{m_salesuserid})
+		WHEN MATCHED THEN 
+			UPDATE SET 
+				SALESUSERNM = (SELECT USER_NM FROM O_USER WHERE USERID = #{m_salesuserid})
+				, DUMMY = #{m_dummy}
+				, FIXEDYN = #{m_fixedyn}
+				<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR)을 MSSQL문법(FORMAT)으로 변경 -->
+				, UPDATE_DT = FORMAT(GETDATE(), 'YYYY-MM-DD')
+				, UPDATEID = #{m_insertid}
+		WHEN NOT MATCHED THEN
+			INSERT (
+				CSUSERID
+				, SALESUSERID
+				, SALESUSERNM
+				, DUMMY
+				, FIXEDYN
+				, INSERTID
+				, INSERT_DT
+			)VALUES(
+				#{m_csuserid}
+				, #{m_salesuserid}
+				, (SELECT USER_NM FROM O_USER WHERE USERID = #{m_salesuserid})
+				, #{m_dummy}
+				, #{m_fixedyn}
+				, #{m_insertid}
+				<!-- 2024-11-06 hsg PlayStation4 오라클 문법(TO_CHAR)을 MSSQL문법(FORMAT)으로 변경 -->
+				, FORMAT(GETDATE(), 'YYYY-MM-DD')
+			)
+	</update>
+

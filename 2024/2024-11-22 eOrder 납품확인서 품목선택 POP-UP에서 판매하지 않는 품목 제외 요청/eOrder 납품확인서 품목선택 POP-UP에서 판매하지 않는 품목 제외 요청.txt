@@ -1,0 +1,864 @@
+/* ***************************************************************************************************************************************** */
+/* *********** 1. 납품확인서(C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\report\deliveryReport.jsp) *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\ReportCtrl.java *********** */
+
+40	/**
+41	 * 납품확인서 폼.
+42	 * @작성일 : 2020. 5. 4.
+43	 * @작성자 : kkyu
+44	 */
+45	@GetMapping(value="deliveryReport")
+46	public String deliveryReport(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+47		String today = Converter.dateToStr("yyyy-MM-dd");
+48		model.addAttribute("insdate", today);
+49		model.addAttribute("inedate", today);
+50
+51		return "admin/report/deliveryReport";
+52	}
+53
+54	/**
+55	 * 납품확인서 폼 > 전체주문현황 리스트 가져오기 Ajax.
+56	 * @작성일 : 2020. 5. 4.
+57	 * @작성자 : kkyu
+58	 */
+59	@ResponseBody
+60	@PostMapping(value="getDeliveryReportListAjax")
+61	public Object getSalesOrderListAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+62		params.put("where", "admin");
+63		params.put("ri_status2", "560"); // 출하완료 기준.
+64
+65		// 내부사용자 웹주문현황	> 별도 권한 설정.
+66		//orderSvc.setParamsForAdminOrderList(params, req, loginDto, model);
+67
+68		return orderSvc.getSalesOrderList(params, req, loginDto);
+69	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+1305	/**
+1306	 * 전체주문현황 리스트 가져오기. O_SALESORDER.
+1307	 * @작성일 : 2020. 4. 24.
+1308	 * @작성자 : kkyu
+1309	 * @param where : admin=관리자, excel=관리자 엑셀, front=거래처,납품처, frontexcel=거래처,납품처 엑셀.
+1310	 */
+1311	public Map<String, Object> getSalesOrderList(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+1312		Map<String, Object> resMap = new HashMap<>();
+1313
+1314		String where = Converter.toStr(params.get("where"));
+1315
+1316		String r_ordersdt = Converter.toStr(params.get("r_ordersdt")); // 주문일자 검색 시작일.
+1317		String r_orderedt = Converter.toStr(params.get("r_orderedt")); // 주문일자 검색 종료일.
+1318		String r_actualshipsdt = Converter.toStr(params.get("r_actualshipsdt")); // 출고일자 검색 시작일.
+1319		String r_actualshipedt = Converter.toStr(params.get("r_actualshipedt")); // 출고일자; 검색 종료일.
+1320		String r_requestsdt = Converter.toStr(params.get("r_requestsdt")); // 납품요청일 검색 시작일.
+1321		String r_requestedt = Converter.toStr(params.get("r_requestedt")); // 납품요청일; 검색 종료일.
+1322		if(!StringUtils.equals("", r_ordersdt)) r_ordersdt = r_ordersdt.replaceAll("-", "");
+1323		if(!StringUtils.equals("", r_orderedt)) r_orderedt = r_orderedt.replaceAll("-", "");
+1324		if(!StringUtils.equals("", r_actualshipsdt)) r_actualshipsdt = r_actualshipsdt.replaceAll("-", "");
+1325		if(!StringUtils.equals("", r_actualshipedt)) r_actualshipedt = r_actualshipedt.replaceAll("-", "");
+1326		if(!StringUtils.equals("", r_requestsdt)) r_requestsdt = r_requestsdt.replaceAll("-", "");
+1327		if(!StringUtils.equals("", r_requestedt)) r_requestedt = r_requestedt.replaceAll("-", "");
+1328		params.put("r_ordersdt", r_ordersdt);
+1329		params.put("r_orderedt", r_orderedt);
+1330		params.put("r_actualshipsdt", r_actualshipsdt);
+1331		params.put("r_actualshipedt", r_actualshipedt);
+1332		params.put("r_requestsdt", r_requestsdt);
+1333		params.put("r_requestedt", r_requestedt);
+1334
+1335		// 상태값 검색조건 재정의.
+1336		String statuss1 = "";
+1337		String wherebody_status = "";
+1338		String ri_status2 = Converter.toStr(params.get("ri_status2")); // 상태값으로	 ,로 구분.
+1339		boolean bShip = false;
+1340		boolean bDeliv = false;
+1341		boolean bCard = false;
+1342		int cntDType = 0;
+1343		if(!StringUtils.equals("", ri_status2)) {
+1344			String[] ri_status2arr = ri_status2.split(",", -1);
+1345			//String today = Converter.dateToStr("yyyyMMdd");
+1346			//String statuss2 = ""; // for 출하완료
+1347			//String statuss3 = ""; // for 배송완료
+1348			cntDType = ri_status2arr.length;
+1349			if( (cntDType == 1) && (ri_status2arr[0].equalsIgnoreCase("525")) ) {
+1350				bCard = true;
+1351			} else {
+1352				for(String status2 : ri_status2arr) {
+1353					if(560 > Integer.parseInt(status2)) {
+1354						if(StringUtils.equals("", statuss1)) {
+1355							statuss1 += status2;
+1356						}else {
+1357							statuss1 += ","+status2;
+1358						}
+1359					}
+1360					// 출하완료 560.
+1361					// >>> 출하완료는 텍스트로 검색한다.
+1362					/*else if(560 == Integer.parseInt(status2)){
+1363						statuss2 += "(STATUS_DESC = '출하완료')";
+1364						//statuss2 += "(STATUS2 >= "+status2+" AND REQUEST_DT <= "+today+")";
+1365					}
+1366					// 배송완료 800 > 800은 정의되지 않은 상태값으로 임의로 정의한값이다. > 출하완료 560 이상 & 날짜(요청일자) 지남 > 보랄측에서 새롭게 정의한 사항.
+1367					// >>> 다시 요청하기로... 배송완료는 텍스르로 검색한다.
+1368					else {
+1369						statuss3 += "(STATUS_DESC = '배송완료')";
+1370						//statuss3 += "(STATUS2 >= "+status2+" AND REQUEST_DT > "+today+")";
+1371					}*/
+1372					else {
+1373						if(!statuss1.contains("560")) {
+1374							if(!StringUtils.equals("", statuss1)) {
+1375								statuss1 += ",";
+1376							}
+1377
+1378							statuss1 += "560,580,620";
+1379						}
+1380
+1381						if(status2.contains("560")) {
+1382							bShip = true;
+1383						} else if(status2.contains("800")) {
+1384							bDeliv = true;
+1385						}
+1386					}
+1387				}
+1388			}
+1389		}
+1390
+1391		if(StringUtils.equals("", statuss1)) {
+1392			if( bCard ) {
+1393				wherebody_status = "AND (SO.HOLD_CODE = 'C1' AND SO.STATUS2 <> '999')";
+1394			} else {
+1395				wherebody_status += "NOT (SO.STATUS1 = '980')";
+1396				//wherebody_status += "AND SO.STATUS2 = '0'";
+1397			}
+1398		} else {
+1399			wherebody_status += "SO.STATUS2 IN ("+statuss1+")";
+1400			if( (cntDType==1) && bShip ) {
+1401			//	2024-10-21 hsg MS-SQL에서 TO_CHAR 함수를 사용할 수 없어 FORMAT으로 변경
+1402	//			wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT >= TO_CHAR(SYSDATE, 'yyyymmdd'))";
+1403				wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT >= FORMAT(GETDATE(), 'yyyymmdd'))";
+1404			} else if( (cntDType==1) && bDeliv ) {
+1405			//	2024-10-21 hsg MS-SQL에서 TO_CHAR 함수를 사용할 수 없어 FORMAT으로 변경
+1406	//			wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT < TO_CHAR(SYSDATE, 'yyyymmdd'))";
+1407				wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT < FORMAT(GETDATE(), 'yyyymmdd'))";
+1408			}
+1409		}
+1410
+1411		wherebody_status += " AND SO.ORDERTY <> 'KL'";
+1412
+1413		System.out.println("wherebody_status : s" +	 wherebody_status);
+1414		params.put("wherebody_status", wherebody_status);
+1415
+1416		int totalCnt = salesOrderDao.cnt(params);
+1417
+1418		Pager pager = new Pager();
+1419		pager.gridSetInfo(totalCnt, params, req);
+1420		resMap.put("total", Converter.toInt(params.get("totpage")));
+1421		resMap.put("listTotalCount", totalCnt);
+1422
+1423		// Start. Define Only For Form-Paging.
+1424		resMap.put("startnumber", params.get("startnumber"));
+1425		resMap.put("r_page", params.get("r_page"));
+1426		resMap.put("startpage", params.get("startpage"));
+1427		resMap.put("endpage", params.get("endpage"));
+1428		resMap.put("r_limitrow", params.get("r_limitrow"));
+1429		// End.
+1430
+1431		String r_orderby = "";
+1432		String sidx = Converter.toStr(params.get("sidx")); //정렬기준컬럼
+1433		String sord = Converter.toStr(params.get("sord")); //내림차순,오름차순
+1434		r_orderby = sidx + " " + sord;
+1435		//	2024-10-16 hsg 별칭 오류가 나서 수정. SO -> XX)
+1436		if(StringUtils.equals("", sidx)) { r_orderby = "XX.ORDERNO DESC, XX.LINE_NO ASC"; } //디폴트 지정
+1437
+1438		params.put("r_orderby", r_orderby);
+1439
+1440
+1441		// 엑셀 다운로드.
+1442		if(StringUtils.equals("excel", where) || StringUtils.equals("frontexcel", where) || StringUtils.equals("orderadd", where)) {
+1443			params.remove("r_startrow");
+1444			params.remove("r_endrow");
+1445		}
+1446
+1447		List<Map<String, Object>> list = this.getSalesOrderList(params);
+1448		resMap.put("list", list);
+1449		resMap.put("data", list);
+1450		resMap.put("page", params.get("r_page"));
+1451
+1452		resMap.put("where", where);
+1453
+1454		return resMap;
+1455	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\SalesOrderDao.java *********** */
+
+20	public int cnt(Map<String, Object> svcMap) {
+21		return sqlSession.selectOne("eorder.o_salesorder.cnt", svcMap);
+22	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_salesorder.xml *********** */
+
+38	<select id="cnt" parameterType="hashmap" resultType="int">
+39		SELECT COUNT(*)
+40		FROM O_SALESORDER SO
+41		<where>
+42			<if test="wherebody_status != null and wherebody_status != '' ">
+43				${wherebody_status}
+44			</if>
+45			<if test="r_ordersdt != null and r_ordersdt != '' ">AND SO.ORDER_DT <![CDATA[>=]]> #{r_ordersdt}</if>
+46			<if test="r_orderedt != null and r_orderedt != '' ">AND SO.ORDER_DT <![CDATA[<=]]> #{r_orderedt}</if>
+47			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+48			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND SO.ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+49			<if test="r_requestsdt != null and r_requestsdt != '' ">AND SO.REQUEST_DT <![CDATA[>=]]> #{r_requestsdt}</if>
+50			<if test="r_requestedt != null and r_requestedt != '' ">AND SO.REQUEST_DT <![CDATA[<=]]> #{r_requestedt}</if>
+51			<if test="r_orderno != null and r_orderno != '' ">AND SO.ORDERNO = #{r_orderno}</if>
+52			<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%'</if> <!-- 오더번호 -->
+53			<if test="rl_custpo != null and rl_custpo != '' ">AND SO.CUST_PO LIKE '%' + #{rl_custpo} + '%'</if> <!-- 고객주문번호 -->
+54			<if test="r_truckno != null and r_truckno != '' ">AND SO.TRUCK_NO = #{r_truckno}</if>
+55			<if test="rl_itemdesc != null and rl_itemdesc != '' ">AND SO.ITEM_DESC LIKE '%' + #{rl_itemdesc} + '%'</if>
+56			<if test="rl_receiver != null and rl_receiver != '' ">AND SO.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+57			<if test="r_custcd != null and r_custcd != '' ">AND SO.CUST_CD = #{r_custcd}</if>
+58			<if test="r_shiptocd != null and r_shiptocd != '' ">AND SO.SHIPTO_CD = #{r_shiptocd}</if>
+59			<if test="rl_shiptocd != null and rl_shiptocd != '' ">AND SO.SHIPTO_CD LIKE '%' + #{rl_shiptocd} + '%'</if>
+60			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND SO.SHIPTO_NM LIKE '%' + #{rl_shiptonm} + '%'</if>
+61			<if test="rl_add1 != null and rl_add1 != '' ">AND (SO.ADD1 + SO.ADD2) LIKE '%' + #{rl_add1} + '%'</if>
+62			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">
+63				AND SO.CUST_CD IN (SELECT CUST_CD FROM O_CUSTOMER WHERE SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%')
+64			</if>
+65
+66			<if test="r_insertsdt != null and r_insertsdt != '' ">AND SO.INSERT_DT <![CDATA[>=]]> #{r_insertsdt}</if>
+67			<if test="r_insertedt != null and r_insertedt != '' ">AND SO.INSERT_DT <![CDATA[<=]]> #{r_insertedt}</if>
+68			<!-- 관리자 권한에 따른 조건절 -->
+69			<if test="r_adminauthority != null and r_adminauthority != '' ">
+70				<if test='"AD".equals(r_adminauthority)'>
+71				</if>
+72				<if test='"CS".equals(r_adminauthority)'>
+73					AND SO.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+74				</if>
+75				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+76					<if test='"SH".equals(r_adminauthority)'>
+77						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+78					</if>
+79					<if test='"SM".equals(r_adminauthority)'>
+80						AND SO.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+81					</if>
+82					<if test='"SR".equals(r_adminauthority)'>
+83						AND SO.SALESREP_CD = #{r_adminuserid}
+84					</if>
+85				</if>
+86				<if test='"MK".equals(r_adminauthority)'>
+87
+88				</if>
+89			</if>
+90			<!-- End. -->
+91		</where>
+92	</select>
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 거래처 : C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\base\customerListPop.jsp *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java *********** */
+
+232	/**
+233	 * 거래처 리스트 팝업 폼.
+234	 * @작성일 : 2020. 3. 30.
+235	 * @작성자 : kkyu
+236	 */
+237	@PostMapping(value="/admin/base/pop/customerListPop")
+238	public String customerListPop(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+239		String r_multiselect = Converter.toStr(params.get("r_multiselect"));
+240		model.addAttribute("r_multiselect", r_multiselect);
+241		return "admin/base/customerListPop";
+242	}
+243
+244	/**
+245	 * 거래처 리스트 가져오기 Ajax.
+246	 * @작성일 : 2020. 3. 30.
+247	 * @작성자 : kkyu
+248	 */
+249	@ResponseBody
+250	@PostMapping(value="/admin/base/getCustomerListAjax")
+251	public Object getCustomerListAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+252		//String page_type = Converter.toStr(params.get("page_type"));
+253		/*
+254		if(StringUtils.equals("orderadd", page_type)) { // 주문등록 팝업인 경우, 영업사원 아이디 매핑.
+255			params.put("r_salesrepcd", loginDto.getUserId());
+256		}
+257		*/
+258
+259		// 내부사용자 웹주문현황	> 별도 권한 설정.
+260		orderSvc.setParamsForAdminOrderList(params, req, loginDto, model);
+261		return customerSvc.getCustomerList(params, req, loginDto);
+262	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CustomerSvc.java *********** */
+
+
+77	/**
+78	 * 거래처 리스트 가져오기 Ajax.
+79	 * @작성일 : 2020. 3. 10.
+80	 * @작성자 : kkyu
+81	 */
+82	public Map<String, Object> getCustomerList(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+83		Map<String, Object> resMap = new HashMap<>();
+84
+85		int totalCnt = customerDao.cnt(params);
+86
+87		Pager pager = new Pager();
+88		pager.gridSetInfo(totalCnt, params, req);
+89		resMap.put("total", Converter.toInt(params.get("totpage")));
+90		resMap.put("listTotalCount", totalCnt);
+91
+92		// Start. Define Only For Form-Paging.
+93		resMap.put("startnumber", params.get("startnumber"));
+94		resMap.put("r_page", params.get("r_page"));
+95		resMap.put("startpage", params.get("startpage"));
+96		resMap.put("endpage", params.get("endpage"));
+97		resMap.put("r_limitrow", params.get("r_limitrow"));
+98		// End.
+99
+100		String r_orderby = "";
+101		String sidx = Converter.toStr(params.get("sidx")); //정렬기준컬럼
+102		String sord = Converter.toStr(params.get("sord")); //내림차순,오름차순
+103		r_orderby = sidx + " " + sord;
+104		// 2024-10-16 hsg 별칭 오류가 나서 수정. CU -> XX)
+105		if(StringUtils.equals("", sidx)) { r_orderby = "XX.CUST_CD ASC"; } //디폴트 지정
+106		params.put("r_orderby", r_orderby);
+107
+108		// 엑셀 다운로드.
+109		String where = Converter.toStr(params.get("where"));
+110		if ("excel".equals(where)) {
+111			params.remove("r_startrow");
+112			params.remove("r_endrow");
+113		}
+114
+115		List<Map<String, Object>> list = this.getCustomerList(params);
+116		resMap.put("list", list);
+117		resMap.put("data", list);
+118		resMap.put("page", params.get("r_page"));
+119
+120		return resMap;
+121	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustomerDao.java *********** */
+
+26	public int cnt(Map<String, Object> svcMap) {
+27		return sqlSession.selectOne("eorder.o_customer.cnt", svcMap);
+28	}
+29
+30	public List<Map<String, Object>> list(Map<String, Object> svcMap) {
+31		return sqlSession.selectList("eorder.o_customer.list", svcMap);
+32	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_customer.xml *********** */
+
+
+144	<select id="cnt" parameterType="hashmap" resultType="int">
+145		SELECT COUNT(*)
+146		FROM O_CUSTOMER CU
+147			LEFT JOIN O_USER US ON CU.SALESREP_CD = US.USERID
+148		<where>
+149			<if test="r_custcd != null and r_custcd != ''">AND CUST_CD = #{r_custcd}</if>
+150			<if test="rl_custcd != null and rl_custcd != '' ">AND CU.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+151			<if test="r_custnm != null and r_custnm != ''">AND CUST_NM = #{r_custnm}</if>
+152			<if test="rl_custnm != null and rl_custnm != '' ">AND CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+153			<if test="r_salesrepcd != null and r_salesrepcd != ''">AND SALESREP_CD = #{r_salesrepcd}</if>
+154			<if test="rl_salesrepcd != null and rl_salesrepcd != '' ">AND SALESREP_CD LIKE '%' + #{rl_salesrepcd} + '%'</if>
+155			<if test="r_salesrepnm != null and r_salesrepnm != ''">AND SALESREP_NM = #{r_salesrepnm}</if>
+156			<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">AND SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'</if>
+157			<if test="rl_salesrepnm2 != null and rl_salesrepnm2 != '' ">AND US.USER_NM LIKE '%' + #{rl_salesrepnm2} + '%'</if>
+158			<if test="r_teamcd != null and r_teamcd != ''">AND TEAM_CD = #{r_teamcd}</if>
+159			<if test="rl_teamcd != null and rl_teamcd != '' ">AND TEAM_CD LIKE '%' + #{rl_teamcd} + '%'</if>
+160			<if test="r_teamnm != null and r_teamnm != ''">AND TEAM_NM = #{r_teamnm}</if>
+161			<if test="rl_teamnm != null and rl_teamnm != '' ">AND TEAM_NM LIKE '%' + #{rl_teamnm} + '%'</if>
+162			<if test="r_taxid != null and r_taxid != ''">AND TAX_ID = #{r_taxid}</if>
+163			<if test="rl_taxid != null and rl_taxid != '' ">AND TAX_ID LIKE '%' + #{rl_taxid} + '%'</if>
+164			<if test="r_mailingnm != null and r_mailingnm != ''">AND MAILING_NM = #{r_mailingnm}</if>
+165			<if test="rl_mailingnm != null and rl_mailingnm != '' ">AND MAILING_NM LIKE '%' + #{rl_mailingnm} + '%'</if>
+166			<if test="r_add1 != null and r_add1 != ''">AND ADD1 = #{r_add1}</if>
+167			<if test="rl_add1 != null and rl_add1 != '' ">AND ADD1 LIKE '%' + #{rl_add1} + '%'</if>
+168			<if test="r_add2 != null and r_add2 != ''">AND ADD2 = #{r_add2}</if>
+169			<if test="rl_add2 != null and rl_add2 != '' ">AND ADD2 LIKE '%' + #{rl_add2} + '%'</if>
+170			<if test="r_add3 != null and r_add3 != ''">AND ADD3 = #{r_add3}</if>
+171			<if test="rl_add3 != null and rl_add3 != '' ">AND ADD3 LIKE '%' + #{rl_add3} + '%'</if>
+172			<if test="r_add4 != null and r_add4 != ''">AND ADD4 = #{r_add4}</if>
+173			<if test="rl_add4 != null and rl_add4 != '' ">AND ADD4 LIKE '%' + #{rl_add4} + '%'</if>
+174			<if test="r_zipcd != null and r_zipcd != ''">AND ZIP_CD = #{r_zipcd}</if>
+175			<if test="rl_zipcd != null and rl_zipcd != '' ">AND ZIP_CD LIKE '%' + #{rl_zipcd} + '%'</if>
+176			<if test="r_buildingty != null and r_buildingty != ''">AND BUILDING_TY = #{r_buildingty}</if>
+177			<if test="rl_buildingty != null and rl_buildingty != '' ">AND BUILDING_TY LIKE '%' + #{rl_buildingty} + '%'</if>
+178			<if test="r_buildingnm != null and r_buildingnm != ''">AND BUILDING_NM = #{r_buildingnm}</if>
+179			<if test="rl_buildingnm != null and rl_buildingnm != '' ">AND BUILDING_NM LIKE '%' + #{rl_buildingnm} + '%'</if>
+180			<if test="r_businessty != null and r_businessty != ''">AND BUSINESS_TY = #{r_businessty}</if>
+181			<if test="rl_businessty != null and rl_businessty != '' ">AND BUSINESS_TY LIKE '%' + #{rl_businessty} + '%'</if>
+182			<if test="r_businessnm != null and r_businessnm != ''">AND BUSINESS_NM = #{r_businessnm}</if>
+183			<if test="rl_businessnm != null and rl_businessnm != '' ">AND BUSINESS_NM LIKE '%' + #{rl_businessnm} + '%'</if>
+184			<if test="r_dummy != null and r_dummy != ''">AND DUMMY = #{r_dummy}</if>
+185			<if test="rl_dummy != null and rl_dummy != '' ">AND DUMMY LIKE '%' + #{rl_dummy} + '%'</if>
+186			<if test="ri_custcd != null">
+187				AND CUST_CD IN <foreach collection="ri_custcd" item="custcd" separator="," open="(" close=")">#{custcd}</foreach>
+188			</if>
+189			<if test="r_salesrepcdyn != null and r_salesrepcdyn != '' ">AND SALESREP_CD = #{r_salesrepcdyn}</if>
+190			<if test="rn_salesrepcdyn != null and rn_salesrepcdyn != '' ">AND SALESREP_CD != #{rn_salesrepcdyn}</if>
+191
+192			<!-- 관리자 권한에 따른 조건절 -->
+193				<if test="r_adminauthority != null and r_adminauthority != '' ">
+194					<if test='"AD".equals(r_adminauthority)'>
+195					</if>
+196					<if test='"CS".equals(r_adminauthority)'>
+197						AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+198					</if>
+199					<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+200						<if test='"SH".equals(r_adminauthority)'>
+201							AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+202						</if>
+203						<if test='"SM".equals(r_adminauthority)'>
+204							AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+205						</if>
+206						<if test='"SR".equals(r_adminauthority)'>
+207							AND CU.SALESREP_CD = #{r_adminuserid}
+208						</if>
+209					</if>
+210					<if test='"MK".equals(r_adminauthority)'>
+211					</if>
+212				</if>
+213
+214		</where>
+215	</select>
+216
+217	<select id="list" parameterType="hashmap" resultType="hashmap">
+218		SELECT * FROM (SELECT
+219			ROW_NUMBER() OVER(
+220			<choose>
+221				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+222				<otherwise>ORDER BY (SELECT 1)</otherwise>
+223			</choose>
+224			) AS ROWNUM
+225			, XX.* FROM (
+226			SELECT CU.*, SUS.USER_NM AS SALESREP_NM2, SUS.AUTHORITY
+227				, (SELECT COUNT(*) FROM O_USER WHERE CUST_CD = CU.CUST_CD AND AUTHORITY = 'CO') AS CUSTOMER_USER_CNT
+228				, (SELECT COUNT(*) FROM O_USER WHERE CUST_CD = CU.CUST_CD AND AUTHORITY = 'CT') AS SHIPTO_USER_CNT
+229				, (SELECT COUNT(*) FROM O_SHIPTO WHERE CUST_CD = CU.CUST_CD) AS SHIPTO_CNT
+230				, (SELECT USER_EMAIL FROM O_USER WHERE USERID = CU.CUST_CD) AS CUST_MAIN_EMAIL
+231			FROM O_CUSTOMER CU
+232				LEFT JOIN O_USER SUS ON CU.SALESREP_CD = SUS.USERID
+233			<where>
+234				<if test="r_custcd != null and r_custcd != ''">AND CUST_CD = #{r_custcd}</if>
+235				<if test="rl_custcd != null and rl_custcd != '' ">AND CU.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+236				<if test="r_custnm != null and r_custnm != ''">AND CUST_NM = #{r_custnm}</if>
+237				<if test="rl_custnm != null and rl_custnm != '' ">AND CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+238				<if test="r_salesrepcd != null and r_salesrepcd != ''">AND SALESREP_CD = #{r_salesrepcd}</if>
+239				<if test="rl_salesrepcd != null and rl_salesrepcd != '' ">AND SALESREP_CD LIKE '%' + #{rl_salesrepcd} + '%'</if>
+240				<if test="r_salesrepnm != null and r_salesrepnm != ''">AND SALESREP_NM = #{r_salesrepnm}</if>
+241				<if test="rl_salesrepnm != null and rl_salesrepnm != '' ">AND SALESREP_NM LIKE '%' + #{rl_salesrepnm} + '%'</if>
+242				<if test="rl_salesrepnm2 != null and rl_salesrepnm2 != '' ">AND SUS.USER_NM LIKE '%' + #{rl_salesrepnm2} + '%'</if>
+243				<if test="r_teamcd != null and r_teamcd != ''">AND TEAM_CD = #{r_teamcd}</if>
+244				<if test="rl_teamcd != null and rl_teamcd != '' ">AND TEAM_CD LIKE '%' + #{rl_teamcd} + '%'</if>
+245				<if test="r_teamnm != null and r_teamnm != ''">AND TEAM_NM = #{r_teamnm}</if>
+246				<if test="rl_teamnm != null and rl_teamnm != '' ">AND TEAM_NM LIKE '%' + #{rl_teamnm} + '%'</if>
+247				<if test="r_taxid != null and r_taxid != ''">AND TAX_ID = #{r_taxid}</if>
+248				<if test="rl_taxid != null and rl_taxid != '' ">AND TAX_ID LIKE '%' + #{rl_taxid} + '%'</if>
+249				<if test="r_mailingnm != null and r_mailingnm != ''">AND MAILING_NM = #{r_mailingnm}</if>
+250				<if test="rl_mailingnm != null and rl_mailingnm != '' ">AND MAILING_NM LIKE '%' + #{rl_mailingnm} + '%'</if>
+251				<if test="r_add1 != null and r_add1 != ''">AND ADD1 = #{r_add1}</if>
+252				<if test="rl_add1 != null and rl_add1 != '' ">AND ADD1 LIKE '%' + #{rl_add1} + '%'</if>
+253				<if test="r_add2 != null and r_add2 != ''">AND ADD2 = #{r_add2}</if>
+254				<if test="rl_add2 != null and rl_add2 != '' ">AND ADD2 LIKE '%' + #{rl_add2} + '%'</if>
+255				<if test="r_add3 != null and r_add3 != ''">AND ADD3 = #{r_add3}</if>
+256				<if test="rl_add3 != null and rl_add3 != '' ">AND ADD3 LIKE '%' + #{rl_add3} + '%'</if>
+257				<if test="r_add4 != null and r_add4 != ''">AND ADD4 = #{r_add4}</if>
+258				<if test="rl_add4 != null and rl_add4 != '' ">AND ADD4 LIKE '%' + #{rl_add4} + '%'</if>
+259				<if test="r_zipcd != null and r_zipcd != ''">AND ZIP_CD = #{r_zipcd}</if>
+260				<if test="rl_zipcd != null and rl_zipcd != '' ">AND ZIP_CD LIKE '%' + #{rl_zipcd} + '%'</if>
+261				<if test="r_buildingty != null and r_buildingty != ''">AND BUILDING_TY = #{r_buildingty}</if>
+262				<if test="rl_buildingty != null and rl_buildingty != '' ">AND BUILDING_TY LIKE '%' + #{rl_buildingty} + '%'</if>
+263				<if test="r_buildingnm != null and r_buildingnm != ''">AND BUILDING_NM = #{r_buildingnm}</if>
+264				<if test="rl_buildingnm != null and rl_buildingnm != '' ">AND BUILDING_NM LIKE '%' + #{rl_buildingnm} + '%'</if>
+265				<if test="r_businessty != null and r_businessty != ''">AND BUSINESS_TY = #{r_businessty}</if>
+266				<if test="rl_businessty != null and rl_businessty != '' ">AND BUSINESS_TY LIKE '%' + #{rl_businessty} + '%'</if>
+267				<if test="r_businessnm != null and r_businessnm != ''">AND BUSINESS_NM = #{r_businessnm}</if>
+268				<if test="rl_businessnm != null and rl_businessnm != '' ">AND BUSINESS_NM LIKE '%' + #{rl_businessnm} + '%'</if>
+269				<if test="r_dummy != null and r_dummy != ''">AND DUMMY = #{r_dummy}</if>
+270				<if test="rl_dummy != null and rl_dummy != '' ">AND DUMMY LIKE '%' + #{rl_dummy} + '%'</if>
+271				<if test="ri_custcd != null">
+272					AND CUST_CD IN <foreach collection="ri_custcd" item="custcd" separator="," open="(" close=")">#{custcd}</foreach>
+273				</if>
+274				<if test="r_salesrepcdyn != null and r_salesrepcdyn != '' ">AND SALESREP_CD = #{r_salesrepcdyn}</if>
+275				<if test="rn_salesrepcdyn != null and rn_salesrepcdyn != '' ">AND SALESREP_CD != #{rn_salesrepcdyn}</if>
+276
+277				<!-- 관리자 권한에 따른 조건절 -->
+278				<if test="r_adminauthority != null and r_adminauthority != '' ">
+279					<if test='"AD".equals(r_adminauthority)'>
+280					</if>
+281					<if test='"CS".equals(r_adminauthority)'>
+282						AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+283					</if>
+284					<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+285						<if test='"SH".equals(r_adminauthority)'>
+286							AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+287						</if>
+288						<if test='"SM".equals(r_adminauthority)'>
+289							AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+290						</if>
+291						<if test='"SR".equals(r_adminauthority)'>
+292							AND CU.SALESREP_CD = #{r_adminuserid}
+293						</if>
+294					</if>
+295					<if test='"MK".equals(r_adminauthority)'>
+296					</if>
+297				</if>
+298			</where>
+299			) XX
+300		) S
+301		<where>
+302			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >
+303				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+304			</if>
+305		</where>
+306	</select>
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 납품처(C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\report\deliveryReport.jsp)  *********** */
+
+165	// 기간+거래처의 납품처 불러오기.
+166	function setShipTo(cust_cd){
+167		var r_actualshipsdt = toStr($('input[name="r_actualshipsdt"]').val());
+168		var r_actualshipedt = toStr($('input[name="r_actualshipedt"]').val());
+169
+170		$.ajax({
+171			async : false,
+172			url : '${url}/admin/base/getShiptoListBySalesOrderAjax.lime',
+173			cache : false,
+174			type : 'POST',
+175			dataType: 'json',
+176			data : {
+177				r_custcd : cust_cd
+178				, r_actualshipsdt : r_actualshipsdt.replaceAll('-', '')
+179				, r_actualshipedt : r_actualshipedt.replaceAll('-', '')
+180				//, where : 'all'
+181			},
+182			success : function(data){
+183				$('select[name="r_shiptocd"]').empty();
+184
+185				var textHtml = '';
+186				textHtml += '<option value="">선택해 주세요.</option>';
+187				$(data.list).each(function(i,e){
+188					textHtml += '<option value="'+e.SHIPTO_CD+'">'+e.SHIPTO_NM+'</option>';
+189				});
+190
+191				$('select[name="r_shiptocd"]').append(textHtml);
+192			},
+193			error : function(request,status,error){
+194				alert('Error');
+195			}
+196		});
+197	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java *********** */
+
+296	/**
+297	 * 납품확인서 폼 > 납품처 리스트 가져오기 By O_SALESORDER Ajax.
+298	 * @작성일 : 2020. 6. 1.
+299	 * @작성자 : kkyu
+300	 */
+301	@ResponseBody
+302	@PostMapping(value="/admin/base/getShiptoListBySalesOrderAjax")
+303	public Object getShiptoListBySalesOrderAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+304		return customerSvc.getShipToListBySalesOrder(params, req, loginDto);
+305	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CustomerSvc.java *********** */
+
+167	/**
+168	 * 납품처 리스트 가져오기 By O_SALESORDER.
+169	 * @작성일 : 2020. 6. 1.
+170	 * @작성자 : kkyu
+171	 * @param
+172	 */
+173	public Map<String, Object> getShipToListBySalesOrder(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+174		Map<String, Object> resMap = new HashMap<>();
+175
+176		String authority = loginDto.getAuthority();
+177		if(StringUtils.equals("CO", authority) && StringUtils.equals("CT", authority)) {
+178			params.put("r_custcd", loginDto.getCustCd());
+179			if(StringUtils.equals("CT", authority)) {
+180				params.put("r_shiptocd", loginDto.getShiptoCd());
+181			}
+182		}
+183
+184		//String r_actualshipsdt = Converter.toStr(params.get("r_actualshipsdt"));
+185		//String r_actualshipedt = Converter.toStr(params.get("r_actualshipedt"));
+186		String r_custcd = Converter.toStr(params.get("r_custcd"));
+187		if(StringUtils.equals("", r_custcd)) throw new LimeBizException(MsgCode.DATA_REQUIRE_ERROR2);
+188
+189		List<Map<String, Object>> list = salesOrderDao.getOrderShipNmGroup(params);
+190		resMap.put("list", list);
+191		resMap.put("data", list);
+192
+193		return resMap;
+194	}
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\SalesOrderDao.java *********** */
+
+49	public List<Map<String, Object>> getOrderShipNmGroup(Map<String, Object> svcMap) {
+50		return sqlSession.selectList("eorder.o_salesorder.getOrderShipNmGroup", svcMap);
+51	}
+
+
+
+
+/* *********** getOrderShipNmGroup *********** */
+
+347	<!-- 2024-10-02 hsg SHIPTO_CD가 공백('')으로 되어 있어서 SHIPTO_CD를 GROUP BY에 추가한 다음 조회 때 컬럼값을 가져오도록 수정 -->
+348	<select id="getOrderShipNmGroup" parameterType="hashmap" resultType="hashmap">
+349		SELECT
+350		<!-- 2024-11-04 hsg imir-83 출고자료 중복으로 나타남 - SHIPTO_NM별로 여러개의 SHIPTO_CD 생성 되기때문에 MAX값을 불러오도록 수정 -->
+351			MAX(SHIPTO_CD) AS SHIPTO_CD,
+352			SHIPTO_NM
+353		FROM
+354			O_SALESORDER
+355		<where>
+356				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+357				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+358				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+359				<!-- 2024-10-29 HSG	 대상오더 추출기준 : STATUS1 >= '580' AND STATUS1 <> '980' -->
+360				AND	STATUS1 <![CDATA[>=]]> '580'
+361				AND STATUS1 <![CDATA[<>]]> '980'
+362			</where>
+363		GROUP BY
+364			SHIPTO_NM<!-- 2024-11-04 hsg imir-83 출고자료 중복으로 나타남 - SHIPTO_NM별로 여러개의 SHIPTO_CD 생성 되기때문에 MAX값을 가져오도록 SHIPTOP_CD는 주석처리, SHIPTO_CD -->
+365		ORDER BY SHIPTO_NM ASC
+366	</select>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 납품명((C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\report\deliveryReport.jsp)) *********** */
+
+237	// 기간+거래처+(현장(납품처) or 착지주소) > 품목명 불러오기.
+238	function setItemDesc(){
+239		if('10' == selectedPaperType || '11' == selectedPaperType || '12' == selectedPaperType){ // 현장(납품처).
+240			//var r_shiptocd = toStr($('select[name="r_shiptocd"] option:selected').val());
+241			//if('' == r_shiptocd){
+242			var r_shiptonm = toStr($('select[name="r_shiptocd"] option:selected').text());
+243			if('' == r_shiptonm){
+244				// 품목명 disabled.
+245				$('select[name="v_itemdesc"]').empty();
+246				$('#v_itemdesc').multiselect('rebuild');
+247				return;
+248			}
+249			$('input[name="r_shiptonm"]').val(r_shiptonm);
+250		}else if('20' == selectedPaperType || '21' == selectedPaperType || '22' == selectedPaperType){ // 착지주소.
+251			var chkAdd1Cnt = $('input:checkbox[name="ri_add1"]:checked').length;
+252			if(0 >= chkAdd1Cnt){
+253				// 품목명 disabled.
+254				$('select[name="v_itemdesc"]').empty();
+255				$('#v_itemdesc').multiselect('rebuild');
+256				return;
+257			}
+258		}
+259
+260		var params = $('form[name="frm"]').serialize();
+261		$.ajax({
+262			async : false,
+263			url : '${url}/admin/base/getItemDescListBySalesOrderAjax.lime',
+264			cache : false,
+265			type : 'POST',
+266			dataType: 'json',
+267			data : params,
+268			success : function(data){
+269				//$('#v_itemdesc').multiselect('destroy');
+270				$('select[name="v_itemdesc"]').empty();
+271
+272				var textHtml = '';
+273				//textHtml += '<option value="">선택해 주세요.</option>';
+274				$(data.list).each(function(i,e){
+275					if('' != toStr(e.ITEM_DESC)){
+276						textHtml += '<option value="'+e.ITEM_DESC+'">'+e.ITEM_DESC+'</option>';
+277					}
+278				});
+279
+280				$('select[name="v_itemdesc"]').append(textHtml);
+281
+282				$('#v_itemdesc').multiselect('rebuild');
+283			},
+284			error : function(request,status,error){
+285				alert('Error');
+286			}
+287		});
+288	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\AdminBaseCtrl.java *********** */
+
+
+318	/**
+319	 * 납품확인서 폼 > 품목명 리스트 가져오기 By O_SALESORDER Ajax.
+320	 * @작성일 : 2020. 6. 4.
+321	 * @작성자 : kkyu
+322	 */
+323	@ResponseBody
+324	@PostMapping(value="/admin/base/getItemDescListBySalesOrderAjax")
+325	public Object getItemDescListBySalesOrderAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+326		return customerSvc.getItemDescListBySalesOrder(params, req, loginDto);
+327	}
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CustomerSvc.java *********** */
+
+
+221	/**
+222	 * 품목 리스트 가져오기 By O_SALESORDER.
+223	 * @작성일 : 2020. 6. 2.
+224	 * @작성자 : kkyu
+225	 */
+226	public Map<String, Object> getItemDescListBySalesOrder(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+227		Map<String, Object> resMap = new HashMap<>();
+228
+229		String authority = loginDto.getAuthority();
+230		if(StringUtils.equals("CO", authority) && StringUtils.equals("CT", authority)) {
+231			params.put("r_custcd", loginDto.getCustCd());
+232		}
+233
+234		String r_actualshipsdt = Converter.toStr(params.get("r_actualshipsdt"));
+235		String r_actualshipedt = Converter.toStr(params.get("r_actualshipedt"));
+236		params.put("r_actualshipsdt", r_actualshipsdt.replaceAll("-", "").trim());
+237		params.put("r_actualshipedt", r_actualshipedt.replaceAll("-", "").trim());
+238
+239		String r_custcd = Converter.toStr(params.get("r_custcd"));
+240		if(StringUtils.equals("", r_custcd)) throw new LimeBizException(MsgCode.DATA_REQUIRE_ERROR2);
+241
+242	//	String r_shiptocd = Converter.toStr(params.get("r_shiptocd"));
+243		String r_shiptonm = Converter.toStr(params.get("r_shiptonm"));
+244		String[] ri_add1 = req.getParameterValues("ri_add1");
+245	//	if(StringUtils.equals("", r_shiptocd) && ArrayUtils.isEmpty(ri_add1)) throw new LimeBizException(MsgCode.DATA_REQUIRE_ERROR2);
+246		if(StringUtils.equals("", r_shiptonm) && ArrayUtils.isEmpty(ri_add1)) throw new LimeBizException(MsgCode.DATA_REQUIRE_ERROR2);
+247		params.put("ri_add1", ri_add1);
+248
+249		List<Map<String, Object>> list = salesOrderDao.getOrderItemDescGroup(params);
+250		resMap.put("list", list);
+251		resMap.put("data", list);
+252
+253		return resMap;
+254	}
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\SalesOrderDao.java
+
+
+95	// USE.
+96	public List<Map<String, Object>> getOrderItemDescGroup(Map<String, Object> svcMap) {
+97		return sqlSession.selectList("eorder.o_salesorder.getOrderItemDescGroup", svcMap);
+98	}
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_salesorder.xml *********** */
+
+
+678	<select id="getOrderItemDescGroup" parameterType="hashmap" resultType="hashmap">
+679		SELECT IT.* FROM (
+680
+681		SELECT ITEM_DESC
+682		FROM O_SALESORDER
+683		<where>
+684			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+685			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+686			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+687			<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+688			<if test="ri_add1 != null">
+689				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+690			</if>
+691		</where>
+692		GROUP BY ITEM_DESC
+693
+694		) IT
+695
+696		ORDER BY IT.ITEM_DESC ASC
+697	</select>
+
+
+
+
+
+
+
+
+
+
+	<select id="getOrderItemDescGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT IT.* FROM (
+	
+		SELECT ITEM_DESC
+		FROM O_SALESORDER  A
+		<where>
+			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+			<if test="ri_add1 != null">
+   				AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+   			</if>
+   			<!-- 2024-11-25 hsg getman suplex alpha eOrder 납품확인서 품목선택 POP-UP에서 판매하지 않는 품목 제외 요청 -->
+   			AND EXISTS ( SELECT * FROM O_ITEM_NEW O WHERE A.ITEM_CD = O.ITEM_CD AND O.SALES_CD3 != 'DAP42600' )
+		</where>
+		GROUP BY ITEM_DESC
+		
+		) IT		
+		ORDER BY IT.ITEM_DESC ASC
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

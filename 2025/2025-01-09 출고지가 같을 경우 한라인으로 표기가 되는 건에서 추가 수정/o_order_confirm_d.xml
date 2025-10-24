@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="eorder.o_order_confirm_d">
+
+	<insert id="in" parameterType="hashmap">
+		INSERT INTO O_ORDER_CONFIRM_D(
+			CUST_PO
+			, LINE_NO
+			, ITEM_CD
+			, UNIT
+			, QUANTITY
+			, PRICE
+			, INSERT_DT
+			, INSERTID
+			, DUMMY
+			, WEEK
+			, OCD_RETURNCD
+			, OCD_RETURNMSG
+			, OCD_STATUSCD
+		)VALUES(
+			#{m_custpo}
+			, #{m_lineno}
+			, #{m_itemcd}
+			, #{m_unit}
+			, #{m_quantity}
+			, #{m_price}
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, #{m_insertid}
+			, #{m_dummy}
+			, #{m_week}
+			, #{m_ocdreturncd}
+			, #{m_ocdreturnmsg}
+			, #{m_ocdstatuscd}
+		)
+	</insert>
+
+	<select id="maxLineNo" parameterType="hashmap" resultType="int">
+		SELECT ISNULL(MAX(LINE_NO), 0) AS ORDER_CONFIRM_D_SEQ
+		FROM O_ORDER_CONFIRM_D
+		<where>
+			AND CUST_PO = #{r_custpo}
+		</where>
+	</select>
+	
+	<!-- 2025-01-07 hsg Figure-four leglock 스따또. 아래의 이슈로 사용하지 않도록 id를 변경 -->
+	<!-- 1) 출하지를 2곳(중부창고, 당진공장)으로 지정하여 주문분리가 2건으로 생성되어야 하는데 총 6개로 분리되었음 -->
+	<!-- 2) 품목코드 786212, 1,200PC의 경우 1라인으로 나타나야 하는데 2개 라인으로 분리되었으며 또한 주문분리가 되었음 -->
+	<select id="list" parameterType="hashmap" resultType="hashmap">
+		SELECT * FROM (SELECT
+			ROW_NUMBER() OVER(
+			<choose>
+				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+				<otherwise>ORDER BY (SELECT 1)</otherwise>
+			</choose>
+			) AS ROWNUM 
+			, XX.* FROM (
+			SELECT OCD.*
+				, OCH.REQ_NO, OCH.COMPANY_CD, OCH.PICKING_DT, OCH.STATUS_CD, OCH.CUSTOMMATTER, OCH.REQUEST_DT, OCH.REQUEST_TIME, OCH.REMARK, OST.QUOTE_QT
+				, (SELECT PT_NAME FROM PLANT WHERE WERKS = OCH.COMPANY_CD) AS PT_NAME
+				, (SELECT DESC1 FROM O_ITEM_NEW WHERE ITEM_CD = OCD.ITEM_CD) AS ITEM_NAME
+				, (SELECT QUANTITY FROM O_CUST_ORDER_D WHERE REQ_NO = OCH.REQ_NO AND LINE_NO = OCD.LINE_NO) AS COD_QUANTITY
+				, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = OCD.OCD_RETURNCD) AS ITEM_RETURN_REASON
+				, UDC.DRDL01 AS DRDL01
+				, UDC.DRDL01 AS ROUTE
+				, SUBSTRING(UDC.DRSPHD,3,2) AS DRSPHD
+			FROM O_ORDER_CONFIRM_D OCD 
+			LEFT JOIN O_ORDER_CONFIRM_H OCH ON OCD.CUST_PO = OCH.CUST_PO
+			LEFT JOIN O_F0005 UDC ON UDC.DRKY = OCD.WEEK
+			LEFT JOIN O_SHIPTO OST ON OCH.SHIPTO_CD = OST.SHIPTO_CD 
+			<where>
+				<if test="r_reqno != null and r_reqno != ''">AND OCH.REQ_NO = #{r_reqno}</if>
+				<if test="r_custpo != null and r_custpo != ''">AND OCD.CUST_PO = #{r_custpo}</if>
+				<if test="rn_statuscd != null and rn_statuscd != ''">AND ISNULL(OCD.OCD_STATUSCD, ' ') != #{rn_statuscd}</if>
+			</where>
+			) XX 
+		) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+	<!-- 2025-01-07 hsg Figure-four leglock 끝. 아래의 이슈로 사용하지 않도록 id를 변경 -->
+
+	<!-- 2025-01-07 hsg Figure-four leglock 변신 시작. 출하지가 다른 경우에만 주문분리가 되도록 개선, 1개의 품목은 출하지가 달라서 주문분리가 발생하지 않는 경우 반드시 1라인으로 생성되어야 합니다. -->	
+	<select id="list_last_work" parameterType="hashmap" resultType="hashmap">
+		WITH TB AS (
+						SELECT
+								OCD.ITEM_CD, OCH.COMPANY_CD
+						  FROM	O_ORDER_CONFIRM_D OCD
+								LEFT JOIN O_ORDER_CONFIRM_H OCH ON OCD.CUST_PO = OCH.CUST_PO
+						<where>
+							<if test="r_reqno != null and r_reqno != ''">AND OCH.REQ_NO = #{r_reqno}</if>
+							<if test="r_custpo != null and r_custpo != ''">AND OCD.CUST_PO = #{r_custpo}</if>
+							<if test="rn_statuscd != null and rn_statuscd != ''">AND ISNULL(OCD.OCD_STATUSCD, ' ') != #{rn_statuscd}</if>
+						</where>
+						GROUP BY OCD.ITEM_CD, OCH.COMPANY_CD
+					)
+		SELECT * FROM (SELECT
+			ROW_NUMBER() OVER(
+			<choose>
+				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+				<otherwise>ORDER BY (SELECT 1)</otherwise>
+			</choose>
+			) AS ROWNUM 
+			, XX.* FROM (
+			SELECT OCD.*
+				, OCH.REQ_NO, OCH.COMPANY_CD, OCH.PICKING_DT, OCH.STATUS_CD, OCH.CUSTOMMATTER, OCH.REQUEST_DT, OCH.REQUEST_TIME, OCH.REMARK, OST.QUOTE_QT
+				, (SELECT PT_NAME FROM PLANT WHERE WERKS = OCH.COMPANY_CD) AS PT_NAME
+				, (SELECT DESC1 FROM O_ITEM_NEW WHERE ITEM_CD = OCD.ITEM_CD) AS ITEM_NAME
+				, (SELECT QUANTITY FROM O_CUST_ORDER_D WHERE REQ_NO = OCH.REQ_NO AND LINE_NO = OCD.LINE_NO) AS COD_QUANTITY
+				, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = OCD.OCD_RETURNCD) AS ITEM_RETURN_REASON
+				, UDC.DRDL01 AS DRDL01
+				, UDC.DRDL01 AS ROUTE
+				, SUBSTRING(UDC.DRSPHD,3,2) AS DRSPHD
+			FROM O_ORDER_CONFIRM_D OCD 
+			LEFT JOIN O_ORDER_CONFIRM_H OCH ON OCD.CUST_PO = OCH.CUST_PO
+			LEFT JOIN O_F0005 UDC ON UDC.DRKY = OCD.WEEK
+			LEFT JOIN O_SHIPTO OST ON OCH.SHIPTO_CD = OST.SHIPTO_CD 
+			<where>
+				<if test="r_reqno != null and r_reqno != ''">AND OCH.REQ_NO = #{r_reqno}</if>
+				<if test="r_custpo != null and r_custpo != ''">AND OCD.CUST_PO = #{r_custpo}</if>
+				<if test="rn_statuscd != null and rn_statuscd != ''">AND ISNULL(OCD.OCD_STATUSCD, ' ') != #{rn_statuscd}</if>
+				AND	EXISTS (SELECT * FROM TB T1 WHERE OCD.ITEM_CD = T1.CUST_PO AND OCH.COMPANY_CD = T1.COMPANY_CD)
+			</where>
+			) XX 
+		) S
+		<where>
+			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >	
+				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+			</if>
+		</where>
+	</select>
+	<!-- 2025-01-07 hsg Figure-four leglock 변신 끝. 출하지가 다른 경우에만 주문분리가 되도록 개선, 1개의 품목은 출하지가 달라서 주문분리가 발생하지 않는 경우 반드시 1라인으로 생성되어야 합니다. -->	
+</mapper>

@@ -1,0 +1,661 @@
+http://localhost:8080/eorder/admin/report/deliveryPaperPop.lime
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\ReportCtrl.java
+
+
+139	/**
+	 * 자재납품 확인서 폼.
+	 * @작성일 : 2020. 5. 6.
+	 * @작성자 : kkyu
+	 * @param ri_orderno : O_SALESORDER.ORDERNO
+	 * @param paper_type : 10=개별아이템-현장, 20=개별아이템-착지, 11=아이템별-현장, 21=아이템별-현장
+	 */
+	@PostMapping(value="deliveryPaperPop")
+	public String deliveryPaperPop(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		reportSvc.getDeliveryPaper2(params, req, loginDto, model);
+		//reportSvc.getDeliveryPaper(params, req, loginDto, model);
+		return "common/deliveryPaperPop";
+	}
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\ReportSvc.java
+
+
+596	/**
+	 * 자재납품 확인서 폼 > 출력유형별 리스트 만들기.
+	 * @작성일 : 2020. 6. 5.
+	 * @작성자 : kkyu
+	 * @param String paper_type : 10=개별아이템-현장, 20=개별아이템-착지, 11=아이템별-현장, 21=아이템별-현장
+	 * @param String r_actualshipsdt [공통] 출고일자 검색 시작일.
+	 * @param String r_actualshipedt [공통] 출고일자 검색 종료일.
+	 * @param String r_custcd [공통] 거래처 코드.
+	 * @param String r_shiptocd	 [10,11] 현장(납품처) 코드.
+	 * @param String[] ri_add1 [20,21] 주소지명 Array.
+	 * @param String[] ri_itemdesc [공통] 품목명 Array.
+	 */
+	public void getDeliveryPaper2(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto, Model model) throws Exception {
+		Map<String, Object> svcMap = new HashMap<>();
+
+		String paper_type = Converter.toStr(params.get("paper_type"));
+		String r_actualshipsdt = Converter.toStr(params.get("r_actualshipsdt"));
+		String r_actualshipedt = Converter.toStr(params.get("r_actualshipedt"));
+		String r_custcd = Converter.toStr(params.get("r_custcd"));
+//		String r_shiptocd = Converter.toStr(params.get("r_shiptocd"));
+		String r_shiptonm = Converter.toStr(params.get("r_shiptonm"));
+		String r_hebechk = Converter.toStr(params.get("r_hebechk"));
+		String[] ri_add1 = req.getParameterValues("ri_add1");
+		String[] ri_itemdesc = req.getParameterValues("ri_itemdesc");
+
+		logger.debug("paper_type : {}", paper_type);
+
+		svcMap.put("r_actualshipsdt", r_actualshipsdt.replaceAll("-", "").trim());
+		svcMap.put("r_actualshipedt", r_actualshipedt.replaceAll("-", "").trim());
+		svcMap.put("r_custcd", r_custcd);
+		svcMap.put("ri_itemdesc", ri_itemdesc);
+		svcMap.put("r_hebechk", r_hebechk);
+
+		// 대표자 직인 가져오기.
+		String ceosealImg = Converter.toStr(configSvc.getConfigValue("CEOSEAL"));
+		model.addAttribute("ceosealImg", ceosealImg);
+
+		// 오늘 날짜.
+		model.addAttribute("todayDate", Converter.dateToStr("yyyy년 M월 d일"));
+
+		int pageMaxTrCount = 20; // 한 페이지당 보여질 tr 최고 개수.
+		int addrMaxlength = 58;
+		int hebeMaxLength = 7;
+
+		/******************************************
+		 * 10 = 개별아이템-현장
+		 * 20 = 개별아이템-착지
+		 ******************************************/
+		if(StringUtils.equals("10", paper_type) || StringUtils.equals("20", paper_type)) {
+			if(StringUtils.equals("10", paper_type)) {
+//				svcMap.put("r_shiptocd", r_shiptocd);
+				svcMap.put("r_shiptonm", r_shiptonm);
+			}
+			else if(StringUtils.equals("20", paper_type)) {
+				svcMap.put("ri_add1", ri_add1);
+			}
+
+			int totCnt = salesOrderDao.getCntReportFor1020(svcMap); // 리스트 전제 개수.
+			int totPageCnt = totCnt / pageMaxTrCount + 1; // 페이지 전체 개수.
+			logger.debug("### {}. 리스트 전제 개수(totCnt) : {}", paper_type, totCnt);
+			logger.debug("### {}. 페이지 전체 개수(totPageCnt) : {}", paper_type, totPageCnt);
+
+			svcMap.put("r_orderby", "SUB.ACTUAL_SHIP_DT ASC, SUB.ITEM_DESC ASC ");
+			List<Map<String, Object>> totList = salesOrderDao.getReportFor1020(svcMap);
+
+			List<List<Map<String, Object>>> deliveryPaperList = new ArrayList<List<Map<String, Object>>>();
+
+			totPageCnt = 0;
+			int pageCnt = 0;
+			List<Map<String, Object>> mapList = null;
+			for (Map<String, Object> m : totList ) {
+				if(pageCnt == 0) mapList = new ArrayList<Map<String, Object>>();
+
+				mapList.add(m);
+				String val = (m.get("ADD1")==null) ? "" : m.get("ADD1").toString();
+				String qty = (m.get("PRIMARY_QTY")==null) ? "" : m.get("PRIMARY_QTY").toString();
+
+				int valLen = val.getBytes().length;
+				int qtyLen = qty.getBytes().length;
+
+				pageCnt++;
+				if( (valLen>addrMaxlength) || (qtyLen > hebeMaxLength) ) pageCnt++;
+
+				if(pageCnt >= (pageMaxTrCount-1)) {
+					pageCnt = 0;
+					deliveryPaperList.add(mapList);
+					totPageCnt++;
+				}
+			}
+
+			if( (pageCnt > 0) && (mapList.size() > 0) ) {
+				deliveryPaperList.add(mapList);
+				totPageCnt++;
+			}
+
+			//List<List<Map<String, Object>>> deliveryPaperList = Lists.partition(totList, pageMaxTrCount);
+
+			logger.debug("### {}. deliveryPaperList : {}", paper_type, deliveryPaperList);
+
+			model.addAttribute("totPageCnt", totPageCnt);
+			model.addAttribute("deliveryPaperList", deliveryPaperList);
+
+			// 출고일자 시작일과 종료일 구하기.
+			/*
+			String startDate = Converter.toStr(deliveryPaperList.get(0).get(0).get("ACTUAL_SHIP_DT"));
+
+			List<Map<String, Object>> lastList = deliveryPaperList.get(deliveryPaperList.size()-1);
+			Map<String, Object> lastMap = lastList.get(lastList.size()-1);
+			String endDate = Converter.toStr(lastMap.get("ACTUAL_SHIP_DT"));;
+
+			model.addAttribute("startDate", startDate);
+			model.addAttribute("endDate", endDate);
+			*/
+			Map<String, Object> periodDate = salesOrderDao.getReportPeriodDate(svcMap);
+			String startDate = Converter.toStr(periodDate.get("START_DATE"));
+			String endDate = Converter.toStr(periodDate.get("END_DATE"));
+			logger.debug("### 출고일자 시작일 : {}, 종료일 : {}", startDate, endDate);
+			model.addAttribute("startDate", startDate);
+			model.addAttribute("endDate", endDate);
+
+			// 거래처명 및 현장명 가져오기.
+			Map<String, Object> custInfo = salesOrderDao.getCustInfoForReport(svcMap);
+			model.addAttribute("custInfo", custInfo);
+		}
+
+		/******************************************
+		 * 11 = 아이템별-현장
+		 * 21 = 아이템별-착지
+		 ******************************************/
+		else if(StringUtils.equals("11", paper_type) || StringUtils.equals("21", paper_type)) {
+			if(StringUtils.equals("11", paper_type)) {
+//				svcMap.put("r_shiptocd", r_shiptocd);
+				svcMap.put("r_shiptonm", r_shiptonm);
+			}
+			else if(StringUtils.equals("21", paper_type)) {
+				svcMap.put("ri_add1", ri_add1);
+			}
+
+			svcMap.put("r_orderby", "SUB.ITEM_DESC ASC, SUB.ACTUAL_SHIP_DT ASC ");
+			List<Map<String, Object>> totList = salesOrderDao.getReportFor1121(svcMap);
+
+			/*List<List<Map<String, Object>>> deliveryPaperList = Lists.partition(totList, pageMaxTrCount);
+			logger.debug("### {}. deliveryPaperList : {}", paper_type, deliveryPaperList);
+
+			int totCnt = totList.size(); // 리스트 전제 개수.
+			int totPageCnt = totCnt / pageMaxTrCount + 1; // 페이지 전체 개수.
+			logger.debug("### {}. 리스트 전제 개수(totCnt) : {}", paper_type, totCnt);
+			logger.debug("### {}. 페이지 전체 개수(totPageCnt) : {}", paper_type, totPageCnt);
+			*/
+
+			List<List<Map<String, Object>>> deliveryPaperList = new ArrayList<List<Map<String, Object>>>();
+			int totPageCnt = 0;
+			int pageCnt = 0;
+			String unit = "";
+			List<Map<String, Object>> mapList = null;
+			for (Map<String, Object> m : totList ) {
+				if(pageCnt == 0) mapList = new ArrayList<Map<String, Object>>();
+
+				String dt = m.get("ACTUAL_SHIP_DT").toString();
+				if(dt.contains("소계")) {
+					m.put("UNIT", unit);
+				}
+				unit = (m.get("UNIT")==null) ? "" :m.get("UNIT").toString();
+
+				mapList.add(m);
+				String val = (m.get("ADD1")==null) ? "" : m.get("ADD1").toString();
+				String qty = (m.get("PRIMARY_QTY")==null) ? "" : m.get("PRIMARY_QTY").toString();
+
+
+				int valLen = val.getBytes().length;
+				int qtyLen = qty.getBytes().length;
+
+				pageCnt++;
+				if( (valLen>addrMaxlength) || (qtyLen > hebeMaxLength) ) pageCnt++;
+
+				if(pageCnt >= (pageMaxTrCount-1)) {
+					pageCnt = 0;
+					deliveryPaperList.add(mapList);
+					totPageCnt++;
+				}
+			}
+
+			if( (pageCnt > 0) && (mapList.size() > 0) ) {
+				deliveryPaperList.add(mapList);
+				totPageCnt++;
+			}
+
+
+			model.addAttribute("totPageCnt", totPageCnt);
+			model.addAttribute("deliveryPaperList", deliveryPaperList);
+
+			// 품목명 rowspan을 위한 리스트 가공.
+			List<Map<String, Integer>> rowSpanList = new ArrayList<>();
+			for(List<Map<String, Object>> list : deliveryPaperList) {
+				Map<String, Integer> rowSpan = new LinkedHashMap<>();
+				for(int i=0,j=list.size(); i<j; i++) {
+					if(rowSpan.containsKey(Converter.toStr(list.get(i).get("ITEM_DESC")))) { // hashmap 내부에 이미 key값이 존재 하는지 체크.
+						rowSpan.put(Converter.toStr(list.get(i).get("ITEM_DESC")), rowSpan.get(list.get(i).get("ITEM_DESC"))+1); // key 값이 있다면 value에 +1.
+					}
+					else { //key값이 존재 하지 않으면.
+						rowSpan.put(Converter.toStr(list.get(i).get("ITEM_DESC")), 1);
+					}
+				}
+				rowSpanList.add(rowSpan);
+			}
+			logger.debug("### {}. 품목명 rowspan을 위한 리스트(rowSpanList) : {}", paper_type, rowSpanList);
+			Gson gson = new Gson();
+			model.addAttribute("rowSpanListToJson", gson.toJson(rowSpanList));
+
+			// 출고일자 시작일과 종료일 구하기.
+			Map<String, Object> periodDate = salesOrderDao.getReportPeriodDate(svcMap);
+			String startDate = Converter.toStr(periodDate.get("START_DATE"));
+			String endDate = Converter.toStr(periodDate.get("END_DATE"));
+			logger.debug("### 출고일자 시작일 : {}, 종료일 : {}", startDate, endDate);
+			model.addAttribute("startDate", startDate);
+			model.addAttribute("endDate", endDate);
+
+			// 거래처명 및 현장명 가져오기.
+			Map<String, Object> custInfo = salesOrderDao.getCustInfoForReport(svcMap);
+			model.addAttribute("custInfo", custInfo);
+		}
+		 /******************************************
+		 * 12 = 아이템별총계-현장
+		 * 22 = 아이템별총계-착지
+		 ******************************************/
+		else if(StringUtils.equals("12", paper_type) || StringUtils.equals("22", paper_type)) {
+			if(StringUtils.equals("12", paper_type)) {
+	//			svcMap.put("r_shiptocd", r_shiptocd);
+				svcMap.put("r_shiptonm", r_shiptonm);
+			}
+			else if(StringUtils.equals("22", paper_type)) {
+				svcMap.put("ri_add1", ri_add1);
+			}
+
+			svcMap.put("r_orderby", "SUB.ITEM_DESC ASC ");
+			List<Map<String, Object>> totList = salesOrderDao.getReportFor1222(svcMap);
+
+			List<List<Map<String, Object>>> deliveryPaperList = Lists.partition(totList, pageMaxTrCount);
+			logger.debug("### {}. deliveryPaperList : {}", paper_type, deliveryPaperList);
+
+			int totCnt = totList.size(); // 리스트 전제 개수.
+			int totPageCnt = totCnt / pageMaxTrCount + 1; // 페이지 전체 개수.
+			logger.debug("### {}. 리스트 전제 개수(totCnt) : {}", paper_type, totCnt);
+			logger.debug("### {}. 페이지 전체 개수(totPageCnt) : {}", paper_type, totPageCnt);
+
+			model.addAttribute("totPageCnt", totPageCnt);
+			model.addAttribute("deliveryPaperList", deliveryPaperList);
+
+			Map<String, Object> periodDate = salesOrderDao.getReportPeriodDate(svcMap);
+			String startDate = Converter.toStr(periodDate.get("START_DATE"));
+			String endDate = Converter.toStr(periodDate.get("END_DATE"));
+			logger.debug("### 출고일자 시작일 : {}, 종료일 : {}", startDate, endDate);
+			model.addAttribute("startDate", startDate);
+			model.addAttribute("endDate", endDate);
+
+			// 거래처명 및 현장명 가져오기.
+			Map<String, Object> custInfo = salesOrderDao.getCustInfoForReport(svcMap);
+
+			if(totList!=null && totList.size() > 0) {
+				custInfo.put("SHIPTO_NM", totList.get(0).get("SHIPTO_NM"));
+			}
+			model.addAttribute("custInfo", custInfo);
+		}
+
+	}
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\SalesOrderDao.java
+
+60	// USE.
+61	public int getCntReportFor1020(Map<String, Object> svcMap) {
+62		return sqlSession.selectOne("eorder.o_salesorder.getCntReportFor1020", svcMap);
+63	}
+64	// USE.
+65	public List<Map<String, Object>> getReportFor1020(Map<String, Object> svcMap) {
+66		return sqlSession.selectList("eorder.o_salesorder.getReportFor1020", svcMap);
+67	}
+
+81	// USE.
+82	public Map<String, Object> getReportPeriodDate(Map<String, Object> svcMap) {
+83		return sqlSession.selectOne("eorder.o_salesorder.getReportPeriodDate", svcMap);
+84	}
+
+
+109	public Map<String, Object> getCustInfoForReport(Map<String, Object> svcMap){
+109		return sqlSession.selectOne("eorder.o_salesorder.getCustInfoForReport", svcMap);
+110	}
+
+
+74	public List<Map<String, Object>> getReportFor1121(Map<String, Object> svcMap) {
+75		return sqlSession.selectList("eorder.o_salesorder.getReportFor1121", svcMap);
+76	}
+
+82	public Map<String, Object> getReportPeriodDate(Map<String, Object> svcMap) {
+83		return sqlSession.selectOne("eorder.o_salesorder.getReportPeriodDate", svcMap);
+84	}
+
+109	public Map<String, Object> getCustInfoForReport(Map<String, Object> svcMap){
+110		return sqlSession.selectOne("eorder.o_salesorder.getCustInfoForReport", svcMap);
+111	}
+
+
+78	public List<Map<String, Object>> getReportFor1222(Map<String, Object> svcMap) {
+79		return sqlSession.selectList("eorder.o_salesorder.getReportFor1222", svcMap);
+80	}
+
+82	public Map<String, Object> getReportPeriodDate(Map<String, Object> svcMap) {
+83		return sqlSession.selectOne("eorder.o_salesorder.getReportPeriodDate", svcMap);
+84	}
+
+109	public Map<String, Object> getCustInfoForReport(Map<String, Object> svcMap){
+110		return sqlSession.selectOne("eorder.o_salesorder.getCustInfoForReport", svcMap);
+111	}
+
+
+
+/* ***************************************************************************************************************************************** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_salesorder.xml
+
+
+/* *********** eorder.o_salesorder.getCntReportFor1020 *********** */
+
+365	<select id="getCntReportFor1020" parameterType="hashmap" resultType="int">
+366		SELECT COUNT(*)
+367		FROM (
+368
+369			SELECT SO.ACTUAL_SHIP_DT
+370				   , SO.ITEM_DESC
+371				   , SO.ADD1
+372				<if test='r_hebechk == null or r_hebechk == "" '>
+373				   , SO.UNIT
+374				   , SUM(SO.ORDER_QTY) AS ORDER_QTY
+375				</if>
+376				<if test='r_hebechk != null and r_hebechk == "Y" '>
+377				   , SO.UNIT1 AS UNIT
+378				   , SUM(SO.PRIMARY_QTY) AS ORDER_QTY
+379				</if>
+380			FROM O_SALESORDER SO
+381			<where>
+382				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+383				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+384				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+385				<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+386				<if test="ri_add1 != null">
+387					AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+388				</if>
+389				<if test="ri_itemdesc != null">
+390					AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+391				</if>
+392			</where>
+393			GROUP BY ACTUAL_SHIP_DT
+394					 , ITEM_DESC
+395				<if test='r_hebechk == null or r_hebechk == "" '>, UNIT</if>
+396				<if test='r_hebechk != null and r_hebechk == "Y" '>, UNIT1</if>
+397					 , ADD1
+398
+399		) SUB
+400	</select>
+
+
+/* *********** eorder.o_salesorder.getReportFor1020 *********** */
+
+402	<select id="getReportFor1020" parameterType="hashmap" resultType="hashmap">
+403			SELECT SUB.*
+404		FROM (
+405
+406			SELECT SO.ACTUAL_SHIP_DT
+407				   , SO.ITEM_DESC
+408				   , SO.ADD1
+409				<if test='r_hebechk == null or r_hebechk == "" '>
+410				   , SO.UNIT
+411				   , SUM(SO.ORDER_QTY) AS ORDER_QTY
+412				</if>
+413				<if test='r_hebechk != null and r_hebechk == "Y" '>
+414				   , SO.UNIT1 AS UNIT
+415				   , SUM(SO.PRIMARY_QTY) AS ORDER_QTY
+416				</if>
+417				   , SUBSTRING(ITEM_CD, 1, 3) AS ITEM_CD_3
+418			FROM O_SALESORDER SO
+419			<where>
+420				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+421				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+422				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+423				<!-- <if test="r_shiptocd != null and r_shiptocd != '' ">AND SHIPTO_CD = #{r_shiptocd}</if> -->
+424				<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+425				<if test="ri_add1 != null">
+426					AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+427				</if>
+428				<if test="ri_itemdesc != null">
+429					AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+430				</if>
+431			</where>
+432			GROUP BY ACTUAL_SHIP_DT
+433					 , ITEM_DESC
+434				<if test='r_hebechk == null or r_hebechk == "" '>, UNIT</if>
+435				<if test='r_hebechk != null and r_hebechk == "Y" '>, UNIT1</if>
+436					 , ADD1
+437					 , SUBSTRING(ITEM_CD, 1, 3)
+438
+439		) SUB
+440
+441		<if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if>
+442	</select>
+
+
+
+
+/* *********** eorder.o_salesorder.getReportPeriodDate *********** */
+
+532	<select id="getReportPeriodDate" parameterType="hashmap" resultType="hashmap">
+533		SELECT MIN(ACTUAL_SHIP_DT) AS START_DATE, MAX(ACTUAL_SHIP_DT) AS END_DATE
+534		FROM O_SALESORDER SO
+535		<where>
+536			<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+537			<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+538			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+539			<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+540			<if test="ri_add1 != null">
+541					AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+542				</if>
+543			<if test="ri_itemdesc != null">
+544					AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+545				</if>
+546		</where>
+547	</select>
+
+
+
+
+/* *********** eorder.o_salesorder.getCustInfoForReport *********** */
+
+628	<select id="getCustInfoForReport" parameterType="hashmap" resultType="hashmap">
+629		SELECT CUST_NM, SALESREP_NM
+630			<if test="r_shiptonm != null and r_shiptonm != '' ">, TRIM(#{r_shiptonm}) AS SHIPTO_NM</if>
+631		FROM O_CUSTOMER
+632		<where>
+633			<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+634		</where>
+635	</select>
+
+
+
+
+/* *********** eorder.o_salesorder.getReportFor1121 *********** */
+
+444	<select id="getReportFor1121" parameterType="hashmap" resultType="hashmap">
+445		SELECT SUB.*
+446		FROM (
+447
+448			SELECT
+449				GRP.ITEM_DESC
+450				, CASE GROUPING(GRP.ACTUAL_SHIP_DT)
+451					 WHEN 1 THEN
+452					'소계'
+453					 ELSE ACTUAL_SHIP_DT END AS ACTUAL_SHIP_DT
+454				, SUM(GRP.ORDER_QTY) AS SUM_ORDER_QTY
+455				, GRP.UNIT
+456				, GRP.ITEM_CD_3
+457				, GRP.ADD1
+458			FROM (
+459
+460				SELECT SO.ACTUAL_SHIP_DT
+461					   , SO.ITEM_DESC
+462					   , SO.ADD1
+463				<if test='r_hebechk == null or r_hebechk == "" '>
+464					   , SO.UNIT
+465					   , SUM(SO.ORDER_QTY) AS ORDER_QTY
+466				</if>
+467				<if test='r_hebechk != null and r_hebechk == "Y" '>
+468					   , SO.UNIT1 AS UNIT
+469					   , SUM(SO.PRIMARY_QTY) AS ORDER_QTY
+470				</if>
+471					   , SUBSTRING(ITEM_CD, 1, 3) AS ITEM_CD_3
+472				FROM O_SALESORDER SO
+473				<where>
+474					<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+475					<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+476					<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+477					<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+478					<if test="ri_add1 != null">
+479						AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+480					</if>
+481					<if test="ri_itemdesc != null">
+482						AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+483					</if>
+484				</where>
+485				GROUP BY ITEM_DESC
+486						 , ACTUAL_SHIP_DT
+487				<if test='r_hebechk == null or r_hebechk == "" '>, UNIT</if>
+488				<if test='r_hebechk != null and r_hebechk == "Y" '>, UNIT1</if>
+489						 , ADD1
+490						 , SUBSTRING(ITEM_CD, 1, 3)
+491			) GRP
+492
+493			GROUP BY GRP.ITEM_DESC, GRP.ACTUAL_SHIP_DT, GRP.UNIT, GRP.ITEM_CD_3, GRP.ADD1 WITH ROLLUP
+494			HAVING GROUPING(GRP.ITEM_DESC) = 0
+495
+496		) SUB
+497
+498		<if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if>
+499	</select>
+
+
+
+
+
+
+/* *********** eorder.o_salesorder.getReportFor1222 *********** */
+
+501	<select id="getReportFor1222" parameterType="hashmap" resultType="hashmap">
+502		SELECT SUB.*
+503		FROM (
+504			SELECT SO.ITEM_DESC
+505				   , SO.UNIT
+506				   , MAX(SO.SHIPTO_NM) AS SHIPTO_NM
+507				   , SUM(SO.ORDER_QTY) AS ORDER_QTY
+508				   , SO.UNIT1 AS UNIT1
+509				   , SUM(SO.PRIMARY_QTY) AS PRIMARY_QTY
+510				   , SUBSTRING(ITEM_CD, 1, 3) AS ITEM_CD_3
+511			FROM O_SALESORDER SO
+512			<where>
+513				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+514				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+515				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+516				<if test="r_shiptonm != null and r_shiptonm != '' ">AND SHIPTO_NM = TRIM(#{r_shiptonm})</if>
+517				<if test="ri_add1 != null">
+518					AND ADD1 IN <foreach collection="ri_add1" item="add1" separator="," open="(" close=")">TRIM(#{add1})</foreach>
+519				</if>
+520				<if test="ri_itemdesc != null">
+521					AND ITEM_DESC IN <foreach collection="ri_itemdesc" item="item_desc" separator="," open="(" close=")">TRIM(#{item_desc})</foreach>
+522				</if>
+523			</where>
+524			GROUP BY ITEM_DESC
+525					 , UNIT
+526					 , UNIT1
+527					 , SUBSTRING(ITEM_CD, 1, 3)
+528		) SUB
+529		<if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</if>
+530	</select>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\ConfigSvc.java
+
+
+78	/**
+79	 * 환경설정값 가져오기
+80	 * @param params
+81	 */
+82	public String getConfigValue(String cfid) {
+83		Map<String, Object> svcMap = new HashMap<>();
+84
+85		svcMap.put("r_cfid", cfid);
+86		Map<String, Object> config = configDao.one(svcMap);
+87		String cfValue = Converter.toStr(config.get("CF_VALUE"));
+88
+89		return cfValue;
+90	}
+
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ConfigDao.java
+
+
+15	public Map<String, Object> one(Map<String, Object> svcMap){
+16		return sqlSession.selectOne("eorder.config.one", svcMap);
+17	}
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\config.xml
+
+
+31	<select id="one" parameterType="hashmap" resultType="hashmap">
+32		SELECT * FROM CONFIG
+33		<where>
+34			CF_ID = #{r_cfid}
+35		</where>
+36	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

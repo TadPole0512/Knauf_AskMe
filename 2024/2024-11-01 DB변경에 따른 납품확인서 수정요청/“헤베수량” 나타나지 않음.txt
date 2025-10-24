@@ -1,0 +1,156 @@
+
+http://localhost:8080/eorder/admin/report/deliveryPaperPop.lime
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\ReportCtrl.java
+
+139	/**
+140	 * 자재납품 확인서 폼.
+141	 * @작성일 : 2020. 5. 6.
+142	 * @작성자 : kkyu
+143	 * @param ri_orderno : O_SALESORDER.ORDERNO
+144	 * @param paper_type : 10=개별아이템-현장, 20=개별아이템-착지, 11=아이템별-현장, 21=아이템별-현장
+145	 */
+146	@PostMapping(value="deliveryPaperPop")
+147	public String deliveryPaperPop(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+148		reportSvc.getDeliveryPaper2(params, req, loginDto, model);
+149		//reportSvc.getDeliveryPaper(params, req, loginDto, model);
+150		return "common/deliveryPaperPop";
+151	}
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\ReportSvc.java
+
+596	/**
+597	 * 자재납품 확인서 폼 > 출력유형별 리스트 만들기.
+598	 * @작성일 : 2020. 6. 5.
+599	 * @작성자 : kkyu
+600	 * @param String paper_type : 10=개별아이템-현장, 20=개별아이템-착지, 11=아이템별-현장, 21=아이템별-현장
+601	 * @param String r_actualshipsdt [공통] 출고일자 검색 시작일.
+602	 * @param String r_actualshipedt [공통] 출고일자 검색 종료일.
+603	 * @param String r_custcd [공통] 거래처 코드.
+604	 * @param String r_shiptocd  [10,11] 현장(납품처) 코드.
+605	 * @param String[] ri_add1 [20,21] 주소지명 Array.
+606	 * @param String[] ri_itemdesc [공통] 품목명 Array.
+607	 */
+608	public void getDeliveryPaper2(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto, Model model) throws Exception {
+
+
+629	// 대표자 직인 가져오기.
+630	String ceosealImg = Converter.toStr(configSvc.getConfigValue("CEOSEAL"));
+
+653	int totCnt = salesOrderDao.getCntReportFor1020(svcMap); // 리스트 전제 개수.
+
+659	List<Map<String, Object>> totList = salesOrderDao.getReportFor1020(svcMap);
+
+	// 출고일자 시작일과 종료일 구하기.
+709	Map<String, Object> periodDate = salesOrderDao.getReportPeriodDate(svcMap);
+
+717	// 거래처명 및 현장명 가져오기.
+718	Map<String, Object> custInfo = salesOrderDao.getCustInfoForReport(svcMap);
+
+
+	/******************************************
+	 * 11 = 아이템별-현장
+	 * 21 = 아이템별-착지
+	 ******************************************/
+
+735	List<Map<String, Object>> totList = salesOrderDao.getReportFor1121(svcMap);
+
+805	// 출고일자 시작일과 종료일 구하기.
+806	Map<String, Object> periodDate = salesOrderDao.getReportPeriodDate(svcMap);
+
+813	// 거래처명 및 현장명 가져오기.
+814	Map<String, Object> custInfo = salesOrderDao.getCustInfoForReport(svcMap);
+
+
+	      /******************************************
+         * 12 = 아이템별총계-현장
+         * 22 = 아이템별총계-착지
+         ******************************************/
+
+831	List<Map<String, Object>> totList = salesOrderDao.getReportFor1222(svcMap);
+
+844	Map<String, Object> periodDate = salesOrderDao.getReportPeriodDate(svcMap);
+
+
+851	// 거래처명 및 현장명 가져오기.
+852	Map<String, Object> custInfo = salesOrderDao.getCustInfoForReport(svcMap);
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\SalesOrderDao.java
+
+60	// USE.
+61	public int getCntReportFor1020(Map<String, Object> svcMap) {
+62		return sqlSession.selectOne("eorder.o_salesorder.getCntReportFor1020", svcMap);
+63	}
+64	// USE.
+65	public List<Map<String, Object>> getReportFor1020(Map<String, Object> svcMap) {
+66		return sqlSession.selectList("eorder.o_salesorder.getReportFor1020", svcMap);
+67	}
+
+81	// USE.
+82	public Map<String, Object> getReportPeriodDate(Map<String, Object> svcMap) {
+83		return sqlSession.selectOne("eorder.o_salesorder.getReportPeriodDate", svcMap);
+84	}
+
+
+109	public Map<String, Object> getCustInfoForReport(Map<String, Object> svcMap){
+109		return sqlSession.selectOne("eorder.o_salesorder.getCustInfoForReport", svcMap);
+110	}
+
+
+74	public List<Map<String, Object>> getReportFor1121(Map<String, Object> svcMap) {
+75		return sqlSession.selectList("eorder.o_salesorder.getReportFor1121", svcMap);
+76	}
+
+82	public Map<String, Object> getReportPeriodDate(Map<String, Object> svcMap) {
+83		return sqlSession.selectOne("eorder.o_salesorder.getReportPeriodDate", svcMap);
+84	}
+
+109	public Map<String, Object> getCustInfoForReport(Map<String, Object> svcMap){
+110		return sqlSession.selectOne("eorder.o_salesorder.getCustInfoForReport", svcMap);
+111	}
+
+
+78	public List<Map<String, Object>> getReportFor1222(Map<String, Object> svcMap) {
+79		return sqlSession.selectList("eorder.o_salesorder.getReportFor1222", svcMap);
+80	}
+
+82	public Map<String, Object> getReportPeriodDate(Map<String, Object> svcMap) {
+83		return sqlSession.selectOne("eorder.o_salesorder.getReportPeriodDate", svcMap);
+84	}
+
+109	public Map<String, Object> getCustInfoForReport(Map<String, Object> svcMap){
+110		return sqlSession.selectOne("eorder.o_salesorder.getCustInfoForReport", svcMap);
+111	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

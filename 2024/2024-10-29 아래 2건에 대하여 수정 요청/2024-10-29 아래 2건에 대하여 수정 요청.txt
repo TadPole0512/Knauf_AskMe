@@ -1,0 +1,176 @@
+
+/* eorder.o_qmsorder.setQmsOrderMastHistory */
+INSERT 작업에서 Primary Key 인 'SHIPTO_SEQ'가 자동증가(IDENTITY) 설정이 되어 있지않고, 최대값(MAX)을 구하여 작업하지 않음
+
+
+
+
+
+	<insert id="setQmsOrderMastHistory" parameterType="hashmap" >
+		<!-- 2024-10-29 HSG zombie001 Primary Key 인 'SHIPTO_SEQ'가 자동증가(IDENTITY) 설정이 되어 있지않아, 최대값(MAX)을 구하여 작업 진행  -->
+		<selectKey keyProperty="shittoSeq" resultType="long" order="BEFORE">
+			SELECT MAX(T.SHIPTO_SEQ)+1 FROM QMS_ORD_CORP T;
+		</selectKey>
+
+	/* eorder.o_qmsorder.setQmsOrderMastHistory */
+	MERGE INTO QMS_ORD_CORP F
+	<!-- 2024-10-28 hsg MSSQL에서는 MERGE문에 DUAL만 단독으로 사용할 수 없어서 별칭으로 대체함. USING DUAL -->
+	USING (SELECT 1 AS dual) AS b
+       ON (F.SHIPTO_CD = #{shiptoCd})
+    WHEN MATCHED THEN
+        UPDATE SET F.SHIPTO_ADDR = #{shiptoAddr}
+                  ,F.SHIPTO_EMAIL = #{shiptoEmail}
+                  ,F.CNSTR_ADDR = #{cnstrAddr}
+                  ,F.CNSTR_BIZ_NO = #{cnstrBizNo}
+                  ,F.CNSTR_TEL = #{cnstrTel}
+                  ,F.SUPVS_ADDR = #{supvsAddr}
+                  <!--  ,F.SUPVS_BIZ_NO = #{supvsBizNo}  -->
+                  ,F.SUPVS_QLF_NO = #{supvsQlfNo}
+		      	  ,F.SUPVS_DEC_NO = #{supvsDecNo}
+                  ,F.SUPVS_TEL = #{supvsTel}
+                  ,F.UPDATEUSER = #{userId}
+                  ,F.UPDATETIME = GETDATE()
+    WHEN NOT MATCHED THEN
+    	<!-- 2024-10-29 HSG zombie001 Primary Key 인 'SHIPTO_SEQ'가 자동증가(IDENTITY) 설정이 되어 있지않아, 최대값(MAX)을 구하여 작업 진행 -->
+        INSERT (SHIPTO_SEQ, SHIPTO_CD,SHIPTO_NM,SHIPTO_ADDR,SHIPTO_EMAIL,CNSTR_NM,CNSTR_ADDR,CNSTR_BIZ_NO,CNSTR_TEL
+                ,SUPVS_NM,SUPVS_ADDR
+                <!-- ,SUPVS_BIZ_NO  -->
+                ,SUPVS_QLF_NO,SUPVS_DEC_NO,SUPVS_TEL,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN)
+        VALUES (#{shittoSeq}
+		      ,#{shiptoCd}
+		      ,#{shiptoNm}
+		      ,#{shiptoAddr}
+		      ,#{shiptoEmail}
+		      ,#{cnstrNm}
+		      ,#{cnstrAddr}
+		      ,#{cnstrBizNo}
+		      ,#{cnstrTel}
+		      ,#{supvsNm}
+		      ,#{supvsAddr}
+		      <!--  ,#{supvsBizNo}  -->
+		      ,#{supvsQlfNo}
+		      ,#{supvsDecNo}
+		      ,#{supvsTel}
+		      ,#{userId}
+			  ,GETDATE()
+			  ,#{userId}
+			  ,GETDATE()
+			  ,'N') ;
+	</insert>
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** Merge 대체 *********** */
+
+428	<!-- 2024-10-31 HSG CoCoVenus First Pride : QMS_ORD_CORP 테이블에 걸린 트리거 대문에 오류가 남. 머지문을 버리고 분기문으로 다시 만듬 -->
+429	<insert id="setQmsOrderMastHistory" parameterType="hashmap" >
+430		<!-- 2024-10-31 HSG zombie001 Primary Key 인 'SHIPTO_SEQ'가 자동증가(IDENTITY) 설정이 되어 있지않아, 최대값(MAX)을 구하여 작업 진행  -->
+431		<selectKey keyProperty="shittoCnt" resultType="long" order="BEFORE">
+432			SELECT COUNT(*) FROM QMS_ORD_CORP WHERE SHIPTO_CD = #{shiptoCd};
+433		</selectKey>
+434
+435
+436		<choose>
+437			<when test = "shittoCnt > 0">
+438				UPDATE	QMS_ORD_CORP
+439				SET		F.SHIPTO_ADDR = #{shiptoAddr}
+440						,SHIPTO_EMAIL = #{shiptoEmail}
+441						,CNSTR_ADDR = #{cnstrAddr}
+442						,CNSTR_BIZ_NO = #{cnstrBizNo}
+443						,CNSTR_TEL = #{cnstrTel}
+444						,SUPVS_ADDR = #{supvsAddr}
+445						,SUPVS_QLF_NO = #{supvsQlfNo}
+446						,SUPVS_DEC_NO = #{supvsDecNo}
+447						,SUPVS_TEL = #{supvsTel}
+448						,UPDATEUSER = #{userId}
+449						,UPDATETIME = GETDATE()
+450				WHERE	SHIPTO_CD = #{shiptoCd}
+451			</when>
+452
+453			<otherwise>
+454				INSERT INTO QMS_ORD_CORP (SHIPTO_CD,SHIPTO_NM,SHIPTO_ADDR,SHIPTO_EMAIL,CNSTR_NM,CNSTR_ADDR,CNSTR_BIZ_NO,CNSTR_TEL
+455						,SUPVS_NM,SUPVS_ADDR
+456						<!-- ,SUPVS_BIZ_NO  -->
+457						,SUPVS_QLF_NO,SUPVS_DEC_NO,SUPVS_TEL,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN)
+458				VALUES	(
+459							#{shiptoCd}
+460							,#{shiptoNm}
+461							,#{shiptoAddr}
+462							,#{shiptoEmail}
+463							,#{cnstrNm}
+464							,#{cnstrAddr}
+465							,#{cnstrBizNo}
+466							,#{cnstrTel}
+467							,#{supvsNm}
+468							,#{supvsAddr}
+469							<!--  ,#{supvsBizNo}  -->
+470							,#{supvsQlfNo}
+471							,#{supvsDecNo}
+472							,#{supvsTel}
+473							,#{userId}
+474							,GETDATE()
+475							,#{userId}
+476							,GETDATE()
+477							,'N'
+478						)
+479			</otherwise>
+480		</choose>
+481
+482	</insert>
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+	<!-- 2024-10-31 HSG CoCoVenus First Secret : QMS_ORD_CORP 테이블에 걸린 트리거 대문에 오류가 남. 능력이 딸려서 Merge문 사용하지 않으려 id 변경 -->
+	<insert id="setQmsOrderMastHistory_CoCoVenus_Back" parameterType="hashmap" >
+	/* eorder.o_qmsorder.setQmsOrderMastHistory */
+
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+
+	<!-- 2024-10-31 HSG CoCoVenus Second Secret : QMS_ORD_CORP 테이블에 걸린 트리거 대문에 오류가 남. 능력이 딸려서 Merge문 사용하지 않으려 id 변경 -->
+	<insert id="setQmsOrderFireproofUpdate_CoCoVenus_Secret" parameterType="hashmap" >
+
+
+701	<!-- 2024-10-31 HSG CoCoVenus Second Pride : QMS_ORD_FRCN 테이블에 걸린 트리거 대문에 오류가 남. 머지문을 버리고 분기문으로 다시 만듬 -->
+702	<insert id="setQmsOrderFireproofUpdate" parameterType="hashmap" >
+703		<!-- 2024-10-31 HSG zombie001 Primary Key 인 'SHIPTO_SEQ'가 자동증가(IDENTITY) 설정이 되어 있지않아, 최대값(MAX)을 구하여 작업 진행  -->
+704		<selectKey keyProperty="qmsFrcnCnt" resultType="long" order="BEFORE">
+705			SELECT COUNT(*) FROM QMS_ORD_FRCN F WHERE F.QMS_ID = #{qmsId} AND F.QMS_SEQ = #{qmsSeq} AND F.KEYCODE = #{keyCode};
+706		</selectKey>
+707
+708		<choose>
+709			<when test = "qmsFrcnCnt > 0">
+710				UPDATE	QMS_ORD_FRCN
+711				SET		DELETEYN = 'N'
+712				WHERE	1 = 1
+713				AND		QMS_ID = #{qmsId}
+714				AND		QMS_SEQ = #{qmsSeq}
+715				AND		KEYCODE = #{keyCode}
+716			</when>
+717
+718			<otherwise>
+719				INSERT INTO QMS_ORD_FRCN (QMS_ID,QMS_SEQ,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME)
+720				VALUES (#{qmsId},#{qmsSeq},#{keyCode},#{userId},GETDATE(),#{userId},GETDATE());
+721			</otherwise>
+722		</choose>
+723
+724	</insert>
+
+
+
+
+
+
+

@@ -1,0 +1,138 @@
+
+리포트>납품확인서>”현장” 선택하면 품목을 선택할 수 없음 … 자료출력불가
+
+
+/************* 백업 테이블 생성 **************/
+
+select a.SHIPTO_CD as aaaa, a.*
+--into O_SALESORDER_BK_20241002
+--select a.*
+from O_SALESORDER a
+where 1 = 1
+--and SHIPTO_CD like '%e%'
+and EXISTS (
+				SELECT *
+				FROM EORDER.dbo.O_SALESORDER b
+				WHERE a.ORDERNO = b.ORDERNO
+				AND a.LINE_NO = b.LINE_NO
+--				and a.CUST_CD = b.CUST_CD
+			)
+;
+
+
+
+SELECT * from O_SALESORDER_BK_20241002;
+
+
+/***************** 지수에 해당하는 값 테스트 ********************/
+
+SELECT
+		SHIPTO_CD
+		, charindex('e', SHIPTO_CD) as aaa
+		, LEFT(SHIPTO_CD, charindex('e', SHIPTO_CD)-1) as bbb
+		, cast(LEFT(SHIPTO_CD, charindex('e', SHIPTO_CD)-1) as float) as ccc
+		, cast(LEFT(SHIPTO_CD, charindex('e', SHIPTO_CD)-1) as float) * 1000000 as ddd
+		, format(cast(LEFT(SHIPTO_CD, charindex('e', SHIPTO_CD)-1) as float) * 1000000, '#######') as eee
+		, format(cast(LEFT(SHIPTO_CD, charindex('e', SHIPTO_CD)-1) as float), '#######') as fff
+FROM O_SALESORDER
+where 1 = 1
+and SHIPTO_CD like '%e%'
+
+;
+
+
+/************************* 지수를 지수에 해당하는 값으로 변환 ****************************/
+
+--update O_SALESORDER set
+--		SHIPTO_CD = format(cast(LEFT(SHIPTO_CD, charindex('e', SHIPTO_CD)-1) as float) * 1000000, '#######')
+--where 1 = 1
+--and SHIPTO_CD like '%e%'
+--;
+
+O_SALESORDER
+
+
+select a.*
+from O_SALESORDER a
+left join O_SHIPTO b
+		on a.SHIPTO_CD = b.SHIPTO_CD
+;
+
+
+
+SELECT
+	SHIPTO_CD
+	, SHIPTO_NM
+FROM
+	O_SALESORDER
+WHERE
+	ACTUAL_SHIP_DT >= '20230101'
+	AND ACTUAL_SHIP_DT <= '20230228'
+	AND CUST_CD = '1795'
+GROUP BY
+	SHIPTO_NM, SHIPTO_CD
+ORDER BY
+	SHIPTO_NM ASC 
+
+
+/*20230101(String), 20230228(String), 1795(String)*/
+;
+
+
+
+
+
+
+<<< namespace="eorder.o_salesorder" >>>
+
+
+	<select id="getOrderShipNmGroup_hsg_20241002" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			'' AS SHIPTO_CD,
+			SHIPTO_NM
+		FROM
+			O_SALESORDER
+		<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			</where>
+		GROUP BY
+			SHIPTO_NM
+		ORDER BY SHIPTO_NM ASC
+	</select>
+	
+	<!-- 2024-10-02 hsg SHIPTO_CD가 공백('')으로 되어 있어서 SHIPTO_CD를 GROUP BY에 추가한 다음 조회 때 컬럼값을 가져오도록 수정 -->
+	<select id="getOrderShipNmGroup" parameterType="hashmap" resultType="hashmap">
+		SELECT
+			SHIPTO_CD,
+			SHIPTO_NM
+		FROM
+			O_SALESORDER
+		<where>
+				<if test="r_actualshipsdt != null and r_actualshipsdt != '' ">AND ACTUAL_SHIP_DT <![CDATA[>=]]> #{r_actualshipsdt}</if>
+				<if test="r_actualshipedt != null and r_actualshipedt != '' ">AND ACTUAL_SHIP_DT <![CDATA[<=]]> #{r_actualshipedt}</if>
+				<if test="r_custcd != null and r_custcd != '' ">AND CUST_CD = #{r_custcd}</if>
+			</where>
+		GROUP BY
+			SHIPTO_NM, SHIPTO_CD
+		ORDER BY SHIPTO_NM ASC
+	</select>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

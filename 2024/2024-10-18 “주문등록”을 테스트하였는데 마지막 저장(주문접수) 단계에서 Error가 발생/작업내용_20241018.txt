@@ -1,0 +1,176 @@
+orderAddressBookmark.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+5	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+6	<selectKey keyProperty="oabSeq" resultType="long" order="BEFORE">
+7		SELECT MAX(OAB_SEQ)+1 FROM ORDERADDRESSBOOKMARK;
+8	</selectKey>
+
+
+
+22	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+23	<!--		- - USQ_ORDERADDRESSBOOKMARK.NEXTVAL -->
+24	<!--		NEXT VALUE FOR USQ_ORDERADDRESSBOOKMARK -->
+25	#{oabSeq}
+
+
+-------------------------------------------------------------------
+
+orderHeaderHistory.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+5	<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+6	<selectKey keyProperty="ohhSeq" resultType="long" order="BEFORE">
+7		SELECT MAX(OHH_SEQ)+1 FROM APPPUSH;
+8	</selectKey>
+
+
+
+19	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+20	<!-- 			USQ_ORDERHEADERHISTORY.NEXTVAL -->
+21	#{ohhSeq}
+
+
+
+-------------------------------------------------------------------
+
+popup.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+
+5	<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+	<selectKey keyProperty="puSeq" resultType="long" order="BEFORE">
+		SELECT MAX(PU_SEQ)+1 FROM POPUP;
+	</selectKey>
+
+
+30	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+	<!-- 	USQ_POPUP.NEXTVAL, -->
+	#{puSeq}
+
+
+
+
+-------------------------------------------------------------------
+
+test.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+
+5	<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+	<selectKey keyProperty="ts0" resultType="long" order="BEFORE">
+		SELECT MAX(TS_0)+1 FROM TEST_L;
+	</selectKey>
+
+
+14	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+	<!-- 		USQ_TESTLSEQ.NEXTVAL -->
+	#{ts0}
+
+
+
+
+-------------------------------------------------------------------
+
+tosConfig.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+
+5	<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+6	<selectKey keyProperty="tscSeq" resultType="long" order="BEFORE">
+7		SELECT MAX(TSC_SEQ)+1 FROM TOSCONFIG;
+8	</selectKey>
+
+
+19	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+20	<!--	- - USQ_TOSCONFIG.NEXTVAL -->
+21	<!--	NEXT VALUE FOR USQ_TOSCONFIG -->
+22	#{tscSeq}
+
+
+
+-------------------------------------------------------------------
+
+
+userPswdHistory.xml
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\
+
+in
+
+5	<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+6	<selectKey keyProperty="uphSeq" resultType="long" order="BEFORE">
+7		SELECT MAX(UPH_SEQ)+1 FROM USERPSWDHISTORY;
+8	</selectKey>
+
+
+14	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+15	<!-- USQ_USERPSWDHISTORY.NEXTVAL -->
+16	<!-- 	NEST VALUE FOR USQ_USERPSWDHISTORY -->
+17	#{uphSeq}
+
+
+
+in2
+
+
+28	<!-- 2024-10-15 HSG 시퀀스 대신 MAX값으로 대체  -->
+29	<selectKey keyProperty="uphSeq2" resultType="long" order="BEFORE">
+30		SELECT MAX(UPH_SEQ)+1 FROM USERPSWDHISTORY;
+31	</selectKey>
+
+
+37	<!-- 2024-10-18 HSG 시퀀스 대신 MAX값으로 대체  -->
+38	<!-- 	USQ_USERPSWDHISTORY.NEXTVAL -->
+39	#{uphSeq}
+
+
+
+
+-------------------------------------------------------------------
+
+OrderSvc.java
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\
+
+373     // 2024-10-18 hsg 별칭 오류가 나서 수정. COH -> XX)
+        params.put("r_orderby", "XX.INDATE DESC ");
+
+
+
+
+-------------------------------------------------------------------
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml
+
+REQ_NO생성하는 부분과 SELECT절에서 REQ_NO를 구하는 방식의 차이가 있어 수정
+REQ_NO생성하는 부분과 WHERE절에서 REQ_NO를 구하는 방식의 차이가 있어 수정
+년도를 구할 때 오늘일자('20241018')를 구한 뒤 SUBSTRING으로 3에서 6번째 자리까지 구한다.
+
+
+312	<select id="createCustOrderReqNo" parameterType="hashmap" resultType="String">			
+313		<!-- 2024-10-18 HSG REQ_NO생성하는 부분과 SELECT절에서 REQ_NO를 구하는 방식의 차이가 있어 수정. -->
+314		SELECT '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6) + ISNULL(CONVERT(VARCHAR, IIF(MAX(REQ_NO) IS NOT NULL, CONVERT(DECIMAL, REPLACE(MAX(CONVERT(DECIMAL, REQ_NO )), '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6), ''))+1, 1)), '')
+315		FROM O_CUST_ORDER_H
+316		WHERE CUST_CD = #{r_custcd}
+317		AND REQ_NO NOT LIKE 'T%'
+318		<!-- 2024-10-18 HSG REQ_NO생성하는 부분과 WHERE절에서 REQ_NO를 구하는 방식의 차이가 있어 수정. -->
+319		<!-- 년도를 구할 때 오늘일자('20241018')를 구한 뒤 SUBSTRING으로 3에서 6번째 자리까지 구한다. -->
+320		<!-- AND REQ_NO LIKE '${r_custcd}' + CONVERT(VARCHAR(10), GETDATE(), 112) + '%' -->
+321		AND REQ_NO LIKE '${r_custcd}' + SUBSTRING(CONVERT(VARCHAR, GETDATE(), 112), 3, 6) + '%'
+322	</select>
+
+
+
+
+
+
+

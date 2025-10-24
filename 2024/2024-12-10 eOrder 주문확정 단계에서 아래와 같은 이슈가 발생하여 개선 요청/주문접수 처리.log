@@ -1,0 +1,970 @@
+DEBUG: 2024-12-16 09:59:56,777 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@7a9b5777
+DEBUG: 2024-12-16 09:59:56,778 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 09:59:56,778 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 09:59:56,778 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 09:59:56,778 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 09:59:56,779 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 09:59:56,779 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 09:59:56,779 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/getOrderHeaderListAjax.lime
+DEBUG: 2024-12-16 09:59:56,779 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 09:59:56,779 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {r_insdate=2024-10-07, rl_reqno=, rl_salesusernm=, r_csuserid=, r_inedate=2024-12-16, rows=10, _search=false, r_custcd=, r_custnm=, r_shiptocd=, nd=1734310796772, page=1, sord=desc, ri_statuscds=00, sidx=}
+DEBUG: 2024-12-16 09:59:56,780 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/getOrderHeaderListAjax.lime
+DEBUG: 2024-12-16 09:59:57,459 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 09:59:57,459 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/getOrderHeaderListAjax.lime(String)
+INFO : 2024-12-16 09:59:57,460 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/getOrderHeaderListAjax.lime'
+DEBUG: 2024-12-16 09:59:57,592 eorder.menu.menuUrl(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 09:59:57,593 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:72) - dbParam : {}
+DEBUG: 2024-12-16 09:59:57,593 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:73) - urlParam : {r_insdate=2024-10-07, rl_reqno=, rl_salesusernm=, r_csuserid=, r_inedate=2024-12-16, rows=10, _search=false, r_custcd=, r_custnm=, r_shiptocd=, nd=1734310796772, page=1, sord=desc, ri_statuscds=00, sidx=}
+DEBUG: 2024-12-16 09:59:57,593 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 13
+DEBUG: 2024-12-16 09:59:58,273 eorder.o_cust_order_h.cnt(debug:139) - ==>  Preparing: SELECT COUNT(*) FROM O_CUST_ORDER_H COH LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.INDATE >= CONVERT(DATE, ?) AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, ?)) AND COH.STATUS_CD IN (?) 
+DEBUG: 2024-12-16 09:59:58,273 eorder.o_cust_order_h.cnt(debug:139) - ==> Parameters: 2024-10-07(String), 2024-12-16(String), 00(String)
+INFO : 2024-12-16 09:59:58,273 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT COUNT(*) 
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+		 WHERE  COH.INDATE >= CONVERT(DATE, '2024-10-07')
+				
+				AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, '2024-12-16'))
+			
+			
+			
+   				AND COH.STATUS_CD IN ('00')
+DEBUG: 2024-12-16 09:59:58,492 eorder.o_cust_order_h.cnt(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 09:59:59,179 eorder.o_cust_order_h.list(debug:139) - ==>  Preparing: SELECT * FROM (SELECT ROW_NUMBER() OVER( ORDER BY XX.INDATE DESC ) AS ROWNUM , XX.* FROM ( SELECT COH.* , (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM , CU.CUST_NM , ST.SHIPTO_NM , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM , (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID , (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM , (SELECT COUNT(*) FROM O_CUST_ORDER_D WHERE REQ_NO = COH.REQ_NO) AS ITEM_CNT , (SELECT TOP 1 CONFIRM_DT FROM O_ORDER_CONFIRM_H WHERE REQ_NO = COH.REQ_NO) AS CONFIRM_DT2 , QM.QMS_TEMP_ID FROM O_CUST_ORDER_H COH LEFT OUTER JOIN QMS_PRE_MAST QM ON QM.REQ_NO = COH.REQ_NO AND QM.DELETEYN = 'N' LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.INDATE >= CONVERT(DATE, ?) AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, ?)) AND COH.STATUS_CD IN (?) ) XX ) S WHERE ROWNUM BETWEEN ? AND ? 
+DEBUG: 2024-12-16 09:59:59,180 eorder.o_cust_order_h.list(debug:139) - ==> Parameters: 2024-10-07(String), 2024-12-16(String), 00(String), 1(Integer), 10(Integer)
+INFO : 2024-12-16 09:59:59,181 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+			 ORDER BY XX.INDATE DESC  
+			) AS ROWNUM
+			, XX.* FROM (
+			SELECT COH.*
+				, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+				, CU.CUST_NM
+				, ST.SHIPTO_NM
+				, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+				, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+				, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+				, (SELECT COUNT(*) FROM O_CUST_ORDER_D WHERE REQ_NO = COH.REQ_NO) AS ITEM_CNT
+				, (SELECT TOP 1 CONFIRM_DT FROM O_ORDER_CONFIRM_H WHERE REQ_NO = COH.REQ_NO) AS CONFIRM_DT2
+				, QM.QMS_TEMP_ID
+			FROM O_CUST_ORDER_H COH
+				LEFT OUTER JOIN QMS_PRE_MAST QM ON QM.REQ_NO = COH.REQ_NO AND QM.DELETEYN = 'N'
+				LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+				LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+				LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+			 WHERE  COH.INDATE >= CONVERT(DATE, '2024-10-07')
+				
+				AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, '2024-12-16'))
+				
+				
+	   				AND COH.STATUS_CD IN ('00') 
+			) XX 
+		) S
+		 WHERE ROWNUM BETWEEN 1 AND 10
+DEBUG: 2024-12-16 09:59:59,321 eorder.o_cust_order_h.list(debug:139) - <==      Total: 10
+DEBUG: 2024-12-16 10:00:00,009 com.limenets.eorder.scheduler.Scheduler(syncOrderDeleteUpdate:49) - <<<<SYNC ORDER DELETE UPDATE>>>>
+DEBUG: 2024-12-16 10:00:00,846 eorder.o_salesorder.syncOrderDeleteUpdate(debug:139) - ==>  Preparing: {call SP_ORDER_DELETE_UPDATE() } 
+DEBUG: 2024-12-16 10:00:00,870 eorder.o_salesorder.syncOrderDeleteUpdate(debug:139) - ==> Parameters: 
+INFO : 2024-12-16 10:00:00,871 jdbc.sqlonly(sqlOccured:74) - SQL : {call SP_ORDER_DELETE_UPDATE() }
+DEBUG: 2024-12-16 10:00:03,465 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@7a9b5777
+DEBUG: 2024-12-16 10:00:03,465 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:00:03,465 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:00:03,466 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:00:03,466 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:03,466 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:03,466 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:00:03,466 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/checkOrderEditStatusAjax.lime
+DEBUG: 2024-12-16 10:00:03,466 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:00:03,467 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {r_reqno=101781702411263}
+DEBUG: 2024-12-16 10:00:03,467 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/checkOrderEditStatusAjax.lime
+DEBUG: 2024-12-16 10:00:04,153 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:00:04,154 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/checkOrderEditStatusAjax.lime(String)
+INFO : 2024-12-16 10:00:04,154 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/checkOrderEditStatusAjax.lime'
+DEBUG: 2024-12-16 10:00:04,286 eorder.menu.menuUrl(debug:139) - <==      Total: 0
+DEBUG: 2024-12-16 10:00:04,287 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 0
+DEBUG: 2024-12-16 10:00:04,976 eorder.o_cust_order_h.one(debug:139) - ==>  Preparing: SELECT COH.* , (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM , CU.CUST_NM , ST.SHIPTO_NM , ST.QUOTE_QT , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM , (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID , (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM , (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON FROM O_CUST_ORDER_H COH LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.REQ_NO = ? 
+DEBUG: 2024-12-16 10:00:04,977 eorder.o_cust_order_h.one(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 10:00:04,977 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT COH.* 
+			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+			, CU.CUST_NM
+			, ST.SHIPTO_NM
+			, ST.QUOTE_QT
+			, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+		 WHERE  COH.REQ_NO = '101781702411263'
+DEBUG: 2024-12-16 10:00:05,112 eorder.o_cust_order_h.one(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:00:05,133 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@7a9b5777
+DEBUG: 2024-12-16 10:00:05,133 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:00:05,134 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:00:05,135 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:00:05,135 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:05,135 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:05,135 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:00:05,136 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/orderEdit.lime
+DEBUG: 2024-12-16 10:00:05,136 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:00:05,136 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {r_reqno=101781702411263}
+DEBUG: 2024-12-16 10:00:05,136 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/orderEdit.lime
+DEBUG: 2024-12-16 10:00:05,825 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:00:05,825 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/orderEdit.lime(String)
+INFO : 2024-12-16 10:00:05,826 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/orderEdit.lime'
+DEBUG: 2024-12-16 10:00:05,959 eorder.menu.menuUrl(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:00:05,959 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:72) - dbParam : {}
+DEBUG: 2024-12-16 10:00:05,960 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:73) - urlParam : {r_reqno=101781702411263}
+DEBUG: 2024-12-16 10:00:05,960 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 13
+DEBUG: 2024-12-16 10:00:06,638 eorder.o_cust_order_h.one(debug:139) - ==>  Preparing: SELECT COH.* , (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM , CU.CUST_NM , ST.SHIPTO_NM , ST.QUOTE_QT , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM , (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID , (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM , (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON FROM O_CUST_ORDER_H COH LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.REQ_NO = ? 
+DEBUG: 2024-12-16 10:00:06,638 eorder.o_cust_order_h.one(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 10:00:06,639 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT COH.* 
+			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+			, CU.CUST_NM
+			, ST.SHIPTO_NM
+			, ST.QUOTE_QT
+			, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+		 WHERE  COH.REQ_NO = '101781702411263'
+DEBUG: 2024-12-16 10:00:06,774 eorder.o_cust_order_h.one(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:00:07,452 eorder.orderHeaderHistory.oneByRecentList(debug:139) - ==>  Preparing: SELECT TOP 1 * FROM ORDERHEADERHISTORY WHERE OHH_REQNO = ? ORDER BY OHH_SEQ DESC 
+DEBUG: 2024-12-16 10:00:07,453 eorder.orderHeaderHistory.oneByRecentList(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 10:00:07,454 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT TOP 1 * 
+		FROM ORDERHEADERHISTORY
+		 WHERE  OHH_REQNO = '101781702411263' 
+		ORDER BY OHH_SEQ DESC
+DEBUG: 2024-12-16 10:00:07,587 eorder.orderHeaderHistory.oneByRecentList(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:00:07,588 com.limenets.eorder.ctrl.admin.OrderCtrl(orderEdit:325) - orderHistoryOne : {OHH_SEQ=626998, OHH_STATUSCD=00, OHH_MEMO=주문접수, OHH_INID=admin, OHH_INDATE=2024-11-26 14:57:24.0, OHH_REQNO=101781702411263, OHH_REQNOREF=null}
+DEBUG: 2024-12-16 10:00:07,588 com.limenets.eorder.ctrl.admin.OrderCtrl(orderEdit:328) - orderHistorySeq : 626998
+DEBUG: 2024-12-16 10:00:08,265 eorder.o_cust_order_d.list(debug:139) - ==>  Preparing: SELECT * FROM ( SELECT ROW_NUMBER() OVER( ORDER BY XX.LINE_NO ASC ) AS ROWNUM , XX.* FROM ( SELECT COD.* , COH.CUST_CD, COH.SHIPTO_CD , IT.DESC1, IT.DESC2 , ITI.* , (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = COD.ITEM_CD) AS RECOMMEND_ITEM_COUNT , CASE WHEN SALES_CD1 = 'A' AND (SALES_CD2 IN ('02','06','US1') OR (SALES_CD2 = '76' AND PLAN_FMLY = 'H15' ) ) THEN 'Y' ELSE 'N' END AS FIREPROOF_YN FROM O_CUST_ORDER_D COD LEFT JOIN O_CUST_ORDER_H COH ON COD.REQ_NO = COH.REQ_NO LEFT JOIN O_ITEM_NEW IT ON COD.ITEM_CD = IT.ITEM_CD LEFT JOIN ITEMINFO ITI ON COD.ITEM_CD = ITI.ITI_ITEMCD WHERE COD.REQ_NO = ? ) XX ) S 
+DEBUG: 2024-12-16 10:00:08,266 eorder.o_cust_order_d.list(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 10:00:08,266 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (
+			SELECT ROW_NUMBER() OVER(
+			 ORDER BY XX.LINE_NO ASC  
+			) AS ROWNUM
+			, XX.* FROM (
+			SELECT COD.*
+				, COH.CUST_CD, COH.SHIPTO_CD
+				, IT.DESC1, IT.DESC2
+				, ITI.*
+				, (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = COD.ITEM_CD) AS RECOMMEND_ITEM_COUNT
+				, CASE WHEN SALES_CD1 = 'A' AND (SALES_CD2 IN ('02','06','US1') OR (SALES_CD2 = '76' AND PLAN_FMLY = 'H15' ) ) THEN 'Y' ELSE 'N' END AS FIREPROOF_YN
+			FROM O_CUST_ORDER_D COD
+				LEFT JOIN O_CUST_ORDER_H COH ON COD.REQ_NO = COH.REQ_NO
+				LEFT JOIN O_ITEM_NEW IT ON COD.ITEM_CD = IT.ITEM_CD
+				LEFT JOIN ITEMINFO ITI ON COD.ITEM_CD = ITI.ITI_ITEMCD
+			 WHERE  COD.REQ_NO = '101781702411263' 
+			) XX 
+		) S
+DEBUG: 2024-12-16 10:00:08,401 eorder.o_cust_order_d.list(debug:139) - <==      Total: 2
+DEBUG: 2024-12-16 10:00:09,084 eorder.o_shipto.one(debug:139) - ==>  Preparing: SELECT ST.* FROM O_SHIPTO ST WHERE ST.SHIPTO_CD = ? 
+DEBUG: 2024-12-16 10:00:09,085 eorder.o_shipto.one(debug:139) - ==> Parameters: 9006047060(String)
+INFO : 2024-12-16 10:00:09,085 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT ST.*
+		FROM O_SHIPTO ST
+		 WHERE  ST.SHIPTO_CD = '9006047060'
+DEBUG: 2024-12-16 10:00:09,220 eorder.o_shipto.one(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:00:09,905 eorder.plant.list(debug:139) - ==>  Preparing: SELECT p.WERKS AS PT_CODE , p.PT_NAME + '(' + p.WERKS + ')' AS PT_NAME FROM PLANT p WHERE p.PT_USE = 'Y' ORDER BY p.PT_SORT 
+DEBUG: 2024-12-16 10:00:09,905 eorder.plant.list(debug:139) - ==> Parameters: 
+INFO : 2024-12-16 10:00:09,906 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT p.WERKS AS PT_CODE
+			, p.PT_NAME + '(' + p.WERKS + ')' AS PT_NAME
+		FROM PLANT p 
+		WHERE p.PT_USE = 'Y'
+		ORDER BY p.PT_SORT
+DEBUG: 2024-12-16 10:00:10,040 eorder.plant.list(debug:139) - <==      Total: 9
+DEBUG: 2024-12-16 10:00:10,737 eorder.common.getHolyDayList(debug:139) - ==>  Preparing: SELECT * FROM (SELECT ROW_NUMBER() OVER( ORDER BY (SELECT 1) ) AS ROWNUM , XX.* FROM ( SELECT YYYYMMDD FROM O_DATE WHERE HOLIDAY_YN = 'Y' ) XX ) S 
+DEBUG: 2024-12-16 10:00:10,738 eorder.common.getHolyDayList(debug:139) - ==> Parameters: 
+INFO : 2024-12-16 10:00:10,738 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+				 ORDER BY (SELECT 1) 
+				) AS ROWNUM
+			, XX.* 
+		FROM (
+			SELECT YYYYMMDD
+			FROM O_DATE
+			 WHERE  HOLIDAY_YN = 'Y' 
+			) XX 
+		) S
+DEBUG: 2024-12-16 10:00:10,874 eorder.common.getHolyDayList(debug:139) - <==      Total: 112
+DEBUG: 2024-12-16 10:00:11,551 eorder.common.getOrderWeekList(debug:139) - ==>  Preparing: SELECT UDC.DRKY, UDC.DRDL01 FROM O_F0005 UDC ORDER BY UDC.DRKY 
+DEBUG: 2024-12-16 10:00:11,552 eorder.common.getOrderWeekList(debug:139) - ==> Parameters: 
+INFO : 2024-12-16 10:00:11,553 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT UDC.DRKY, UDC.DRDL01
+		FROM O_F0005 UDC
+		ORDER BY UDC.DRKY
+DEBUG: 2024-12-16 10:00:11,686 eorder.common.getOrderWeekList(debug:139) - <==      Total: 2
+DEBUG: 2024-12-16 10:00:12,372 eorder.commonCode.list(debug:139) - ==>  Preparing: SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY CC_SORT1, CC_SORT2, CC_SORT3) AS ROWNUM , XX.* FROM ( SELECT CC.* , (SELECT COUNT(*) FROM COMMONCODE WHERE CC_PARENT = CC.CC_CODE) CHILD_COUNT FROM COMMONCODE CC WHERE ISNULL(CC_PARENT, ' ') = ISNULL(?, ' ') AND CC_USE = ? ) XX ) S 
+DEBUG: 2024-12-16 10:00:12,373 eorder.commonCode.list(debug:139) - ==> Parameters: C05(String), Y(String)
+INFO : 2024-12-16 10:00:12,373 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (SELECT
+			ROW_NUMBER() OVER(ORDER BY CC_SORT1, CC_SORT2, CC_SORT3) AS ROWNUM
+			, XX.* 
+		FROM (
+			SELECT 
+				CC.*
+				, (SELECT COUNT(*) FROM COMMONCODE WHERE CC_PARENT = CC.CC_CODE) CHILD_COUNT
+			FROM COMMONCODE CC
+			 WHERE  ISNULL(CC_PARENT, ' ') =  ISNULL('C05', ' ')
+				AND CC_USE = 'Y'  
+			) XX 
+		) S
+DEBUG: 2024-12-16 10:00:12,506 eorder.commonCode.list(debug:139) - <==      Total: 10
+DEBUG: 2024-12-16 10:00:28,579 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.AdminBaseCtrl@71f70b6e
+DEBUG: 2024-12-16 10:00:28,580 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:00:28,580 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:00:28,580 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:00:28,580 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:28,580 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:28,580 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:00:28,581 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/base/getItemMcuListAjax.lime
+DEBUG: 2024-12-16 10:00:28,581 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:00:28,581 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {ri_trid=trId_0!!trId_1, ri_desc1=일반 9.5*900*1800 평보드!!방화 12.5*900*1800 평보드, ri_itemmcu=4635!!4635}
+DEBUG: 2024-12-16 10:00:28,581 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/base/getItemMcuListAjax.lime
+DEBUG: 2024-12-16 10:00:29,265 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:00:29,266 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/base/getItemMcuListAjax.lime(String)
+INFO : 2024-12-16 10:00:29,267 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/base/getItemMcuListAjax.lime'
+DEBUG: 2024-12-16 10:00:29,399 eorder.menu.menuUrl(debug:139) - <==      Total: 0
+DEBUG: 2024-12-16 10:00:29,400 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 0
+{r_itemmcu=4635, r_desc1=일반 9.5*900*1800 평보드}
+DEBUG: 2024-12-16 10:00:30,078 eorder.o_item_new.listItemMcu(debug:139) - ==>  Preparing: SELECT ITM.ITEM_CD FROM O_ITEM_MCU ITM LEFT JOIN O_ITEM_NEW OIN ON OIN.ITEM_CD = ITM.ITEM_CD WHERE (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL) AND ITM.ITEM_MCU = ? AND REPLACE(ITM.DESC1,' ','') = REPLACE(?,' ','') GROUP BY ITM.ITEM_CD 
+DEBUG: 2024-12-16 10:00:30,079 eorder.o_item_new.listItemMcu(debug:139) - ==> Parameters: 4635(String), 일반 9.5*900*1800 평보드(String)
+INFO : 2024-12-16 10:00:30,079 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT ITM.ITEM_CD  
+		FROM O_ITEM_MCU ITM
+		LEFT JOIN
+			O_ITEM_NEW OIN 
+			ON OIN.ITEM_CD = ITM.ITEM_CD
+		 WHERE  (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL)
+			 AND ITM.ITEM_MCU = '4635'
+			 AND REPLACE(ITM.DESC1,' ','') = REPLACE('일반 9.5*900*1800 평보드',' ','') 
+		GROUP BY ITM.ITEM_CD
+DEBUG: 2024-12-16 10:00:30,223 eorder.o_item_new.listItemMcu(debug:139) - <==      Total: 1
+{r_itemmcu=4635, r_desc1=방화 12.5*900*1800 평보드}
+DEBUG: 2024-12-16 10:00:30,929 eorder.o_item_new.listItemMcu(debug:139) - ==>  Preparing: SELECT ITM.ITEM_CD FROM O_ITEM_MCU ITM LEFT JOIN O_ITEM_NEW OIN ON OIN.ITEM_CD = ITM.ITEM_CD WHERE (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL) AND ITM.ITEM_MCU = ? AND REPLACE(ITM.DESC1,' ','') = REPLACE(?,' ','') GROUP BY ITM.ITEM_CD 
+DEBUG: 2024-12-16 10:00:30,929 eorder.o_item_new.listItemMcu(debug:139) - ==> Parameters: 4635(String), 방화 12.5*900*1800 평보드(String)
+INFO : 2024-12-16 10:00:30,930 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT ITM.ITEM_CD  
+		FROM O_ITEM_MCU ITM
+		LEFT JOIN
+			O_ITEM_NEW OIN 
+			ON OIN.ITEM_CD = ITM.ITEM_CD
+		 WHERE  (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL)
+			 AND ITM.ITEM_MCU = '4635'
+			 AND REPLACE(ITM.DESC1,' ','') = REPLACE('방화 12.5*900*1800 평보드',' ','') 
+		GROUP BY ITM.ITEM_CD
+DEBUG: 2024-12-16 10:00:31,071 eorder.o_item_new.listItemMcu(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:00:31,072 com.limenets.eorder.svc.ItemSvc(getItemMcuList:525) - resMap : {trId_1=[{ITEM_CD=786204}], trId_0=[{ITEM_CD=792119}]}
+DEBUG: 2024-12-16 10:00:31,084 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.AdminBaseCtrl@71f70b6e
+DEBUG: 2024-12-16 10:00:31,084 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:00:31,085 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:00:31,085 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:00:31,085 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:31,086 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:00:31,086 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:00:31,086 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/base/getItemStockAjax.lime
+DEBUG: 2024-12-16 10:00:31,086 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:00:31,086 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {ri_trid=trId_0!!trId_1, ri_itemmcu=4635!!4635, ri_itemcd=792119!!786204}
+DEBUG: 2024-12-16 10:00:31,086 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/base/getItemStockAjax.lime
+DEBUG: 2024-12-16 10:00:31,777 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:00:31,778 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/base/getItemStockAjax.lime(String)
+INFO : 2024-12-16 10:00:31,778 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/base/getItemStockAjax.lime'
+DEBUG: 2024-12-16 10:00:31,910 eorder.menu.menuUrl(debug:139) - <==      Total: 0
+DEBUG: 2024-12-16 10:00:31,911 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 0
+DEBUG: 2024-12-16 10:00:32,591 eorder.o_item_new.one(debug:139) - ==>  Preparing: SELECT IT.*, ITI.* FROM O_ITEM_NEW IT LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD WHERE ITEM_CD = ? 
+DEBUG: 2024-12-16 10:00:32,592 eorder.o_item_new.one(debug:139) - ==> Parameters: 792119(String)
+INFO : 2024-12-16 10:00:32,592 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT IT.*, ITI.*
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+		 WHERE  ITEM_CD = '792119'
+DEBUG: 2024-12-16 10:00:32,729 eorder.o_item_new.one(debug:139) - <==      Total: 1
+[[ParamData]]
+{"PLANT":"4635","MATERIAL":"792119","UNIT":"PC","CHECK_RULE":"A"}
+HTTP Response Code : 200
+HTTP Response Data : {"BDCNT":"00000","REQ_DATE":"2024-12-16","REQ_QTY":"9999999999.000","COM_DATE":"2024-12-16","COM_QTY":"245720.000","RETURN":{"TYPE":"","CODE":"","MESSAGE":"","LOG_NO":"","LOG_MSG_NO":"000000","MESSAGE_V1":"","MESSAGE_V2":"","MESSAGE_V3":"","MESSAGE_V4":""}}
+[[RETURN MAP]]
+{COM_QTY=245720.000, REQ_QTY=9999999999.000}
+DEBUG: 2024-12-16 10:00:34,900 eorder.o_item_new.one(debug:139) - ==>  Preparing: SELECT IT.*, ITI.* FROM O_ITEM_NEW IT LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD WHERE ITEM_CD = ? 
+DEBUG: 2024-12-16 10:00:34,901 eorder.o_item_new.one(debug:139) - ==> Parameters: 786204(String)
+INFO : 2024-12-16 10:00:34,901 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT IT.*, ITI.*
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+		 WHERE  ITEM_CD = '786204'
+DEBUG: 2024-12-16 10:00:35,039 eorder.o_item_new.one(debug:139) - <==      Total: 1
+[[ParamData]]
+{"PLANT":"4635","MATERIAL":"786204","UNIT":"PC","CHECK_RULE":"A"}
+HTTP Response Code : 200
+HTTP Response Data : {"BDCNT":"00000","REQ_DATE":"2024-12-16","REQ_QTY":"9999999999.000","COM_DATE":"2024-12-16","COM_QTY":"16114.000","RETURN":{"TYPE":"","CODE":"","MESSAGE":"","LOG_NO":"","LOG_MSG_NO":"000000","MESSAGE_V1":"","MESSAGE_V2":"","MESSAGE_V3":"","MESSAGE_V4":""}}
+[[RETURN MAP]]
+{COM_QTY=16114.000, REQ_QTY=9999999999.000}
+DEBUG: 2024-12-16 10:01:13,902 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.AdminBaseCtrl@71f70b6e
+DEBUG: 2024-12-16 10:01:13,903 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:01:13,903 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:01:13,903 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:01:13,903 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:13,903 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:13,903 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:01:13,904 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/base/getItemMcuListAjax.lime
+DEBUG: 2024-12-16 10:01:13,904 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:01:13,904 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {ri_trid=trId_0_1, ri_desc1=일반 9.5*900*1800 평보드, ri_itemmcu=4636}
+DEBUG: 2024-12-16 10:01:13,904 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/base/getItemMcuListAjax.lime
+DEBUG: 2024-12-16 10:01:14,594 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:01:14,595 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/base/getItemMcuListAjax.lime(String)
+INFO : 2024-12-16 10:01:14,595 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/base/getItemMcuListAjax.lime'
+DEBUG: 2024-12-16 10:01:14,728 eorder.menu.menuUrl(debug:139) - <==      Total: 0
+DEBUG: 2024-12-16 10:01:14,728 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 0
+{r_itemmcu=4636, r_desc1=일반 9.5*900*1800 평보드}
+DEBUG: 2024-12-16 10:01:15,412 eorder.o_item_new.listItemMcu(debug:139) - ==>  Preparing: SELECT ITM.ITEM_CD FROM O_ITEM_MCU ITM LEFT JOIN O_ITEM_NEW OIN ON OIN.ITEM_CD = ITM.ITEM_CD WHERE (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL) AND ITM.ITEM_MCU = ? AND REPLACE(ITM.DESC1,' ','') = REPLACE(?,' ','') GROUP BY ITM.ITEM_CD 
+DEBUG: 2024-12-16 10:01:15,413 eorder.o_item_new.listItemMcu(debug:139) - ==> Parameters: 4636(String), 일반 9.5*900*1800 평보드(String)
+INFO : 2024-12-16 10:01:15,414 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT ITM.ITEM_CD  
+		FROM O_ITEM_MCU ITM
+		LEFT JOIN
+			O_ITEM_NEW OIN 
+			ON OIN.ITEM_CD = ITM.ITEM_CD
+		 WHERE  (UPPER(OIN.STOCK_TY) != 'N' OR OIN.STOCK_TY IS NULL)
+			 AND ITM.ITEM_MCU = '4636'
+			 AND REPLACE(ITM.DESC1,' ','') = REPLACE('일반 9.5*900*1800 평보드',' ','') 
+		GROUP BY ITM.ITEM_CD
+DEBUG: 2024-12-16 10:01:15,553 eorder.o_item_new.listItemMcu(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:15,554 com.limenets.eorder.svc.ItemSvc(getItemMcuList:525) - resMap : {trId_0_1=[{ITEM_CD=792119}]}
+DEBUG: 2024-12-16 10:01:15,568 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.AdminBaseCtrl@71f70b6e
+DEBUG: 2024-12-16 10:01:15,569 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:01:15,569 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:01:15,569 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:01:15,569 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:15,570 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:15,570 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:01:15,570 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/base/getItemStockAjax.lime
+DEBUG: 2024-12-16 10:01:15,570 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:01:15,571 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {ri_trid=trId_0_1, ri_itemmcu=4636, ri_itemcd=792119}
+DEBUG: 2024-12-16 10:01:15,572 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/base/getItemStockAjax.lime
+DEBUG: 2024-12-16 10:01:16,262 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:01:16,262 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/base/getItemStockAjax.lime(String)
+INFO : 2024-12-16 10:01:16,263 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/base/getItemStockAjax.lime'
+DEBUG: 2024-12-16 10:01:16,396 eorder.menu.menuUrl(debug:139) - <==      Total: 0
+DEBUG: 2024-12-16 10:01:16,397 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 0
+DEBUG: 2024-12-16 10:01:17,086 eorder.o_item_new.one(debug:139) - ==>  Preparing: SELECT IT.*, ITI.* FROM O_ITEM_NEW IT LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD WHERE ITEM_CD = ? 
+DEBUG: 2024-12-16 10:01:17,086 eorder.o_item_new.one(debug:139) - ==> Parameters: 792119(String)
+INFO : 2024-12-16 10:01:17,086 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT IT.*, ITI.*
+		FROM O_ITEM_NEW IT
+			LEFT JOIN ITEMINFO ITI ON IT.ITEM_CD = ITI.ITI_ITEMCD
+		 WHERE  ITEM_CD = '792119'
+DEBUG: 2024-12-16 10:01:17,224 eorder.o_item_new.one(debug:139) - <==      Total: 1
+[[ParamData]]
+{"PLANT":"4636","MATERIAL":"792119","UNIT":"PC","CHECK_RULE":"A"}
+HTTP Response Code : 200
+HTTP Response Data : {"BDCNT":"00000","REQ_DATE":"2024-12-16","REQ_QTY":"9999999999.000","COM_DATE":"2024-12-16","COM_QTY":"150706.000","RETURN":{"TYPE":"","CODE":"","MESSAGE":"","LOG_NO":"","LOG_MSG_NO":"000000","MESSAGE_V1":"","MESSAGE_V2":"","MESSAGE_V3":"","MESSAGE_V4":""}}
+[[RETURN MAP]]
+{COM_QTY=150706.000, REQ_QTY=9999999999.000}
+DEBUG: 2024-12-16 10:01:23,855 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@7a9b5777
+DEBUG: 2024-12-16 10:01:23,856 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:01:23,856 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:01:23,856 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:01:23,856 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:23,857 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:23,857 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:01:23,857 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/getPostalCodeCount.lime
+DEBUG: 2024-12-16 10:01:23,857 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:01:23,857 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {r_zipcd=17045}
+DEBUG: 2024-12-16 10:01:23,857 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/getPostalCodeCount.lime
+DEBUG: 2024-12-16 10:01:24,543 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:01:24,544 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/getPostalCodeCount.lime(String)
+INFO : 2024-12-16 10:01:24,544 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/getPostalCodeCount.lime'
+DEBUG: 2024-12-16 10:01:24,689 eorder.menu.menuUrl(debug:139) - <==      Total: 0
+DEBUG: 2024-12-16 10:01:24,690 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 0
+DEBUG: 2024-12-16 10:01:25,372 eorder.o_postalcode_sap.cnt(debug:139) - ==>  Preparing: SELECT COUNT(*) FROM O_POSTALCODE_SAP S WHERE S.ZIP_CD = ? AND S.USE_F IN (?) 
+DEBUG: 2024-12-16 10:01:25,373 eorder.o_postalcode_sap.cnt(debug:139) - ==> Parameters: 17045(String), Y(String)
+INFO : 2024-12-16 10:01:25,373 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT COUNT(*) FROM O_POSTALCODE_SAP S
+		 WHERE  S.ZIP_CD = '17045'
+			
+				AND S.USE_F IN ('Y')
+DEBUG: 2024-12-16 10:01:25,507 eorder.o_postalcode_sap.cnt(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:27,768 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@7a9b5777
+DEBUG: 2024-12-16 10:01:27,768 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:01:27,769 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:01:27,769 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:01:27,769 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:27,769 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:27,770 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:01:27,770 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/insertOrderConfirmAjax.lime
+DEBUG: 2024-12-16 10:01:27,770 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:01:27,770 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {m_transty=AA, m_remark=요청사항, m_itemcd=792119, r_reqno=101781702411263, m_ocdstatuscd=, m_shiptocd=9006047060, select_week=503       , m_quantity=1,340, r_ohhseq_now=626998, v_requestdate=2024-12-27 11:00, m_pickingdt=2024-12-17, m_requesttime=1100, v_desc1=일반 9.5*900*1800 평보드, m_statuscd=07, select_companycd=4635, v_shiptonm=용인역북서희건설_예술디자인, m_companycd=4635, m_unit=PC, m_ocdreturnmsg=, m_add1=경기 용인시 처인구 역북동 89-25번지 일원, m_add2=상세주소, m_returndesc=, m_requestdt=20241227, m_confirmremark=, m_price=, m_week=503       , m_requesttime2=1100, v_requestdate2=2024-12-27 11:00, m_custommatter=, m_ocdreturncd=, select_pickingdt=2024-12-17, m_zipcd=17045, m_returncd=, m_requestdt2=20241227}
+DEBUG: 2024-12-16 10:01:27,771 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/insertOrderConfirmAjax.lime
+DEBUG: 2024-12-16 10:01:28,453 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:01:28,454 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/insertOrderConfirmAjax.lime(String)
+INFO : 2024-12-16 10:01:28,454 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/insertOrderConfirmAjax.lime'
+DEBUG: 2024-12-16 10:01:28,586 eorder.menu.menuUrl(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:28,586 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:72) - dbParam : {}
+DEBUG: 2024-12-16 10:01:28,587 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:73) - urlParam : {m_transty=AA, m_remark=요청사항, m_itemcd=792119, r_reqno=101781702411263, m_ocdstatuscd=, m_shiptocd=9006047060, select_week=503       , m_quantity=1,340, r_ohhseq_now=626998, v_requestdate=2024-12-27 11:00, m_pickingdt=2024-12-17, m_requesttime=1100, v_desc1=일반 9.5*900*1800 평보드, m_statuscd=07, select_companycd=4635, v_shiptonm=용인역북서희건설_예술디자인, m_companycd=4635, m_unit=PC, m_ocdreturnmsg=, m_add1=경기 용인시 처인구 역북동 89-25번지 일원, m_add2=상세주소, m_returndesc=, m_requestdt=20241227, m_confirmremark=, m_price=, m_week=503       , m_requesttime2=1100, v_requestdate2=2024-12-27 11:00, m_custommatter=, m_ocdreturncd=, select_pickingdt=2024-12-17, m_zipcd=17045, m_returncd=, m_requestdt2=20241227}
+DEBUG: 2024-12-16 10:01:28,587 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 13
+DEBUG: 2024-12-16 10:01:29,406 eorder.o_shipto.one(debug:139) - ==>  Preparing: SELECT ST.* FROM O_SHIPTO ST WHERE ST.SHIPTO_CD = ? 
+DEBUG: 2024-12-16 10:01:29,406 eorder.o_shipto.one(debug:139) - ==> Parameters: 9006047060(String)
+INFO : 2024-12-16 10:01:29,406 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT ST.*
+		FROM O_SHIPTO ST
+		 WHERE  ST.SHIPTO_CD = '9006047060'
+DEBUG: 2024-12-16 10:01:29,539 eorder.o_shipto.one(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:29,540 eorder.o_cust_order_h.one(debug:139) - ==>  Preparing: SELECT COH.* , (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM , CU.CUST_NM , ST.SHIPTO_NM , ST.QUOTE_QT , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM , (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID , (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM , (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON FROM O_CUST_ORDER_H COH LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.REQ_NO = ? 
+DEBUG: 2024-12-16 10:01:29,540 eorder.o_cust_order_h.one(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 10:01:29,540 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT COH.* 
+			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+			, CU.CUST_NM
+			, ST.SHIPTO_NM
+			, ST.QUOTE_QT
+			, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+		 WHERE  COH.REQ_NO = '101781702411263'
+DEBUG: 2024-12-16 10:01:29,677 eorder.o_cust_order_h.one(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:29,678 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:756) - r_ohhseq_now : 626998
+DEBUG: 2024-12-16 10:01:29,678 eorder.orderHeaderHistory.oneByRecentList(debug:139) - ==>  Preparing: SELECT TOP 1 * FROM ORDERHEADERHISTORY WHERE OHH_REQNO = ? ORDER BY OHH_SEQ DESC 
+DEBUG: 2024-12-16 10:01:29,679 eorder.orderHeaderHistory.oneByRecentList(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 10:01:29,679 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT TOP 1 * 
+		FROM ORDERHEADERHISTORY
+		 WHERE  OHH_REQNO = '101781702411263' 
+		ORDER BY OHH_SEQ DESC
+DEBUG: 2024-12-16 10:01:29,811 eorder.orderHeaderHistory.oneByRecentList(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:29,811 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:760) - orderHeaderHistoryRecnetOne : {OHH_SEQ=626998, OHH_STATUSCD=00, OHH_MEMO=주문접수, OHH_INID=admin, OHH_INDATE=2024-11-26 14:57:24.0, OHH_REQNO=101781702411263, OHH_REQNOREF=null}
+DEBUG: 2024-12-16 10:01:29,812 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:783) - ### mi_itemcd length : 3
+DEBUG: 2024-12-16 10:01:29,812 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:784) - ### mi_companycd length : 3
+DEBUG: 2024-12-16 10:01:29,812 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:785) - ### mi_unit length : 3
+DEBUG: 2024-12-16 10:01:29,812 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:786) - ### mi_quantity length : 3
+DEBUG: 2024-12-16 10:01:29,812 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:787) - ### mi_pickingdt length : 3
+DEBUG: 2024-12-16 10:01:29,813 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:788) - ### mi_requestdt2 length : 3
+DEBUG: 2024-12-16 10:01:29,813 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:789) - ### mi_requesttime2 length : 3
+DEBUG: 2024-12-16 10:01:29,813 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:790) - ### mi_week length : 3
+DEBUG: 2024-12-16 10:01:29,813 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:791) - ### mi_confirmremark length : 3
+DEBUG: 2024-12-16 10:01:29,813 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:792) - ### mi_price length : 3
+DEBUG: 2024-12-16 10:01:29,814 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:793) - ### mi_ocdreturncd length : 3
+DEBUG: 2024-12-16 10:01:29,814 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:794) - ### mi_ocdreturnmsg length : 3
+DEBUG: 2024-12-16 10:01:29,814 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:795) - ### mi_ocdstatuscd length : 3
+DEBUG: 2024-12-16 10:01:29,814 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:992) - ####### companyCds2 : 
+DEBUG: 2024-12-16 10:01:29,814 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:993) - ####### one : ||4635||D||20241227||D||1100||D||2024-12-17||D||792119||,||
+DEBUG: 2024-12-16 10:01:29,815 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:994) - ####### indexOf : -1
+DEBUG: 2024-12-16 10:01:29,815 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:992) - ####### companyCds2 : ||4635||D||20241227||D||1100||D||2024-12-17||D||792119||,||
+DEBUG: 2024-12-16 10:01:29,815 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:993) - ####### one : ||4636||D||20241227||D||1100||D||2024-12-17||D||792119||,||
+DEBUG: 2024-12-16 10:01:29,815 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:994) - ####### indexOf : -1
+DEBUG: 2024-12-16 10:01:29,815 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:992) - ####### companyCds2 : ||4635||D||20241227||D||1100||D||2024-12-17||D||792119||,||||4636||D||20241227||D||1100||D||2024-12-17||D||792119||,||
+DEBUG: 2024-12-16 10:01:29,816 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:993) - ####### one : ||4635||D||20241227||D||1100||D||2024-12-17||D||786204||,||
+DEBUG: 2024-12-16 10:01:29,816 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:994) - ####### indexOf : -1
+DEBUG: 2024-12-16 10:01:29,816 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1003) - ####### forceDivision : false #######
+DEBUG: 2024-12-16 10:01:29,816 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1064) - companyCds : 4635||D||20241227||D||1100||D||2024-12-17||,||4636||D||20241227||D||1100||D||2024-12-17
+DEBUG: 2024-12-16 10:01:29,816 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1066) - companyCdArr.length : 2
+DEBUG: 2024-12-16 10:01:29,817 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1095) - ccList : [{idxs=0,2, company_cd=4635}, {idxs=1, company_cd=4636}]
+DEBUG: 2024-12-16 10:01:29,817 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1104) - firstIdx : 0
+DEBUG: 2024-12-16 10:01:29,817 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1153) - ### 주문(분리)확정 > m_custpo : 101781702411263-1, m_remark : 요청사항
+DEBUG: 2024-12-16 10:01:29,818 eorder.o_order_confirm_h.in(debug:139) - ==>  Preparing: INSERT INTO O_ORDER_CONFIRM_H( REQ_NO , CUST_PO , CUST_CD , USERID , STATUS_CD , ZIP_CD , ADD1 , ADD2 , REQUEST_DT , COMPANY_CD , TEL1 , TEL2 , BUILDING_TY , SHIPTO_CD , TRANS_TY , REQUEST_TIME , REMARK , CONFIRM_DT , PICKING_DT , RECEIVER , CONFIRMID , CANCEL_DT , CUSTOMMATTER , DUMMY , QUOTE_QT , INTERFACE_DT , INSERT_DT , INSERTID )VALUES( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16) , ? , ? , ? , ? , ? , ? , ? , ? , SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16) , ? ) 
+DEBUG: 2024-12-16 10:01:29,819 eorder.o_order_confirm_h.in(debug:139) - ==> Parameters: 101781702411263(String), 101781702411263-1(String), 10178170(String), admin(String), 07(String), 17045(String), 경기 용인시 처인구 역북동 89-25번지 일원(String), 상세주소(String), 20241227(String), 4635(String), 01023456789(String), (String), null, 9006047060(String), AA(String), 1100(String), 요청사항(String), 20241217(String), 인수자(String), sorin123(String), null, (String), null, 20490505  (String), null, sorin123(String)
+INFO : 2024-12-16 10:01:29,819 jdbc.sqlonly(sqlOccured:74) - SQL : INSERT INTO O_ORDER_CONFIRM_H(
+			REQ_NO
+			, CUST_PO
+			, CUST_CD
+			, USERID
+			, STATUS_CD
+			, ZIP_CD
+			, ADD1
+			, ADD2
+			, REQUEST_DT
+			, COMPANY_CD
+			, TEL1
+			, TEL2
+			, BUILDING_TY
+			, SHIPTO_CD
+			, TRANS_TY
+			, REQUEST_TIME
+			, REMARK
+			, CONFIRM_DT
+			, PICKING_DT
+			, RECEIVER
+			, CONFIRMID
+			, CANCEL_DT
+			, CUSTOMMATTER
+			, DUMMY
+			, QUOTE_QT
+			, INTERFACE_DT
+			, INSERT_DT
+			, INSERTID
+		)VALUES(
+			'101781702411263'
+			, '101781702411263-1'
+			, '10178170'
+			, 'admin'
+			, '07'
+			, '17045'
+			, '경기 용인시 처인구 역북동 89-25번지 일원'
+			, '상세주소'
+			, '20241227'
+			, '4635'
+			, '01023456789'
+			, ''
+			, NULL
+			, '9006047060'
+			, 'AA'
+			, '1100'
+			, '요청사항'
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, '20241217'
+			, '인수자'
+			, 'sorin123'
+			, NULL
+			, ''
+			, NULL
+			, '20490505  '
+			, NULL
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, 'sorin123'
+		)
+DEBUG: 2024-12-16 10:01:29,960 eorder.o_order_confirm_h.in(debug:139) - <==    Updates: 1
+DEBUG: 2024-12-16 10:01:29,961 eorder.o_order_confirm_d.in(debug:139) - ==>  Preparing: INSERT INTO O_ORDER_CONFIRM_D( CUST_PO , LINE_NO , ITEM_CD , UNIT , QUANTITY , PRICE , INSERT_DT , INSERTID , DUMMY , WEEK , OCD_RETURNCD , OCD_RETURNMSG , OCD_STATUSCD )VALUES( ? , ? , ? , ? , ? , ? , SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16) , ? , ? , ? , ? , ? , ? ) 
+DEBUG: 2024-12-16 10:01:29,961 eorder.o_order_confirm_d.in(debug:139) - ==> Parameters: 101781702411263-1(String), 1000(Integer), 792119(String), PC(String), 1340(String), 0(String), sorin123(String), (String), 503       (String), (String), (String), (String)
+INFO : 2024-12-16 10:01:29,962 jdbc.sqlonly(sqlOccured:74) - SQL : INSERT INTO O_ORDER_CONFIRM_D(
+			CUST_PO
+			, LINE_NO
+			, ITEM_CD
+			, UNIT
+			, QUANTITY
+			, PRICE
+			, INSERT_DT
+			, INSERTID
+			, DUMMY
+			, WEEK
+			, OCD_RETURNCD
+			, OCD_RETURNMSG
+			, OCD_STATUSCD
+		)VALUES(
+			'101781702411263-1'
+			, 1000
+			, '792119'
+			, 'PC'
+			, '1340'
+			, '0'
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, 'sorin123'
+			, ''
+			, '503       '
+			, ''
+			, ''
+			, ''
+		)
+DEBUG: 2024-12-16 10:01:30,102 eorder.o_order_confirm_d.in(debug:139) - <==    Updates: 1
+DEBUG: 2024-12-16 10:01:30,103 eorder.o_order_confirm_d.in(debug:139) - ==>  Preparing: INSERT INTO O_ORDER_CONFIRM_D( CUST_PO , LINE_NO , ITEM_CD , UNIT , QUANTITY , PRICE , INSERT_DT , INSERTID , DUMMY , WEEK , OCD_RETURNCD , OCD_RETURNMSG , OCD_STATUSCD )VALUES( ? , ? , ? , ? , ? , ? , SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16) , ? , ? , ? , ? , ? , ? ) 
+DEBUG: 2024-12-16 10:01:30,103 eorder.o_order_confirm_d.in(debug:139) - ==> Parameters: 101781702411263-1(String), 2000(Integer), 786204(String), PC(String), 500(String), 0(String), sorin123(String), (String), 503       (String), (String), (String), (String)
+INFO : 2024-12-16 10:01:30,104 jdbc.sqlonly(sqlOccured:74) - SQL : INSERT INTO O_ORDER_CONFIRM_D(
+			CUST_PO
+			, LINE_NO
+			, ITEM_CD
+			, UNIT
+			, QUANTITY
+			, PRICE
+			, INSERT_DT
+			, INSERTID
+			, DUMMY
+			, WEEK
+			, OCD_RETURNCD
+			, OCD_RETURNMSG
+			, OCD_STATUSCD
+		)VALUES(
+			'101781702411263-1'
+			, 2000
+			, '786204'
+			, 'PC'
+			, '500'
+			, '0'
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, 'sorin123'
+			, ''
+			, '503       '
+			, ''
+			, ''
+			, ''
+		)
+DEBUG: 2024-12-16 10:01:30,236 eorder.o_order_confirm_d.in(debug:139) - <==    Updates: 1
+DEBUG: 2024-12-16 10:01:30,237 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1104) - firstIdx : 1
+DEBUG: 2024-12-16 10:01:30,237 com.limenets.eorder.svc.OrderSvc(insertOrderConfirmTransaction:1153) - ### 주문(분리)확정 > m_custpo : 101781702411263-2, m_remark : 요청사항
+DEBUG: 2024-12-16 10:01:30,237 eorder.o_order_confirm_h.in(debug:139) - ==>  Preparing: INSERT INTO O_ORDER_CONFIRM_H( REQ_NO , CUST_PO , CUST_CD , USERID , STATUS_CD , ZIP_CD , ADD1 , ADD2 , REQUEST_DT , COMPANY_CD , TEL1 , TEL2 , BUILDING_TY , SHIPTO_CD , TRANS_TY , REQUEST_TIME , REMARK , CONFIRM_DT , PICKING_DT , RECEIVER , CONFIRMID , CANCEL_DT , CUSTOMMATTER , DUMMY , QUOTE_QT , INTERFACE_DT , INSERT_DT , INSERTID )VALUES( ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , ? , SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16) , ? , ? , ? , ? , ? , ? , ? , ? , SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16) , ? ) 
+DEBUG: 2024-12-16 10:01:30,238 eorder.o_order_confirm_h.in(debug:139) - ==> Parameters: 101781702411263(String), 101781702411263-2(String), 10178170(String), admin(String), 07(String), 17045(String), 경기 용인시 처인구 역북동 89-25번지 일원(String), 상세주소(String), 20241227(String), 4636(String), 01023456789(String), (String), null, 9006047060(String), AA(String), 1100(String), 요청사항(String), 20241217(String), 인수자(String), sorin123(String), null, (String), null, 20490505  (String), null, sorin123(String)
+INFO : 2024-12-16 10:01:30,238 jdbc.sqlonly(sqlOccured:74) - SQL : INSERT INTO O_ORDER_CONFIRM_H(
+			REQ_NO
+			, CUST_PO
+			, CUST_CD
+			, USERID
+			, STATUS_CD
+			, ZIP_CD
+			, ADD1
+			, ADD2
+			, REQUEST_DT
+			, COMPANY_CD
+			, TEL1
+			, TEL2
+			, BUILDING_TY
+			, SHIPTO_CD
+			, TRANS_TY
+			, REQUEST_TIME
+			, REMARK
+			, CONFIRM_DT
+			, PICKING_DT
+			, RECEIVER
+			, CONFIRMID
+			, CANCEL_DT
+			, CUSTOMMATTER
+			, DUMMY
+			, QUOTE_QT
+			, INTERFACE_DT
+			, INSERT_DT
+			, INSERTID
+		)VALUES(
+			'101781702411263'
+			, '101781702411263-2'
+			, '10178170'
+			, 'admin'
+			, '07'
+			, '17045'
+			, '경기 용인시 처인구 역북동 89-25번지 일원'
+			, '상세주소'
+			, '20241227'
+			, '4636'
+			, '01023456789'
+			, ''
+			, NULL
+			, '9006047060'
+			, 'AA'
+			, '1100'
+			, '요청사항'
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, '20241217'
+			, '인수자'
+			, 'sorin123'
+			, NULL
+			, ''
+			, NULL
+			, '20490505  '
+			, NULL
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, 'sorin123'
+		)
+DEBUG: 2024-12-16 10:01:30,372 eorder.o_order_confirm_h.in(debug:139) - <==    Updates: 1
+DEBUG: 2024-12-16 10:01:30,373 eorder.o_order_confirm_d.in(debug:139) - ==>  Preparing: INSERT INTO O_ORDER_CONFIRM_D( CUST_PO , LINE_NO , ITEM_CD , UNIT , QUANTITY , PRICE , INSERT_DT , INSERTID , DUMMY , WEEK , OCD_RETURNCD , OCD_RETURNMSG , OCD_STATUSCD )VALUES( ? , ? , ? , ? , ? , ? , SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16) , ? , ? , ? , ? , ? , ? ) 
+DEBUG: 2024-12-16 10:01:30,373 eorder.o_order_confirm_d.in(debug:139) - ==> Parameters: 101781702411263-2(String), 1000(Integer), 792119(String), PC(String), 100(String), 0(String), sorin123(String), (String), 503       (String), (String), (String), (String)
+INFO : 2024-12-16 10:01:30,374 jdbc.sqlonly(sqlOccured:74) - SQL : INSERT INTO O_ORDER_CONFIRM_D(
+			CUST_PO
+			, LINE_NO
+			, ITEM_CD
+			, UNIT
+			, QUANTITY
+			, PRICE
+			, INSERT_DT
+			, INSERTID
+			, DUMMY
+			, WEEK
+			, OCD_RETURNCD
+			, OCD_RETURNMSG
+			, OCD_STATUSCD
+		)VALUES(
+			'101781702411263-2'
+			, 1000
+			, '792119'
+			, 'PC'
+			, '100'
+			, '0'
+			, SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16)
+			, 'sorin123'
+			, ''
+			, '503       '
+			, ''
+			, ''
+			, ''
+		)
+DEBUG: 2024-12-16 10:01:30,508 eorder.o_order_confirm_d.in(debug:139) - <==    Updates: 1
+DEBUG: 2024-12-16 10:01:30,518 eorder.o_cust_order_h.up(debug:139) - ==>  Preparing: UPDATE O_CUST_ORDER_H SET STATUS_CD = ?, UPDATEID = ?, UPDATE_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16), MODATE = GETDATE() WHERE REQ_NO = ? 
+DEBUG: 2024-12-16 10:01:30,519 eorder.o_cust_order_h.up(debug:139) - ==> Parameters: 07(String), sorin123(String), 101781702411263(String)
+INFO : 2024-12-16 10:01:30,519 jdbc.sqlonly(sqlOccured:74) - SQL : UPDATE O_CUST_ORDER_H
+		 SET STATUS_CD = '07',
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			UPDATEID = 'sorin123',
+			
+			UPDATE_DT = SUBSTRING(CONVERT(CHAR(19), GETDATE(), 20), 1, 16),
+			MODATE = GETDATE() 
+		 WHERE  REQ_NO = '101781702411263'
+DEBUG: 2024-12-16 10:01:30,651 eorder.o_cust_order_h.up(debug:139) - <==    Updates: 1
+DEBUG: 2024-12-16 10:01:30,652 eorder.orderHeaderHistory.in!selectKey(debug:139) - ==>  Preparing: SELECT MAX(OHH_SEQ)+1 FROM ORDERHEADERHISTORY; 
+DEBUG: 2024-12-16 10:01:30,653 eorder.orderHeaderHistory.in!selectKey(debug:139) - ==> Parameters: 
+INFO : 2024-12-16 10:01:30,653 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT MAX(OHH_SEQ)+1 FROM ORDERHEADERHISTORY;
+DEBUG: 2024-12-16 10:01:30,785 eorder.orderHeaderHistory.in!selectKey(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:30,786 eorder.orderHeaderHistory.in(debug:139) - ==>  Preparing: INSERT INTO ORDERHEADERHISTORY( OHH_SEQ, OHH_REQNO, OHH_REQNOREF, OHH_STATUSCD, OHH_MEMO, OHH_INID, OHH_INDATE )VALUES( ? , ? , ? , ? , ? , ? , GETDATE() ) 
+DEBUG: 2024-12-16 10:01:30,787 eorder.orderHeaderHistory.in(debug:139) - ==> Parameters: 627017(Long), 101781702411263(String), null, 07(String), 주문확정(분리)(String), sorin123(String)
+INFO : 2024-12-16 10:01:30,787 jdbc.sqlonly(sqlOccured:74) - SQL : INSERT INTO ORDERHEADERHISTORY(
+			OHH_SEQ,
+			OHH_REQNO,
+			OHH_REQNOREF,
+			OHH_STATUSCD,
+			OHH_MEMO,
+			OHH_INID,
+			OHH_INDATE
+		)VALUES(
+		
+
+			627017
+			, '101781702411263'
+			, NULL
+			, '07'
+			, '주문확정(분리)'
+			, 'sorin123'
+			, GETDATE()
+		)
+DEBUG: 2024-12-16 10:01:30,921 eorder.orderHeaderHistory.in(debug:139) - <==    Updates: 1
+DEBUG: 2024-12-16 10:01:30,923 eorder.o_user.listForAppPush(debug:139) - ==>  Preparing: SELECT * FROM O_USER WHERE ( USER_APPPUSHKEY IS NOT NULL AND ISNULL(USER_APPPUSHKEY, ' ') != ' ' ) AND USERID = ? AND USER_APPPUSHYN1 = ? 
+DEBUG: 2024-12-16 10:01:30,924 eorder.o_user.listForAppPush(debug:139) - ==> Parameters: admin(String), Y(String)
+INFO : 2024-12-16 10:01:30,924 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM O_USER
+		 WHERE  ( USER_APPPUSHKEY IS NOT NULL AND ISNULL(USER_APPPUSHKEY, ' ') != ' ' )
+			AND USERID = 'admin'
+			AND USER_APPPUSHYN1 = 'Y'
+DEBUG: 2024-12-16 10:01:31,059 eorder.o_user.listForAppPush(debug:139) - <==      Total: 0
+DEBUG: 2024-12-16 10:01:33,146 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@7a9b5777
+DEBUG: 2024-12-16 10:01:33,147 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:01:33,147 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:01:33,148 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:01:33,148 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:33,149 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:33,149 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:01:33,153 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/orderList.lime
+DEBUG: 2024-12-16 10:01:33,153 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:01:33,153 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {fromOrderView=Y}
+DEBUG: 2024-12-16 10:01:33,154 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/orderList.lime
+DEBUG: 2024-12-16 10:01:33,838 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:01:33,839 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/orderList.lime(String)
+INFO : 2024-12-16 10:01:33,839 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/orderList.lime'
+DEBUG: 2024-12-16 10:01:33,970 eorder.menu.menuUrl(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:33,970 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:72) - dbParam : {}
+DEBUG: 2024-12-16 10:01:33,971 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:73) - urlParam : {fromOrderView=Y}
+DEBUG: 2024-12-16 10:01:33,971 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 13
+DEBUG: 2024-12-16 10:01:34,653 eorder.o_user.list(debug:139) - ==>  Preparing: SELECT * FROM (SELECT ROW_NUMBER() OVER( ORDER BY USER_SORT2 ASC ) AS ROWNUM , XX.* FROM ( SELECT LIST.* FROM ( SELECT US.*, CU.CUST_NM , CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT (SELECT USER_NM FROM O_USER WHERE USERID = CSM.CSUSERID)FROM O_CSSALESMAP CSM WHERE CSM.SALESUSERID = US.USERID AND CSM.FIXEDYN = 'Y') ELSE '' END CS_SALESUSER , CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT COUNT(*) FROM O_CUSTOMER WHERE SALESREP_CD = US.USERID) ELSE -1 END CUSTOMER_CNT FROM O_USER US LEFT JOIN O_CUSTOMER CU ON CU.CUST_CD = US.CUST_CD WHERE USERID NOT IN ('9', '1', '2','3', '4', '5', '6') AND US.AUTHORITY = ? ) LIST ) XX ) S 
+DEBUG: 2024-12-16 10:01:34,654 eorder.o_user.list(debug:139) - ==> Parameters: CS(String)
+INFO : 2024-12-16 10:01:34,654 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+				 ORDER BY USER_SORT2 ASC  
+			) AS ROWNUM
+			, XX.* 
+		FROM (
+		SELECT LIST.* FROM (	
+		SELECT US.*, CU.CUST_NM
+			, CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT (SELECT USER_NM FROM O_USER WHERE USERID = CSM.CSUSERID)FROM O_CSSALESMAP CSM WHERE CSM.SALESUSERID = US.USERID AND CSM.FIXEDYN = 'Y')
+				ELSE '' END CS_SALESUSER
+			, CASE WHEN (US.AUTHORITY = 'SH' OR US.AUTHORITY = 'SM' OR US.AUTHORITY = 'SR') THEN (SELECT COUNT(*) FROM O_CUSTOMER WHERE SALESREP_CD = US.USERID)
+				ELSE -1 END CUSTOMER_CNT
+			 	
+		FROM O_USER US
+		LEFT JOIN O_CUSTOMER CU ON CU.CUST_CD = US.CUST_CD
+		 WHERE  USERID NOT IN ('9', '1', '2','3', '4', '5', '6')
+			
+			
+			
+			
+			
+			
+			AND US.AUTHORITY = 'CS' 
+		) LIST
+		
+		) XX ) S
+DEBUG: 2024-12-16 10:01:34,789 eorder.o_user.list(debug:139) - <==      Total: 13
+DEBUG: 2024-12-16 10:01:34,988 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@7a9b5777
+DEBUG: 2024-12-16 10:01:34,989 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@36312844
+DEBUG: 2024-12-16 10:01:34,989 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 10:01:34,989 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 10:01:34,989 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:34,989 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : B20BDBCDB46DD23228697F0E7FDEFBD2
+DEBUG: 2024-12-16 10:01:34,990 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 10:01:34,990 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/getOrderHeaderListAjax.lime
+DEBUG: 2024-12-16 10:01:34,990 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 10:01:34,990 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {r_insdate=2024-10-07, rl_reqno=, rl_salesusernm=, r_csuserid=, r_inedate=2024-12-16, rows=10, _search=false, r_custnm=, r_shiptocd=, nd=1734310894982, page=1, sord=desc, ri_statuscds=00, sidx=}
+DEBUG: 2024-12-16 10:01:34,990 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/getOrderHeaderListAjax.lime
+DEBUG: 2024-12-16 10:01:35,734 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 10:01:35,735 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/getOrderHeaderListAjax.lime(String)
+INFO : 2024-12-16 10:01:35,735 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/getOrderHeaderListAjax.lime'
+DEBUG: 2024-12-16 10:01:35,877 eorder.menu.menuUrl(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:35,878 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:72) - dbParam : {}
+DEBUG: 2024-12-16 10:01:35,878 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:73) - urlParam : {r_insdate=2024-10-07, rl_reqno=, rl_salesusernm=, r_csuserid=, r_inedate=2024-12-16, rows=10, _search=false, r_custnm=, r_shiptocd=, nd=1734310894982, page=1, sord=desc, ri_statuscds=00, sidx=}
+DEBUG: 2024-12-16 10:01:35,879 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 13
+DEBUG: 2024-12-16 10:01:36,824 eorder.o_cust_order_h.cnt(debug:139) - ==>  Preparing: SELECT COUNT(*) FROM O_CUST_ORDER_H COH LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.INDATE >= CONVERT(DATE, ?) AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, ?)) AND COH.STATUS_CD IN (?) 
+DEBUG: 2024-12-16 10:01:36,824 eorder.o_cust_order_h.cnt(debug:139) - ==> Parameters: 2024-10-07(String), 2024-12-16(String), 00(String)
+INFO : 2024-12-16 10:01:36,825 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT COUNT(*) 
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+		 WHERE  COH.INDATE >= CONVERT(DATE, '2024-10-07')
+				
+				AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, '2024-12-16'))
+			
+			
+			
+   				AND COH.STATUS_CD IN ('00')
+DEBUG: 2024-12-16 10:01:37,141 eorder.o_cust_order_h.cnt(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 10:01:37,835 eorder.o_cust_order_h.list(debug:139) - ==>  Preparing: SELECT * FROM (SELECT ROW_NUMBER() OVER( ORDER BY XX.INDATE DESC ) AS ROWNUM , XX.* FROM ( SELECT COH.* , (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM , CU.CUST_NM , ST.SHIPTO_NM , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM , (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID , (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM , (SELECT COUNT(*) FROM O_CUST_ORDER_D WHERE REQ_NO = COH.REQ_NO) AS ITEM_CNT , (SELECT TOP 1 CONFIRM_DT FROM O_ORDER_CONFIRM_H WHERE REQ_NO = COH.REQ_NO) AS CONFIRM_DT2 , QM.QMS_TEMP_ID FROM O_CUST_ORDER_H COH LEFT OUTER JOIN QMS_PRE_MAST QM ON QM.REQ_NO = COH.REQ_NO AND QM.DELETEYN = 'N' LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.INDATE >= CONVERT(DATE, ?) AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, ?)) AND COH.STATUS_CD IN (?) ) XX ) S WHERE ROWNUM BETWEEN ? AND ? 
+DEBUG: 2024-12-16 10:01:37,837 eorder.o_cust_order_h.list(debug:139) - ==> Parameters: 2024-10-07(String), 2024-12-16(String), 00(String), 1(Integer), 10(Integer)
+INFO : 2024-12-16 10:01:37,837 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (SELECT 
+			ROW_NUMBER() OVER(
+			 ORDER BY XX.INDATE DESC  
+			) AS ROWNUM
+			, XX.* FROM (
+			SELECT COH.*
+				, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+				, CU.CUST_NM
+				, ST.SHIPTO_NM
+				, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+				, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+				, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+				, (SELECT COUNT(*) FROM O_CUST_ORDER_D WHERE REQ_NO = COH.REQ_NO) AS ITEM_CNT
+				, (SELECT TOP 1 CONFIRM_DT FROM O_ORDER_CONFIRM_H WHERE REQ_NO = COH.REQ_NO) AS CONFIRM_DT2
+				, QM.QMS_TEMP_ID
+			FROM O_CUST_ORDER_H COH
+				LEFT OUTER JOIN QMS_PRE_MAST QM ON QM.REQ_NO = COH.REQ_NO AND QM.DELETEYN = 'N'
+				LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+				LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+				LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+			 WHERE  COH.INDATE >= CONVERT(DATE, '2024-10-07')
+				
+				AND COH.INDATE < DATEADD(day, 1,CONVERT(DATE, '2024-12-16'))
+				
+				
+	   				AND COH.STATUS_CD IN ('00') 
+			) XX 
+		) S
+		 WHERE ROWNUM BETWEEN 1 AND 10
+DEBUG: 2024-12-16 10:01:37,986 eorder.o_cust_order_h.list(debug:139) - <==      Total: 10
+
+
+
+/* ***************************************************************************************************************************************** */
+/* ***************************************************************************************************************************************** */
+/* ***************************************************************************************************************************************** */
+
+
+
+DEBUG: 2024-12-16 16:40:25,305 com.limenets.eorder.aop.AdminCheck(ex:49) - getTarget : com.limenets.eorder.ctrl.admin.OrderCtrl@23c7d65f
+DEBUG: 2024-12-16 16:40:25,306 com.limenets.eorder.aop.AdminCheck(ex:54) - loginDto : com.limenets.common.dto.LoginDto@46435347
+DEBUG: 2024-12-16 16:40:25,306 com.limenets.eorder.aop.AdminCheck(ex:69) - [A]l_remoteIP : 0
+DEBUG: 2024-12-16 16:40:25,306 com.limenets.eorder.aop.AdminCheck(ex:70) - [A]h_remoteIP : 0
+DEBUG: 2024-12-16 16:40:25,306 com.limenets.eorder.aop.AdminCheck(ex:73) - [A]SessId_DTO : A84DEF293128B24161F4E2345469CE13
+DEBUG: 2024-12-16 16:40:25,306 com.limenets.eorder.aop.AdminCheck(ex:74) - [A]SessId_SESS : A84DEF293128B24161F4E2345469CE13
+DEBUG: 2024-12-16 16:40:25,307 com.limenets.eorder.aop.AdminCheck(ex:75) - [A]Authority : AD
+DEBUG: 2024-12-16 16:40:25,307 com.limenets.eorder.aop.AdminCheck(ex:76) - [A]ServletPath : /admin/order/orderView.lime
+DEBUG: 2024-12-16 16:40:25,307 com.limenets.eorder.aop.AdminCheck(ex:77) - [A]FirstLogin : N
+DEBUG: 2024-12-16 16:40:25,307 com.limenets.eorder.aop.AdminCheck(ex:103) - paramMap : {r_reqno=101781702411263, qmsTempId=null}
+DEBUG: 2024-12-16 16:40:25,307 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:43) - url : /admin/order/orderView.lime
+DEBUG: 2024-12-16 16:40:25,787 eorder.menu.menuUrl(debug:139) - ==>  Preparing: SELECT * FROM MENUURL WHERE MU_URL = ? 
+DEBUG: 2024-12-16 16:40:25,788 eorder.menu.menuUrl(debug:139) - ==> Parameters: /admin/order/orderView.lime(String)
+INFO : 2024-12-16 16:40:25,789 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * 
+		FROM MENUURL
+		 WHERE  MU_URL = '/admin/order/orderView.lime'
+DEBUG: 2024-12-16 16:40:25,881 eorder.menu.menuUrl(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 16:40:25,882 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:72) - dbParam : {}
+DEBUG: 2024-12-16 16:40:25,882 com.limenets.eorder.svc.MenuSvc(getNowMnSeq:73) - urlParam : {r_reqno=101781702411263, qmsTempId=null}
+DEBUG: 2024-12-16 16:40:25,883 com.limenets.eorder.aop.AdminCheck(ex:107) - mnSeq : 13
+DEBUG: 2024-12-16 16:40:26,365 eorder.o_cust_order_h.one(debug:139) - ==>  Preparing: SELECT COH.* , (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM , CU.CUST_NM , ST.SHIPTO_NM , ST.QUOTE_QT , US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM , (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID , (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM , (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON FROM O_CUST_ORDER_H COH LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID WHERE COH.REQ_NO = ? 
+DEBUG: 2024-12-16 16:40:26,366 eorder.o_cust_order_h.one(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 16:40:26,366 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT COH.* 
+			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+			, CU.CUST_NM
+			, ST.SHIPTO_NM
+			, ST.QUOTE_QT
+			, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+		FROM O_CUST_ORDER_H COH
+			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+		 WHERE  COH.REQ_NO = '101781702411263'
+DEBUG: 2024-12-16 16:40:26,460 eorder.o_cust_order_h.one(debug:139) - <==      Total: 1
+DEBUG: 2024-12-16 16:40:26,943 eorder.o_cust_order_d.list(debug:139) - ==>  Preparing: SELECT * FROM ( SELECT ROW_NUMBER() OVER( ORDER BY XX.LINE_NO ASC ) AS ROWNUM , XX.* FROM ( SELECT COD.* , COH.CUST_CD, COH.SHIPTO_CD , IT.DESC1, IT.DESC2 , ITI.* , (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = COD.ITEM_CD) AS RECOMMEND_ITEM_COUNT , CASE WHEN SALES_CD1 = 'A' AND (SALES_CD2 IN ('02','06','US1') OR (SALES_CD2 = '76' AND PLAN_FMLY = 'H15' ) ) THEN 'Y' ELSE 'N' END AS FIREPROOF_YN FROM O_CUST_ORDER_D COD LEFT JOIN O_CUST_ORDER_H COH ON COD.REQ_NO = COH.REQ_NO LEFT JOIN O_ITEM_NEW IT ON COD.ITEM_CD = IT.ITEM_CD LEFT JOIN ITEMINFO ITI ON COD.ITEM_CD = ITI.ITI_ITEMCD WHERE COD.REQ_NO = ? ) XX ) S 
+DEBUG: 2024-12-16 16:40:26,944 eorder.o_cust_order_d.list(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 16:40:26,945 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (
+			SELECT ROW_NUMBER() OVER(
+			 ORDER BY XX.LINE_NO ASC  
+			) AS ROWNUM
+			, XX.* FROM (
+			SELECT COD.*
+				, COH.CUST_CD, COH.SHIPTO_CD
+				, IT.DESC1, IT.DESC2
+				, ITI.*
+				, (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = COD.ITEM_CD) AS RECOMMEND_ITEM_COUNT
+				, CASE WHEN SALES_CD1 = 'A' AND (SALES_CD2 IN ('02','06','US1') OR (SALES_CD2 = '76' AND PLAN_FMLY = 'H15' ) ) THEN 'Y' ELSE 'N' END AS FIREPROOF_YN
+			FROM O_CUST_ORDER_D COD
+				LEFT JOIN O_CUST_ORDER_H COH ON COD.REQ_NO = COH.REQ_NO
+				LEFT JOIN O_ITEM_NEW IT ON COD.ITEM_CD = IT.ITEM_CD
+				LEFT JOIN ITEMINFO ITI ON COD.ITEM_CD = ITI.ITI_ITEMCD
+			 WHERE  COD.REQ_NO = '101781702411263' 
+			) XX 
+		) S
+DEBUG: 2024-12-16 16:40:27,039 eorder.o_cust_order_d.list(debug:139) - <==      Total: 2
+DEBUG: 2024-12-16 16:40:27,527 eorder.o_order_confirm_d.list(debug:139) - ==>  Preparing: SELECT * FROM (SELECT ROW_NUMBER() OVER( ORDER BY XX.CUST_PO ASC, XX.LINE_NO ASC ) AS ROWNUM , XX.* FROM ( SELECT OCD.* , OCH.REQ_NO, OCH.COMPANY_CD, OCH.PICKING_DT, OCH.STATUS_CD, OCH.CUSTOMMATTER, OCH.REQUEST_DT, OCH.REQUEST_TIME, OCH.REMARK, OST.QUOTE_QT , (SELECT PT_NAME FROM PLANT WHERE WERKS = OCH.COMPANY_CD) AS PT_NAME , (SELECT DESC1 FROM O_ITEM_NEW WHERE ITEM_CD = OCD.ITEM_CD) AS ITEM_NAME , (SELECT QUANTITY FROM O_CUST_ORDER_D WHERE REQ_NO = OCH.REQ_NO AND LINE_NO = OCD.LINE_NO) AS COD_QUANTITY , (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = OCD.OCD_RETURNCD) AS ITEM_RETURN_REASON , UDC.DRDL01 AS DRDL01 , UDC.DRDL01 AS ROUTE , SUBSTRING(UDC.DRSPHD,3,2) AS DRSPHD FROM O_ORDER_CONFIRM_D OCD LEFT JOIN O_ORDER_CONFIRM_H OCH ON OCD.CUST_PO = OCH.CUST_PO LEFT JOIN O_F0005 UDC ON UDC.DRKY = OCD.WEEK LEFT JOIN O_SHIPTO OST ON OCH.SHIPTO_CD = OST.SHIPTO_CD WHERE OCH.REQ_NO = ? ) XX ) S 
+DEBUG: 2024-12-16 16:40:27,527 eorder.o_order_confirm_d.list(debug:139) - ==> Parameters: 101781702411263(String)
+INFO : 2024-12-16 16:40:27,528 jdbc.sqlonly(sqlOccured:74) - SQL : SELECT * FROM (SELECT
+			ROW_NUMBER() OVER(
+			 ORDER BY XX.CUST_PO ASC, XX.LINE_NO ASC  
+			) AS ROWNUM 
+			, XX.* FROM (
+			SELECT OCD.*
+				, OCH.REQ_NO, OCH.COMPANY_CD, OCH.PICKING_DT, OCH.STATUS_CD, OCH.CUSTOMMATTER, OCH.REQUEST_DT, OCH.REQUEST_TIME, OCH.REMARK, OST.QUOTE_QT
+				, (SELECT PT_NAME FROM PLANT WHERE WERKS = OCH.COMPANY_CD) AS PT_NAME
+				, (SELECT DESC1 FROM O_ITEM_NEW WHERE ITEM_CD = OCD.ITEM_CD) AS ITEM_NAME
+				, (SELECT QUANTITY FROM O_CUST_ORDER_D WHERE REQ_NO = OCH.REQ_NO AND LINE_NO = OCD.LINE_NO) AS COD_QUANTITY
+				, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = OCD.OCD_RETURNCD) AS ITEM_RETURN_REASON
+				, UDC.DRDL01 AS DRDL01
+				, UDC.DRDL01 AS ROUTE
+				, SUBSTRING(UDC.DRSPHD,3,2) AS DRSPHD
+			FROM O_ORDER_CONFIRM_D OCD 
+			LEFT JOIN O_ORDER_CONFIRM_H OCH ON OCD.CUST_PO = OCH.CUST_PO
+			LEFT JOIN O_F0005 UDC ON UDC.DRKY = OCD.WEEK
+			LEFT JOIN O_SHIPTO OST ON OCH.SHIPTO_CD = OST.SHIPTO_CD 
+			 WHERE  OCH.REQ_NO = '101781702411263' 
+			) XX 
+		) S
+DEBUG: 2024-12-16 16:40:27,622 eorder.o_order_confirm_d.list(debug:139) - <==      Total: 3

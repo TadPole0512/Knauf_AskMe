@@ -1,0 +1,2277 @@
+
+
+sts4, java, mssql 환경에서 Dropzone을 이용하여 엑셀 업로드를 하고, SqlSession을 이용한 대용량 엑셀 업로드 작업 방법 자세하고 알기쉽게 알려줘.
+사용자가 업로드하는 엑셀파일은 제목의 개수는 같지 않을 수 있고, 같은 이름의 제목 위치도 서로 다를 수 있지만, 제목에 반드시 포함되어야하는 이름은 있어.
+엑셀파일에서 제목 셀 중에서 내가 사용하고 싶은 셀은 Sales Document Type	Purchase order no.	Reason for rejection	Sales Document	Sales Document Item	Delivery status	Overall status 만 필요해. 이 셀들도 엑셀파일의 헤더의 셀 순서가 정해져 있지가 않아서 필요한 셀을 찾아야만 해.
+아래는 사용자가 업로드하는 엑셀파일의 제목의 예제야. 위에서 설명한 작업에 필요한 컬럼과 아래의 사용자가 업로드하는 엑세파일을 참고하여 작업해줘. 다만, 제목의 개수나, 위치는 서로 다를 수 있다는 것을 염두에 두고 작업해줘
+Sales Document	Sales Document Item	Created On	Document Date	Time	Created By	Sales Document Type	Sales Organization	Billing block	Billing block description	Purchase order no.	Customer	Country SoldToParty	Search term A	Search term B	Customer group 3	Ship-to	Ship-To Party	Ship-to Country	Region Ship-to	Country ShipToParty	Order reason	Order reason	Delivery block	Delivery block	Shipping Conditions	Requested deliv.date	Loading Date	Arrival time	Delivery status	Overall status	Item Category	Reason for rejection	Reason for rejection	Material	Material Description	Order Quantity	Cumul.confirmed qty	Sales Unit	Total quantity	Allocation Unit	Quantity allocated	Allocation Plant	Allocation Ext. Material Group	Allocation Sub-Segment	Allocation Segment	Difference quantity	Difference in %	Allocation period	Pricing Date	Net Value	Document Currency	Plant	Storage Location	Quotation number	ABC Indicator	Main material group	Name	Name 2	Name 3	Name 4	City	Postal Code	Street	House Number	Search Term 1	Search Term 2	Delivery	Delivery item	Shipment Number	Invoice	Invoice item	IC invoice	Item IC invoice	Gross Weight	Net Weight	Weight Unit	Gross Weight US	Net Weight US	Weight unit US	Predecessr	Special proc. indicator	Payer	Freight forwarder	Truck load %	Partial truck load %		Shipping Point/Receiving Pt	Pricing Ref. Matl	Distribution Channel	Name 1	Overall CreditStatus	Ext. Material Group	Ext. matl grp descr.	Subseg.	Subseg. Descr.	Seg.	Seg. Descr.	Pricing Partner
+
+
+해당 자료를 기반으로 DB에 UPDATE를 해야하는 Table은 O_SALESORDER, QMS_SALESORDER 테이블이야.
+아래는 엑셀에 있는 값에 따라 update를 해야하는 테이블과 컬럼명, 그리고 해달 컬럼의 값이야.
+    1. SalesDocument, Sales Document Item*100를 AND조건으로 활용하여 O_SALESORDER, QMS_SALESORDER 테이블에서 ORDERNO, LINE_NO와 매칭되는 데이터를 찾아야 함
+    2. 매칭한 값의 Reason for rejection 값 여부 ,DS(Delivery status), OS(Overall status)의 값에 따라 E-order에서 ORDER의 상태 값 UPDATE					
+        i. Reason for rejection Code가 Null이 아닌 경우					
+		    A. 해당 ORDER의 STATUS1 – 980, STATUS – 999, STATUS_DESC – 오더취소			
+        ii. DS가 C인 경우					
+		    A. 해당 ORDER의 STATUS1 – 580, STATUS – 620, STATUTS_DESC – 배송완료			
+        iii. DS가 Null And OS가 C인 경우					
+		    A. 해당 ORDER의 STATUS – 580, STATUS – 620, STATUS_DESC – 배송완료			
+
+
+참고 삼아 O_SALESORDER 테이블의 구조는 아래와 같아.
+
+CREATE TABLE EORDER.dbo.O_SALESORDER (
+	ORDERNO bigint NOT NULL,
+	ORDERTY varchar(4) COLLATE Korean_Wansung_CI_AS NOT NULL,
+	LINE_NO bigint NOT NULL,
+	ORDER_DT varchar(8) COLLATE Korean_Wansung_CI_AS NULL,
+	REQUEST_DT varchar(8) COLLATE Korean_Wansung_CI_AS NULL,
+	ACTUAL_SHIP_DT varchar(8) COLLATE Korean_Wansung_CI_AS NULL,
+	CUST_NM varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPTO_NM varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD1 varchar(180) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD2 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD4 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	ZIP_CD varchar(12) COLLATE Korean_Wansung_CI_AS NULL,
+	COMPANY varchar(5) COLLATE Korean_Wansung_CI_AS NULL,
+	PLANT_CD varchar(12) COLLATE Korean_Wansung_CI_AS NULL,
+	PLANT_DESC varchar(60) COLLATE Korean_Wansung_CI_AS NULL,
+	ITEM_CD varchar(25) COLLATE Korean_Wansung_CI_AS NULL,
+	ITEM_DESC varchar(60) COLLATE Korean_Wansung_CI_AS NULL,
+	ORDER_QTY bigint NULL,
+	UNIT varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	PRIMARY_QTY bigint NULL,
+	UNIT1 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	SECOND_QTY bigint NULL,
+	UNIT2 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	WEIGHT float NULL,
+	WEIGHT_UNIT varchar(2) COLLATE Korean_Wansung_CI_AS NULL,
+	PRICE bigint NULL,
+	AMOUNT bigint NULL,
+	STATUS1 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	STATUS2 varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	STATUS_DESC varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	DRIVER_PHONE varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPMENT_CD_SAP varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	CUST_PO varchar(70) COLLATE Korean_Wansung_CI_AS NULL,
+	ORDER_TAKER varchar(12) COLLATE Korean_Wansung_CI_AS NULL,
+	HOLD_CODE varchar(2) COLLATE Korean_Wansung_CI_AS NULL,
+	SALESREP_CD bigint NULL,
+	TRUCK_NO varchar(20) COLLATE Korean_Wansung_CI_AS NULL,
+	SALESREP_NM varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	TEAM_CD varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	TEAM_NM varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	BUILDING_TYPE varchar(3) COLLATE Korean_Wansung_CI_AS NULL,
+	INSERT_DT varchar(20) COLLATE Korean_Wansung_CI_AS NULL,
+	TRANS_TY varchar(2) COLLATE Korean_Wansung_CI_AS NULL,
+	RECEIVER varchar(40) COLLATE Korean_Wansung_CI_AS NULL,
+	DUMMY varchar(30) COLLATE Korean_Wansung_CI_AS NULL,
+	ADD3 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	REQUEST_TIME varchar(4) COLLATE Korean_Wansung_CI_AS NULL,
+	LIFNR_NAME1 varchar(35) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPMENT_CD_3PL varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPMENT_CD varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPTO_CD varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	CUST_CD varchar(10) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPTO_NM2 varchar(80) COLLATE Korean_Wansung_CI_AS NULL,
+	INVOICE_FLAG varchar(1) COLLATE Korean_Wansung_CI_AS NULL,
+	SHIPPING_FLAG varchar(1) COLLATE Korean_Wansung_CI_AS NULL,
+	DELIVERY_NO varchar(15) COLLATE Korean_Wansung_CI_AS NULL,
+	DELIVERY_SEC_NO varchar(4) COLLATE Korean_Wansung_CI_AS NULL,
+	LOTN varchar(20) COLLATE Korean_Wansung_CI_AS NULL,
+	CONSTRAINT SYS_C005844 PRIMARY KEY (ORDERNO,ORDERTY,LINE_NO)
+);
+
+
+아래의 소스는 참고용으로 필요하면 소스의 내용을 삭제하거나 수정 및 추가해도 괜찮고, 무시하고 새롭게 만들어도 괜찮아.
+
+
+jsp 파일
+
+<%@page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/views/include/admin/commonimport.jsp" %>
+<!DOCTYPE html>
+<html>
+<head>
+<%@ include file="/WEB-INF/views/include/admin/commonhead.jsp" %>
+
+< script src="${url}/include/js/common/dropzone/dropzone.min.js">< / script >
+<link href="${url}/include/js/common/dropzone/dropzone.min.css" rel="stylesheet" type="text/css" />
+
+< script type="text/javascript">
+
+$(function(){
+
+});
+
+//Dropzone
+Dropzone.autoDiscover = false;
+
+$(document).ready(function() {
+	$("#frm").dropzone({
+		url: "./updateOrderStateExcelAjax.lime",
+		maxFiles: 1,
+		acceptedFiles: ".xls,.XLS,.xlsx,.XLSX,.csv,.CSV",
+		maxFilesize: 30,
+
+		init: function() {
+			// maxFiles 카운터를 초과하면 경고창
+			this.on("maxfilesexceeded", function(data) {
+				$('#ajax_indicator').fadeOut();
+
+				this.removeFile(data);
+				alert('최대 업로드 파일 수는 1개 입니다.');
+			});
+
+			// 등록시 바로 처리하기 위한 컨펌창
+			this.on("addedfile", function(data) {
+				$('#ajax_indicator').show().fadeIn('fast');
+
+				if (!confirm('품목 일괄 등록을 진행 하시겠습니까?')) {
+					$('#ajax_indicator').fadeOut();
+					this.removeFile(data);
+				}
+			});
+
+			// 성공시
+			this.on("success", function(data, response) {
+				var result;
+				var json = response;
+
+				if('object' === typeof json) result = json;
+				else result = JSON.parse(json);
+
+				var resCode = result.RES_CODE;
+				var resMsg = result.RES_MSG;
+
+				$('#resultContentPId').empty();
+				$('#resultContentPId').show();
+				// if('0000' != resCode) $('#resultContentPId').append('ERROR MASSAGE<br />');
+				if('0000' != resCode) $('#resultContentPId').append('MASSAGE<br />');
+				$('#resultContentPId').append('<span>'+resMsg+'</span>');
+
+				$('#ajax_indicator').fadeOut();
+				this.removeFile(data);
+			});
+
+			// 에러시
+			this.on("error", function(data, response, xhr) {
+				console.log('data = '+data);
+			    $('#resultContentPId').show();
+				$('#resultContentPId').html('ERROR');
+
+
+				$('#ajax_indicator').fadeOut();
+				this.removeFile(data);
+			});
+		},
+	});
+});
+
+
+//샘플파일다운로드
+function fileDown(obj, file_type){ // file_type 1=품목코드 다운로드, 2=샘플파일 다운로드.
+	var fileFormHtml = '';
+
+	if('1' == file_type){
+		$('#ajax_indicator').show().fadeIn('fast');
+		var token = getFileToken('excel');
+		$('form[name="frm_excel"]').append('<input type="hidden" name="filetoken" value="'+token+'" />');
+
+		formPostSubmit('frm_excel', '${url}/admin/item/itemExcelDown2.lime');
+		$('form[name="frm_excel"]').attr('action', '');
+
+		$('input[name="filetoken"]').remove();
+		var fileTimer = setInterval(function() {
+			//console.log('token : ', token);
+	        console.log("cookie : ", getCookie(token));
+			if('true' == getCookie(token)){
+				$('#ajax_indicator').fadeOut();
+				delCookie(token);
+				clearInterval(fileTimer);
+			}
+	    }, 1000 );
+	}
+	else if('2' == file_type){
+		// 파일 다운로드.
+		fileFormHtml += '<form name="frm_filedown" method="post" action="${url}/admin/base/sampleFileDown.lime">';
+		fileFormHtml += '	<input type="hidden" name="r_filename" value="orderStateUpdateSample.csv" />';
+		fileFormHtml += '</form>';
+		fileFormHtml += '<iframe name="fileDownLoadIf" style="display:none;"></iframe>';
+		$.download('frm_filedown', fileFormHtml); // common.js 위치.
+	}
+
+}
+
+
+< / script >
+</head>
+
+<body class="page-header-fixed compact-menu">
+	<div id="ajax_indicator" style="display:none;">
+	    <p style="position: absolute; top: 50%; left: 50%; margin: -110px 0 0 -110px;">
+	        <img src="${url}/include/images/common/loadingbar.gif" />
+	    </p>
+	</div>
+
+	<!-- Page Content -->
+	<main class="page-content content-wrap">
+
+		<%@ include file="/WEB-INF/views/include/admin/header.jsp" %>
+		<%@ include file="/WEB-INF/views/include/admin/left.jsp" %>
+
+		<form name="frm_excel" method="post"></form>
+
+		<!-- Page Inner -->
+		<div class="page-inner">
+			<div class="page-title">
+				<h3>
+					오더 상태 업데이트
+					<div class="page-right">
+						<button type="button" class="btn btn-line f-black" title="목록" onclick="location.href ='${url}/admin/order/salesOrderList.lime'"><i class="fa fa-list-ul"></i><em>목록</em></button>
+					</div>
+				</h3>
+			</div>
+
+			<!-- Main Wrapper -->
+			<div id="main-wrapper">
+				<!-- Row -->
+				<div class="row">
+					<div class="col-md-12">
+						<div class="panel panel-white">
+							<div class="panel-body">
+								<h5 class="table-title no-title"></h5>
+								<div class="btnList writeObjectClass">
+									<button type="button" class="btn btn-warning" onclick="fileDown(this, '2');">오더 상태 다운로드</button>
+								</div>
+
+								<form class="dropzone pull-left full-width" name="frm" id="frm" enctype="multipart/form-data">
+									<div class="fallback">
+										<input type="file" class="dropify" />
+										<input type="button" class="dropify-btn btn-github hide" value="파일업로드" onclick="fileUpload();" /> <!-- IE9 -->
+									</div>
+								</form>
+
+								<p class="dropzone-white pull-left m-t-lg full-width" id="resultContentPId" style="display: none;">
+									<!--
+									INSERT MASSAGE<br />
+									<span>success</span>
+									 -->
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- //Row -->
+			</div>
+			<!-- //Main Wrapper -->
+
+			<%@ include file="/WEB-INF/views/include/admin/footer.jsp" %>
+
+		</div>
+		<!-- //Page Inner -->
+	</main>
+	<!-- //Page Content -->
+
+</body>
+
+</html>
+
+
+
+
+
+-> OrderCtrl.java
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * 주문관리 > 오더 상태 업데이트 : 엑셀대량수정 폼.
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	@GetMapping(value="orderStateUpdateExcel")
+	public String itemEditExcel(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		return "admin/order/orderStateUpdateExcel";
+	}
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * 오더 상태 엑셀 수정 폼 > 업데이트 Ajax
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	@ResponseBody
+	@PostMapping(value="updateOrderStateExcelAjax")
+	public Object updateOrderStateExcelAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+		return orderSvc.updateOrderStateExcel(params, req, loginDto);
+	}
+
+
+
+
+
+
+-> OrderSvc.java
+
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * 오더 상태 대량 등록/수정
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	public Map<String, Object> updateOrderStateExcel(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+		if (!MultipartHttpServletRequest.class.isInstance(req)) {
+			throw new LimeBizException(MsgCode.FILE_REQUEST_ERROR);
+		}
+
+		Map<String, Object> svcMap = new HashMap<>();
+//		Map<String, Object> orderStateMap = new HashMap<>();
+		List<Map<String, Object>> orderStateList = new ArrayList<>();
+//		List<Map<String, Object>> orderStateSearchList = new ArrayList<>();
+//		List<Map<String, Object>> orderStateRecommendList = new ArrayList<>();
+
+		String m_itiinid = loginDto.getUserId();
+
+//		FileUtil fileUtil = new FileUtil();
+		String errorMsg = "";
+		MultipartHttpServletRequest mtreq = (MultipartHttpServletRequest)req;
+		MultipartFile mpf = mtreq.getFile("file");
+
+		Workbook workbook = WorkbookFactory.create(mpf.getInputStream());
+		Sheet sheet = workbook.getSheetAt(0);
+
+		DataFormatter formatter = new DataFormatter();
+		Iterator<Row> it = sheet.iterator();
+
+//		long start = System.currentTimeMillis();
+//		long end = 0;
+		int rowNum = 0, cellNum = 0;
+
+		Map<String, Object> resMap = new HashMap<>();
+		while (it.hasNext()) {
+			Row row = it.next();
+
+			if(rowNum > 0){
+				cellNum=2;
+				//Working!
+				String m_reasonForRejection = formatter.formatCellValue(row.getCell(cellNum++)).replaceAll("\\s","");
+				String m_orderno = formatter.formatCellValue(row.getCell(cellNum++)).replaceAll("\\s","");
+				String s_lineno = formatter.formatCellValue(row.getCell(cellNum++)).replaceAll("\\s","");
+				int lineno = Integer.parseInt(s_lineno) * 100;
+				String m_lineno = Integer.toString(lineno);
+
+				int updateCnt = 0;
+
+				if (StringUtils.equals("", m_orderno)) {
+					if(rowNum == 1){
+						resMap.put("RES_MSG",(rowNum+1)+"행의 Order No가 누락되었습니다.");
+					}else{
+						resMap.put("RES_MSG",rowNum+"행까지 정상적으로 처리되었습니다.");
+					}
+
+					resMap.put("RES_CODE","0010");
+//					end = System.currentTimeMillis();
+					return resMap;
+				}
+				logger.debug("m_orderno: " + m_orderno);
+				logger.debug("m_lineno: " + m_lineno);
+				svcMap.put("m_orderno", m_orderno);
+				svcMap.put("m_lineno", m_lineno);
+				svcMap.put("m_itiinid", m_itiinid);
+				
+
+				//엑셀 오더번호 체크
+				orderStateList = this.getOrderStateList(svcMap);
+				if(CollectionUtils.isEmpty(orderStateList)){
+					//throw new LimeBizException(MsgCode.DATA_EXCEL_NOT_FIND_ORDERNO_ERROR, rowNum+1);
+					errorMsg += (rowNum+1)+"행의 Order No는 등록되지 않은 오더번호입니다.<br>";
+				} else {
+
+					String m_deliveryStatus = formatter.formatCellValue(row.getCell(cellNum++)).trim();
+					String m_overallStatus = formatter.formatCellValue(row.getCell(cellNum++)).trim();
+					boolean b = false;
+
+
+					if(StringUtils.isNotBlank(m_reasonForRejection)) {
+						svcMap.put("m_statuscd", "980");
+						svcMap.put("m_status2cd", "999");
+						svcMap.put("m_statusdesc", "오더취소");
+
+						b = true;
+					} else if(StringUtils.equals("C", StringUtils.defaultString(m_deliveryStatus))) {
+						svcMap.put("m_statuscd", "580");
+						svcMap.put("m_status2cd", "620");
+						svcMap.put("m_statusdesc", "배송완료");
+
+						b = true;
+					} else if(StringUtils.isBlank(m_deliveryStatus) && StringUtils.equals("C", StringUtils.defaultString(m_overallStatus))) {
+						svcMap.put("m_statuscd", "580");
+						svcMap.put("m_status2cd", "620");
+						svcMap.put("m_statusdesc", "배송완료");
+
+						b = true;
+					}
+
+					if(b) {
+						updateCnt = updateCnt + salesOrderDao.updateOrderStatusExcel(svcMap);
+						if( updateCnt == 0 ) {
+							errorMsg += (rowNum+1)+"행의 Order No가 O_SALESORDER 테이블에 업데이트를 실패했습니다.<br>";
+						}
+
+
+
+						updateCnt = 0;
+
+						updateCnt = qmsOrderDao.updateOrderStatusExcel(svcMap);
+						if( updateCnt == 0 ) {
+							errorMsg += (rowNum+1)+"행의 Order No가 QMS_SALESORDER 테이블에 업데이트를 실패했습니다.<br>";
+						}
+
+
+
+					}
+
+
+				}
+
+
+				svcMap.clear();
+
+			}
+			rowNum++;
+
+		}
+		/*
+		end = System.currentTimeMillis();
+		logger.debug("################## 반복문 수행 시간 = "+ (end - start)/1000.0);
+		*/
+		if(StringUtils.equals("", errorMsg)){
+			return MsgCode.getResultMap(MsgCode.SUCCESS);
+		} else {
+			return MsgCode.getResultMap(MsgCode.DATA_EXCEL_NOT_FIND_ORDERNO_ERROR, errorMsg);
+		}
+		
+	}
+	
+	
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.
+	 * UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+    public List<Map<String, Object>> getOrderStateList(Map<String, Object> params){
+        List<Map<String, Object>> orderStateList = salesOrderDao.getOrderStateList(params);
+        return orderStateList;
+    }
+
+
+
+
+
+
+
+
+
+-> SalesOrderDao.java
+
+
+
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.
+	 * UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회
+	 * @작성일 : 2025. 3. 28.
+	 * @작성자 : hsg
+	 */
+	public List<Map<String, Object>> getOrderStateList(Map<String, Object> svcMap) {
+		return sqlSession.selectList("eorder.o_salesorder.getOrderStateList", svcMap);
+	}
+
+
+	/**
+	 * 2025-03-28 hsg Sunset Flip
+	 * Xlsx 혹은 Csv 파일 형태를 E-order의 ‘오더 상태 업데이트’에 업로드.
+	 * UPDATE를 해야하는 Table(O_SALESORDER, QMS_SALESORDER)에서 오더번호화 라인번호로 데이터를 조회
+	 * @작성일 : 2025. 3. 31.
+	 * @작성자 : hsg
+	 */
+	public int updateOrderStatusExcel(Map<String, Object> svcMap) {
+		return sqlSession.update("eorder.o_salesorder.updateOrderStatusExcel", svcMap);
+	}
+
+
+
+
+-> o_salesorder.xml
+
+
+	<select id="getOrderStateList" parameterType="hashmap" resultType="hashmap">
+		SELECT
+				'O_SALESORDER' AS TBL_NAME, ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+		  FROM	O_SALESORDER A
+		 WHERE	1 = 1
+		   AND	ORDERNO = #{m_orderno}
+		   AND	LINE_NO = #{m_lineno}
+		UNION	ALL
+		SELECT
+				'QMS_SALESORDER' AS TBL_NAME, ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+		  FROM	QMS_SALESORDER A
+		 WHERE	1 = 1
+		   AND	ORDERNO = #{m_orderno}
+		   AND	LINE_NO = #{m_lineno}
+	</select>
+
+
+	<update id="updateOrderStatusExcel" parameterType="hashmap">
+		UPDATE O_SALESORDER
+		   SET STATUS1 = #{m_statuscd}
+		     , STATUS2 = #{m_status2cd}
+		     , STATUS_DESC = #{m_statusdesc}
+		 WHERE 1 = 1
+		   AND ORDERNO = #{m_orderno}
+		   AND LINE_NO = #{m_lineno}
+	</update>
+	
+
+
+
+
+==============================================================================
+
+
+
+
+
+아주 정리 잘해놨네! 지금 코드는 꽤 괜찮은 구조로 되어 있고, 요구 사항도 명확해서 내가 보기엔 크게 개선할 부분은 없지만, 네가 말한 핵심 포인트 몇 가지 — **엑셀 헤더의 순서가 다를 수 있음**, 그리고 **특정 헤더만 사용해야 함** — 이 부분을 완전히 반영하려면, **헤더 행을 동적으로 파악해서 필요한 컬럼의 인덱스를 찾고**, 그 인덱스를 바탕으로 데이터를 읽도록 수정해야 해.
+
+---
+
+## ✅ 요약된 개선 포인트
+
+1. **엑셀 헤더 셀 위치가 매번 다를 수 있음 → 동적으로 매핑 필요**
+2. **필요한 필드만 추출 → 아래 필드만 사용**
+   - `Sales Document Type`
+   - `Purchase order no.`
+   - `Reason for rejection`
+   - `Sales Document`
+   - `Sales Document Item`
+   - `Delivery status`
+   - `Overall status`
+
+---
+
+## ✍ 주요 수정 코드 (Java)
+
+기존 `updateOrderStateExcel()` 메소드 내에 아래 내용을 적용하면 돼.
+
+```java
+// 1. 필요한 헤더 컬럼명 정의
+List<String> requiredHeaders = Arrays.asList(
+    "Sales Document Type",
+    "Purchase order no.",
+    "Reason for rejection",
+    "Sales Document",
+    "Sales Document Item",
+    "Delivery status",
+    "Overall status"
+);
+
+// 2. 인덱스를 담을 Map
+Map<String, Integer> headerIndexMap = new HashMap<>();
+
+Row headerRow = sheet.getRow(0);
+DataFormatter formatter = new DataFormatter();
+
+// 3. 헤더 인덱스 추출
+for (Cell cell : headerRow) {
+    String cellValue = formatter.formatCellValue(cell).trim();
+    if (requiredHeaders.contains(cellValue)) {
+        headerIndexMap.put(cellValue, cell.getColumnIndex());
+    }
+}
+
+// 4. 모든 required header가 있는지 확인
+for (String header : requiredHeaders) {
+    if (!headerIndexMap.containsKey(header)) {
+        throw new LimeBizException("엑셀 헤더에 필요한 컬럼이 누락되었습니다: " + header);
+    }
+}
+```
+
+---
+
+## 🔄 데이터 파싱 부분 예시
+
+```java
+String salesDoc = formatter.formatCellValue(row.getCell(headerIndexMap.get("Sales Document"))).replaceAll("\\s","");
+String item = formatter.formatCellValue(row.getCell(headerIndexMap.get("Sales Document Item"))).replaceAll("\\s","");
+String reason = formatter.formatCellValue(row.getCell(headerIndexMap.get("Reason for rejection"))).replaceAll("\\s","");
+String ds = formatter.formatCellValue(row.getCell(headerIndexMap.get("Delivery status"))).trim();
+String os = formatter.formatCellValue(row.getCell(headerIndexMap.get("Overall status"))).trim();
+```
+
+이 방식대로 `updateOrderStateExcel()` 메소드에서 `rowNum > 0` 조건문 안쪽의 `row.getCell(N)` 들을 다 이 방식으로 바꾸면, 헤더 순서가 달라도 문제없이 처리 가능해.
+
+---
+
+## 🧠 팁
+
+- 엑셀 헤더가 반드시 1행에 있다고 가정하고 있으니, 그 구조가 바뀌면 `headerRow = sheet.getRow(0);` 부분만 조정하면 돼.
+- Dropzone의 이름이 `"file"`이 아니라면 `MultipartHttpServletRequest`에서 `getFile("file")` 부분도 맞게 수정해야 해.
+
+---
+
+필요하면 전체 코드 수정본도 정리해서 줄 수 있어. 더 다듬을 거 있으면 말해줘.
+
+
+
+
+
+
+
+
+엑셀 헤더 예시는 위 표처럼 구성될 수 있고, 이 중에서 필요한 필드만 동적으로 추출하는 방식으로 처리할 수 있어. 이제 전체 수정된 Java 코드를 포함해서 JSP → Controller → Service → DAO → Mapper 순으로 구성해줄게.
+
+---
+
+## ✅ 1. `OrderSvc.java` 전체 수정본 (중요 부분만)
+
+```java
+public Map<String, Object> updateOrderStateExcel(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+	if (!MultipartHttpServletRequest.class.isInstance(req)) {
+		throw new LimeBizException(MsgCode.FILE_REQUEST_ERROR);
+	}
+
+	Map<String, Object> svcMap = new HashMap<>();
+	List<Map<String, Object>> orderStateList;
+
+	String m_itiinid = loginDto.getUserId();
+	String errorMsg = "";
+	MultipartHttpServletRequest mtreq = (MultipartHttpServletRequest)req;
+	MultipartFile mpf = mtreq.getFile("file");
+
+	Workbook workbook = WorkbookFactory.create(mpf.getInputStream());
+	Sheet sheet = workbook.getSheetAt(0);
+	DataFormatter formatter = new DataFormatter();
+	Iterator<Row> it = sheet.iterator();
+
+	// 헤더 인식
+	Map<String, Integer> headerMap = new HashMap<>();
+	List<String> requiredHeaders = Arrays.asList(
+		"Sales Document Type", "Purchase order no.", "Reason for rejection",
+		"Sales Document", "Sales Document Item", "Delivery status", "Overall status"
+	);
+
+	int rowNum = 0;
+	while (it.hasNext()) {
+		Row row = it.next();
+
+		if (rowNum == 0) {
+			for (Cell cell : row) {
+				String header = formatter.formatCellValue(cell).trim();
+				if (requiredHeaders.contains(header)) {
+					headerMap.put(header, cell.getColumnIndex());
+				}
+			}
+			for (String key : requiredHeaders) {
+				if (!headerMap.containsKey(key)) {
+					throw new LimeBizException("엑셀에 필수 컬럼 누락됨: " + key);
+				}
+			}
+			rowNum++;
+			continue;
+		}
+
+		String salesDoc = formatter.formatCellValue(row.getCell(headerMap.get("Sales Document"))).replaceAll("\\s", "");
+		String item = formatter.formatCellValue(row.getCell(headerMap.get("Sales Document Item"))).replaceAll("\\s", "");
+		String reject = formatter.formatCellValue(row.getCell(headerMap.get("Reason for rejection"))).replaceAll("\\s", "");
+		String deliveryStatus = formatter.formatCellValue(row.getCell(headerMap.get("Delivery status"))).trim();
+		String overallStatus = formatter.formatCellValue(row.getCell(headerMap.get("Overall status"))).trim();
+
+		if (salesDoc == null || salesDoc.equals("")) {
+			errorMsg += (rowNum+1) + "행의 Sales Document가 누락되었습니다.<br>";
+			break;
+		}
+
+		int lineno = Integer.parseInt(item) * 100;
+		svcMap.put("m_orderno", salesDoc);
+		svcMap.put("m_lineno", lineno);
+		svcMap.put("m_itiinid", m_itiinid);
+
+		orderStateList = this.getOrderStateList(svcMap);
+		if (CollectionUtils.isEmpty(orderStateList)) {
+			errorMsg += (rowNum+1) + "행: 오더번호 데이터 없음<br>";
+		} else {
+			boolean doUpdate = false;
+			if (StringUtils.isNotBlank(reject)) {
+				svcMap.put("m_statuscd", "980");
+				svcMap.put("m_status2cd", "999");
+				svcMap.put("m_statusdesc", "오더취소");
+				doUpdate = true;
+			} else if ("C".equalsIgnoreCase(deliveryStatus)) {
+				svcMap.put("m_statuscd", "580");
+				svcMap.put("m_status2cd", "620");
+				svcMap.put("m_statusdesc", "배송완료");
+				doUpdate = true;
+			} else if (StringUtils.isBlank(deliveryStatus) && "C".equalsIgnoreCase(overallStatus)) {
+				svcMap.put("m_statuscd", "580");
+				svcMap.put("m_status2cd", "620");
+				svcMap.put("m_statusdesc", "배송완료");
+				doUpdate = true;
+			}
+
+			if (doUpdate) {
+				int update1 = salesOrderDao.updateOrderStatusExcel(svcMap);
+				if (update1 == 0) errorMsg += (rowNum+1) + "행: O_SALESORDER 업데이트 실패<br>";
+
+				int update2 = qmsOrderDao.updateOrderStatusExcel(svcMap);
+				if (update2 == 0) errorMsg += (rowNum+1) + "행: QMS_SALESORDER 업데이트 실패<br>";
+			}
+		}
+		rowNum++;
+		svcMap.clear();
+	}
+
+	if ("".equals(errorMsg)) {
+		return MsgCode.getResultMap(MsgCode.SUCCESS);
+	} else {
+		return MsgCode.getResultMap(MsgCode.DATA_EXCEL_NOT_FIND_ORDERNO_ERROR, errorMsg);
+	}
+}
+```
+
+---
+
+## ✅ 2. Mapper XML (`o_salesorder.xml`)
+
+변경 없음, 기존 유지:
+
+```xml
+<select id="getOrderStateList" parameterType="hashmap" resultType="hashmap">
+	SELECT 'O_SALESORDER' AS TBL_NAME, ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+	FROM O_SALESORDER A
+	WHERE ORDERNO = #{m_orderno}
+	  AND LINE_NO = #{m_lineno}
+	UNION ALL
+	SELECT 'QMS_SALESORDER', ORDERNO, LINE_NO, STATUS1, STATUS2, STATUS_DESC
+	FROM QMS_SALESORDER A
+	WHERE ORDERNO = #{m_orderno}
+	  AND LINE_NO = #{m_lineno}
+</select>
+
+<update id="updateOrderStatusExcel" parameterType="hashmap">
+	UPDATE O_SALESORDER
+	SET STATUS1 = #{m_statuscd},
+	    STATUS2 = #{m_status2cd},
+	    STATUS_DESC = #{m_statusdesc}
+	WHERE ORDERNO = #{m_orderno}
+	  AND LINE_NO = #{m_lineno}
+</update>
+```
+
+QMS용은 동일하게 Mapper에서 다른 XML에서 처리하면 됨.
+
+---
+
+필요하면 `.csv` 샘플 파일도 만들어줄 수 있어. 다음으로 JSP에서 업로드 이후 처리하는 Ajax나 기타 예외 처리도 보완할 수 있으니 필요한 부분 있으면 말해줘!
+
+
+
+
+좋은 질문이야. **13000행** 정도면 그냥 단순한 데이터 조회나 저장이라면 그렇게까지 느리진 않은데, 위에 있는 구조처럼 `엑셀의 각 행마다 DB 조회 + 2회 update`를 반복하면 **퍼포먼스 병목이 발생**할 가능성이 커.
+
+---
+
+## 🔥 성능 병목 원인 요약
+
+| 원인 | 설명 |
+|------|------|
+| 1. `getOrderStateList()` 호출 | 매 행마다 `SELECT`를 수행함 |
+| 2. `updateOrderStatusExcel()` 두 번 호출 | 각 행마다 O_SALESORDER, QMS_SALESORDER 업데이트를 따로 함 |
+| 3. 트랜잭션 미지정 | 배치 트랜잭션 없이 하나하나 처리하면 I/O 성능이 떨어짐 |
+
+---
+
+## ✅ 해결 전략
+
+### 1. **엑셀 데이터를 먼저 전부 메모리(List)에 담기**
+- 한 번에 다 파싱해서 Java `List<Map>` 형태로 정리
+
+### 2. **엑셀 내 데이터 기반으로 O_SALESORDER, QMS_SALESORDER `IN 조건` 조회**
+```sql
+SELECT ORDERNO, LINE_NO, STATUS1, ... 
+FROM O_SALESORDER 
+WHERE (ORDERNO, LINE_NO) IN ((10001, 100), (10002, 200), ...)
+```
+- 단, SQL Server는 `(a, b) IN ((1,2), (3,4))` 구문이 안 되니까 **임시 테이블 or `JOIN`** 방식으로 해야 함
+
+### 3. **MyBatis에서 `<foreach>`를 활용한 `bulk update` 방식**으로 처리
+```xml
+<update id="updateOrderStatuses" parameterType="list">
+    <foreach collection="list" item="item" separator=";">
+        UPDATE O_SALESORDER
+        SET STATUS1 = #{item.status1},
+            STATUS2 = #{item.status2},
+            STATUS_DESC = #{item.statusDesc}
+        WHERE ORDERNO = #{item.orderno} AND LINE_NO = #{item.lineno}
+    </foreach>
+</update>
+```
+
+---
+
+## 🧠 또는: 더 좋은 방법은?
+
+### 📦 **BULK 방식으로 처리**
+
+1. 엑셀을 파싱한 데이터를 **CSV로 저장 후**, SQL Server `BULK INSERT` 또는 `BCP`로 **임시 테이블**에 적재
+2. 임시 테이블 기준으로 `MERGE`, `UPDATE` 처리
+
+예:
+```sql
+UPDATE O_SALESORDER
+SET STATUS1 = tmp.STATUS1,
+    STATUS2 = tmp.STATUS2,
+    STATUS_DESC = tmp.STATUS_DESC
+FROM O_SALESORDER os
+JOIN TMP_ORDER_STATUS tmp ON os.ORDERNO = tmp.ORDERNO AND os.LINE_NO = tmp.LINE_NO
+```
+
+이렇게 하면 **13000건도 1초~수 초 이내 처리 가능**해.
+
+---
+
+## 💡 추천 정리
+
+| 방법 | 장점 | 단점 |
+|------|------|------|
+| 기존 방식 유지 | 구현이 간단 | 느림 (13K 반복 DB hit) |
+| MyBatis `<foreach>` 일괄 처리 | 빠름, MyBatis 그대로 사용 가능 | SQL Server의 제약 고려해야 함 |
+| BULK INSERT 방식 | **가장 빠름**, 안정적 | 임시 테이블 구성, 로직 변경 필요 |
+
+---
+
+## 다음 단계 추천
+
+1. 빠르게 처리하고 싶으면 → **BULK INSERT + MERGE/UPDATE**
+2. Java 안에서 처리하고 싶으면 → **`List<Map>` + MyBatis `<foreach>` update**
+
+원하는 방식 있으면 내가 해당 방식으로 전체 코드 구성해서 도와줄게. 어떤 쪽으로 갈까?
+
+
+
+
+
+그거 아주 좋은 생각이야. **빠르게 처리**하면서도 **오류 로깅을 정확히** 하려면 다음과 같이 설계하는 게 딱 좋아:
+
+---
+
+## ✅ 최적 구조 요약: “빠르고, 안정적이고, 오류 파악까지”
+
+### 🔧 핵심 전략
+
+1. **엑셀 → List<Map> 파싱**
+2. **임시 테이블 (`TMP_ORDER_STATUS`)에 BULK INSERT**
+3. **MERGE/UPDATE 쿼리로 O_SALESORDER, QMS_SALESORDER 업데이트**
+4. **에러 발생 시 TMP 테이블에 `ERROR_MSG` 컬럼 남김**
+5. **작업 완료 후 TMP 테이블에서 에러 항목만 조회해서 사용자에게 리턴**
+
+---
+
+## 🏗️ 구성도
+
+```
+[엑셀 업로드 (Dropzone)]
+        ↓
+[Excel → Java List]
+        ↓
+[임시 테이블에 INSERT (bulk)]
+        ↓
+[MSSQL에서 UPDATE + 결과 로그 저장]
+        ↓
+[결과 SELECT → 사용자 피드백]
+```
+
+---
+
+## 📋 예시: TMP_ORDER_STATUS 테이블
+
+```sql
+CREATE TABLE TMP_ORDER_STATUS (
+    ROW_NO INT,
+    ORDERNO BIGINT,
+    LINE_NO BIGINT,
+    REJECT_REASON VARCHAR(100),
+    DELIVERY_STATUS VARCHAR(10),
+    OVERALL_STATUS VARCHAR(10),
+    STATUS1 VARCHAR(3),
+    STATUS2 VARCHAR(3),
+    STATUS_DESC VARCHAR(80),
+    ERROR_MSG NVARCHAR(500)
+);
+```
+
+---
+
+## 💥 MERGE + 에러 로그 예시 쿼리
+
+```sql
+-- O_SALESORDER 업데이트
+UPDATE O
+SET O.STATUS1 = T.STATUS1,
+    O.STATUS2 = T.STATUS2,
+    O.STATUS_DESC = T.STATUS_DESC
+FROM O_SALESORDER O
+JOIN TMP_ORDER_STATUS T
+  ON O.ORDERNO = T.ORDERNO AND O.LINE_NO = T.LINE_NO
+
+-- 업데이트되지 않은 건 에러로 처리
+UPDATE T
+SET ERROR_MSG = '매칭되는 오더가 없습니다.'
+FROM TMP_ORDER_STATUS T
+LEFT JOIN O_SALESORDER O
+  ON T.ORDERNO = O.ORDERNO AND T.LINE_NO = O.LINE_NO
+WHERE O.ORDERNO IS NULL
+
+-- 배송 상태 조건이 안 맞을 때 오류 메시지 설정
+UPDATE T
+SET ERROR_MSG = '배송 상태 값이 조건에 부합하지 않음'
+WHERE T.STATUS1 IS NULL AND T.STATUS2 IS NULL
+```
+
+---
+
+## 🧑‍💻 Java 처리 흐름 예시
+
+```java
+List<Map<String, Object>> excelRows = new ArrayList<>();
+List<Map<String, Object>> errorList = new ArrayList<>();
+
+// Excel → excelRows 변환
+for (int i = 1; i < sheet.getPhysicalNumberOfRows(); i++) {
+    Row row = sheet.getRow(i);
+    Map<String, Object> rowMap = new HashMap<>();
+    rowMap.put("ROW_NO", i + 1);
+    rowMap.put("ORDERNO", ...);
+    rowMap.put("LINE_NO", ...);
+    rowMap.put("DELIVERY_STATUS", ...);
+    rowMap.put("OVERALL_STATUS", ...);
+    rowMap.put("REJECT_REASON", ...);
+
+    // 상태 판단 로직
+    if (...) {
+        rowMap.put("STATUS1", "580");
+        rowMap.put("STATUS2", "620");
+        rowMap.put("STATUS_DESC", "배송완료");
+    } else if (...) {
+        ...
+    } else {
+        rowMap.put("ERROR_MSG", "업데이트 조건 없음");
+    }
+
+    excelRows.add(rowMap);
+}
+
+// -> excelRows를 MyBatis batchInsert
+excelDao.bulkInsertToTmp(excelRows);
+
+// 이후 DB에서 errorMsg가 있는 행만 조회해서 사용자에 전달
+List<Map<String, Object>> errors = excelDao.selectExcelErrors();
+```
+
+---
+
+## 📢 사용자에게 보여줄 피드백 예시
+
+```json
+{
+  "success": 12300,
+  "fail": 700,
+  "errorRows": [
+    {"row": 3, "message": "배송 상태 값이 조건에 부합하지 않음"},
+    {"row": 71, "message": "매칭되는 오더가 없습니다."}
+  ]
+}
+```
+
+---
+
+## 💡 결론: 이 구조가 좋은 이유
+
+| 항목 | 설명 |
+|------|------|
+| 속도 | 엑셀 파싱 → BULK INSERT → SQL UPDATE라서 **매우 빠름** |
+| 유연성 | 오류 조건, 상태 조건 등 **비즈니스 로직 다양하게 넣기 쉬움** |
+| 사용자 친화성 | 어떤 행에서 실패했는지 명확히 전달 가능 |
+
+---
+
+이 구조로 바로 구현해줄 수도 있어.  
+필요하면 아래 중에서 말해줘:
+
+- ✅ `TMP 테이블 생성 쿼리`
+- ✅ `MyBatis DAO/Mapper 소스`
+- ✅ `Java 엑셀 → bulkInsert 처리`
+- ✅ `최종 에러 메시지 사용자 리턴 예시`
+
+어디부터 갈까?
+
+
+
+
+
+
+
+좋아! 이제 **엑셀에서 파싱한 데이터를 `List<Map<String, Object>>` 형태로 받아서** `TMP_ORDER_STATUS` 테이블에 `MyBatis`로 한 번에 insert 하는 작업을 만들어보자.
+
+---
+
+## ✅ Step 2: MyBatis로 `TMP_ORDER_STATUS`에 대량 Insert 하기
+
+---
+
+### 📁 1. `OrderDao.java` 또는 `ExcelDao.java`
+
+```java
+public interface ExcelDao {
+    int bulkInsertToTmp(List<Map<String, Object>> excelList);
+}
+```
+
+---
+
+### 🗂️ 2. `excel-mapper.xml` 또는 `excelDao.xml`
+
+```xml
+<insert id="bulkInsertToTmp" parameterType="list">
+    INSERT INTO TMP_ORDER_STATUS (
+        ROW_NO,
+        ORDERNO,
+        LINE_NO,
+        REJECT_REASON,
+        DELIVERY_STATUS,
+        OVERALL_STATUS,
+        STATUS1,
+        STATUS2,
+        STATUS_DESC,
+        INSERT_USER,
+        INSERT_DATE
+    )
+    VALUES
+    <foreach collection="list" item="item" separator=",">
+        (
+            #{item.ROW_NO},
+            #{item.ORDERNO},
+            #{item.LINE_NO},
+            #{item.REJECT_REASON},
+            #{item.DELIVERY_STATUS},
+            #{item.OVERALL_STATUS},
+            #{item.STATUS1},
+            #{item.STATUS2},
+            #{item.STATUS_DESC},
+            #{item.INSERT_USER},
+            GETDATE()
+        )
+    </foreach>
+</insert>
+```
+
+---
+
+### 💡 포인트
+
+- `parameterType="list"` → `List<Map<String, Object>>` 구조일 때 MyBatis에서 자동으로 인식 가능
+- `#{item.컬럼명}` → `Map`의 key를 그대로 사용함
+- `GETDATE()` → DB 시간으로 저장
+
+---
+
+### 🧪 예시 Java 코드 (Service Layer)
+
+```java
+List<Map<String, Object>> excelRows = new ArrayList<>();
+
+Map<String, Object> rowMap = new HashMap<>();
+rowMap.put("ROW_NO", 5);
+rowMap.put("ORDERNO", 123456L);
+rowMap.put("LINE_NO", 100L);
+rowMap.put("REJECT_REASON", "ABC");
+rowMap.put("DELIVERY_STATUS", "C");
+rowMap.put("OVERALL_STATUS", "C");
+rowMap.put("STATUS1", "580");
+rowMap.put("STATUS2", "620");
+rowMap.put("STATUS_DESC", "배송완료");
+rowMap.put("INSERT_USER", "A114965");
+
+excelRows.add(rowMap);
+
+// insert
+excelDao.bulkInsertToTmp(excelRows);
+```
+
+---
+
+이제 엑셀 데이터를 `TMP_ORDER_STATUS`에 빠르게 넣을 준비가 완료됐고,  
+다음은 ➜ **O_SALESORDER, QMS_SALESORDER 상태값 업데이트 쿼리 + 에러 메시지 기록 쿼리** 넘어갈까?
+
+
+
+
+
+
+좋아, 이제 이어서 **업데이트 쿼리와 에러 메시지 기록 쿼리**까지 정리해줄게.
+
+---
+
+## ✅ Step 3: 상태 업데이트 쿼리 + 실패건 에러 메시지 기록
+
+업데이트는 `TMP_ORDER_STATUS` 테이블 기준으로 `O_SALESORDER`, `QMS_SALESORDER` 두 곳 모두 처리해야 하니까 아래처럼 구성하면 돼.
+
+---
+
+### 🗂️ 1. `excel-mapper.xml`에 추가할 SQL
+
+#### 🔹 A. `O_SALESORDER` 상태 업데이트
+
+```xml
+<update id="updateOrderStatusFromTmp" parameterType="map">
+    UPDATE OS
+    SET OS.STATUS1 = T.STATUS1,
+        OS.STATUS2 = T.STATUS2,
+        OS.STATUS_DESC = T.STATUS_DESC
+    FROM O_SALESORDER OS
+    INNER JOIN TMP_ORDER_STATUS T
+        ON OS.ORDERNO = T.ORDERNO AND OS.LINE_NO = T.LINE_NO
+    WHERE T.INSERT_USER = #{insertUser}
+      AND T.STATUS1 IS NOT NULL
+</update>
+```
+
+#### 🔹 B. `QMS_SALESORDER` 상태 업데이트
+
+```xml
+<update id="updateQmsOrderStatusFromTmp" parameterType="map">
+    UPDATE QS
+    SET QS.STATUS1 = T.STATUS1,
+        QS.STATUS2 = T.STATUS2,
+        QS.STATUS_DESC = T.STATUS_DESC
+    FROM QMS_SALESORDER QS
+    INNER JOIN TMP_ORDER_STATUS T
+        ON QS.ORDERNO = T.ORDERNO AND QS.LINE_NO = T.LINE_NO
+    WHERE T.INSERT_USER = #{insertUser}
+      AND T.STATUS1 IS NOT NULL
+</update>
+```
+
+---
+
+### 🧨 C. 실패한 건들에 `ERROR_MSG` 넣기 (매칭 안된 경우)
+
+#### O_SALESORDER 업데이트 실패한 행에 메시지 추가
+
+```xml
+<update id="logOrderUpdateErrors" parameterType="map">
+    UPDATE T
+    SET ERROR_MSG = 'O_SALESORDER: 주문번호/라인번호 없음'
+    FROM TMP_ORDER_STATUS T
+    LEFT JOIN O_SALESORDER OS ON T.ORDERNO = OS.ORDERNO AND T.LINE_NO = OS.LINE_NO
+    WHERE OS.ORDERNO IS NULL
+      AND T.INSERT_USER = #{insertUser}
+      AND T.STATUS1 IS NOT NULL
+      AND T.ERROR_MSG IS NULL
+</update>
+```
+
+#### QMS_SALESORDER 업데이트 실패한 행에 메시지 추가
+
+```xml
+<update id="logQmsUpdateErrors" parameterType="map">
+    UPDATE T
+    SET ERROR_MSG = 'QMS_SALESORDER: 주문번호/라인번호 없음'
+    FROM TMP_ORDER_STATUS T
+    LEFT JOIN QMS_SALESORDER QS ON T.ORDERNO = QS.ORDERNO AND T.LINE_NO = QS.LINE_NO
+    WHERE QS.ORDERNO IS NULL
+      AND T.INSERT_USER = #{insertUser}
+      AND T.STATUS1 IS NOT NULL
+      AND T.ERROR_MSG IS NULL
+</update>
+```
+
+---
+
+## ✅ Step 4: 처리 결과 조회 쿼리
+
+```xml
+<select id="selectExcelErrors" parameterType="map" resultType="hashmap">
+    SELECT ROW_NO, ORDERNO, LINE_NO, ERROR_MSG
+    FROM TMP_ORDER_STATUS
+    WHERE INSERT_USER = #{insertUser}
+      AND ERROR_MSG IS NOT NULL
+</select>
+```
+
+---
+
+## ☑️ Service/DAO 사용 예시
+
+```java
+Map<String, Object> param = new HashMap<>();
+param.put("insertUser", loginDto.getUserId());
+
+excelDao.updateOrderStatusFromTmp(param);
+excelDao.updateQmsOrderStatusFromTmp(param);
+
+excelDao.logOrderUpdateErrors(param);
+excelDao.logQmsUpdateErrors(param);
+
+List<Map<String, Object>> errorList = excelDao.selectExcelErrors(param);
+```
+
+---
+
+## ✅ 처리 결과 반환 예시 (Controller 또는 Service 리턴)
+
+```java
+if (errorList.isEmpty()) {
+    return MsgCode.getResultMap(MsgCode.SUCCESS, "모든 주문이 정상 업데이트되었습니다.");
+} else {
+    Map<String, Object> result = MsgCode.getResultMap(MsgCode.DATA_EXCEL_NOT_FIND_ORDERNO_ERROR);
+    result.put("errors", errorList);
+    result.put("message", errorList.size() + "건의 오류가 발생했습니다.");
+    return result;
+}
+```
+
+---
+
+이제 처리 속도는 대폭 올라가고, 사용자가 어떤 행에서 오류났는지도 정확히 알 수 있어.  
+다음으로 ➜ **엑셀 파싱 → TMP 테이블 insert까지 처리하는 Java 코드 (Service 메소드)** 만들어줄까?
+
+
+
+
+
+
+
+좋아! 그럼 이제 **엑셀 파싱 → 상태 판단 → TMP 테이블 insert**까지 담당하는 **Java Service 메소드**를 전체 흐름으로 정리해줄게.
+
+---
+
+## ✅ Step 5: `OrderSvc.java` (또는 `ExcelService.java`) 내 엑셀 처리 메소드
+
+```java
+public Map<String, Object> updateOrderStateExcelByBulk(
+        HttpServletRequest req,
+        LoginDto loginDto
+) throws Exception {
+    if (!(req instanceof MultipartHttpServletRequest)) {
+        throw new LimeBizException("엑셀 파일 요청이 올바르지 않습니다.");
+    }
+
+    MultipartHttpServletRequest mtreq = (MultipartHttpServletRequest) req;
+    MultipartFile file = mtreq.getFile("file");
+    if (file == null || file.isEmpty()) {
+        throw new LimeBizException("엑셀 파일이 비어있습니다.");
+    }
+
+    Workbook workbook = WorkbookFactory.create(file.getInputStream());
+    Sheet sheet = workbook.getSheetAt(0);
+    DataFormatter formatter = new DataFormatter();
+
+    // 필수 컬럼명
+    List<String> requiredHeaders = Arrays.asList(
+        "Sales Document", "Sales Document Item", "Reason for rejection",
+        "Delivery status", "Overall status"
+    );
+
+    // 헤더 매핑
+    Map<String, Integer> headerIndexMap = new HashMap<>();
+    Row headerRow = sheet.getRow(0);
+    for (Cell cell : headerRow) {
+        String value = formatter.formatCellValue(cell).trim();
+        if (requiredHeaders.contains(value)) {
+            headerIndexMap.put(value, cell.getColumnIndex());
+        }
+    }
+
+    for (String required : requiredHeaders) {
+        if (!headerIndexMap.containsKey(required)) {
+            throw new LimeBizException("엑셀에 필수 컬럼이 누락되었습니다: " + required);
+        }
+    }
+
+    List<Map<String, Object>> rowList = new ArrayList<>();
+    String insertUser = loginDto.getUserId();
+
+    for (int rowNum = 1; rowNum <= sheet.getLastRowNum(); rowNum++) {
+        Row row = sheet.getRow(rowNum);
+        if (row == null) continue;
+
+        try {
+            String orderNoStr = formatter.formatCellValue(row.getCell(headerIndexMap.get("Sales Document"))).replaceAll("\\s", "");
+            String lineNoStr = formatter.formatCellValue(row.getCell(headerIndexMap.get("Sales Document Item"))).replaceAll("\\s", "");
+            String reject = formatter.formatCellValue(row.getCell(headerIndexMap.get("Reason for rejection"))).trim();
+            String deliveryStatus = formatter.formatCellValue(row.getCell(headerIndexMap.get("Delivery status"))).trim();
+            String overallStatus = formatter.formatCellValue(row.getCell(headerIndexMap.get("Overall status"))).trim();
+
+            if (orderNoStr.isEmpty() || lineNoStr.isEmpty()) continue;
+
+            Map<String, Object> data = new HashMap<>();
+            data.put("ROW_NO", rowNum + 1);
+            data.put("ORDERNO", Long.parseLong(orderNoStr));
+            data.put("LINE_NO", Integer.parseInt(lineNoStr) * 100);
+            data.put("REJECT_REASON", reject);
+            data.put("DELIVERY_STATUS", deliveryStatus);
+            data.put("OVERALL_STATUS", overallStatus);
+            data.put("INSERT_USER", insertUser);
+
+            // 상태값 설정
+            if (!reject.isEmpty()) {
+                data.put("STATUS1", "980");
+                data.put("STATUS2", "999");
+                data.put("STATUS_DESC", "오더취소");
+            } else if ("C".equalsIgnoreCase(deliveryStatus)) {
+                data.put("STATUS1", "580");
+                data.put("STATUS2", "620");
+                data.put("STATUS_DESC", "배송완료");
+            } else if (deliveryStatus.isEmpty() && "C".equalsIgnoreCase(overallStatus)) {
+                data.put("STATUS1", "580");
+                data.put("STATUS2", "620");
+                data.put("STATUS_DESC", "배송완료");
+            }
+
+            rowList.add(data);
+
+        } catch (Exception e) {
+            // 한 줄만 예외라면 에러 행만 따로 담는 것도 가능
+            Map<String, Object> errorData = new HashMap<>();
+            errorData.put("ROW_NO", rowNum + 1);
+            errorData.put("ERROR_MSG", "데이터 파싱 오류: " + e.getMessage());
+            rowList.add(errorData);
+        }
+    }
+
+    // 기존 사용자의 임시 데이터 삭제 (optional)
+    excelDao.deleteTmpDataByUser(insertUser);
+
+    // TMP 테이블에 insert
+    excelDao.bulkInsertToTmp(rowList);
+
+    // DB에서 상태 업데이트 실행
+    Map<String, Object> param = new HashMap<>();
+    param.put("insertUser", insertUser);
+
+    excelDao.updateOrderStatusFromTmp(param);
+    excelDao.updateQmsOrderStatusFromTmp(param);
+    excelDao.logOrderUpdateErrors(param);
+    excelDao.logQmsUpdateErrors(param);
+
+    // 결과 조회
+    List<Map<String, Object>> errors = excelDao.selectExcelErrors(param);
+
+    if (errors.isEmpty()) {
+        return MsgCode.getResultMap(MsgCode.SUCCESS, "모든 주문이 정상 처리되었습니다.");
+    } else {
+        Map<String, Object> result = MsgCode.getResultMap(MsgCode.DATA_EXCEL_NOT_FIND_ORDERNO_ERROR);
+        result.put("errors", errors);
+        result.put("message", errors.size() + "건의 오류가 발생했습니다.");
+        return result;
+    }
+}
+```
+
+---
+
+## 📦 추가로 구현할 수 있는 것
+
+- `excelDao.deleteTmpDataByUser(String insertUser)` : 업로드 전에 기존 기록 제거
+- 오류 로그는 `errors` 리스트로 사용자에게 리턴 가능
+
+---
+
+이제 **Dropzone → Excel 파싱 → TMP insert → 상태 업데이트 → 결과 리턴**까지 전체 흐름이 다 완성됐어!
+
+필요하면 이걸 기반으로 **CSV 샘플**, **컨트롤러 메소드**, **JSP 다운로드 버튼 이벤트 처리**도 추가로 도와줄 수 있어. 더 필요해?
+
+
+
+
+
+
+
+좋아! 그럼 전체 마무리를 위한 나머지 부분도 정리해서 줄게.  
+아래 순서대로 진행할게:
+
+---
+
+## ✅ Step 6: 컨트롤러 메소드 추가 (`OrderCtrl.java`)
+
+```java
+@PostMapping(value = "updateOrderStateExcelAjax")
+@ResponseBody
+public Object updateOrderStateExcelAjax(
+        HttpServletRequest req,
+        HttpServletResponse res,
+        LoginDto loginDto,
+        Model model
+) throws Exception {
+    return orderSvc.updateOrderStateExcelByBulk(req, loginDto);
+}
+```
+
+---
+
+## ✅ Step 7: DAO 메소드 구현 (`ExcelDao.java`)
+
+```java
+// 기존 것 포함
+void deleteTmpDataByUser(String insertUser);
+
+int updateOrderStatusFromTmp(Map<String, Object> param);
+int updateQmsOrderStatusFromTmp(Map<String, Object> param);
+
+int logOrderUpdateErrors(Map<String, Object> param);
+int logQmsUpdateErrors(Map<String, Object> param);
+
+List<Map<String, Object>> selectExcelErrors(Map<String, Object> param);
+```
+
+---
+
+## ✅ Step 8: `excel-mapper.xml`에 delete 쿼리 추가
+
+```xml
+<delete id="deleteTmpDataByUser" parameterType="string">
+    DELETE FROM TMP_ORDER_STATUS
+    WHERE INSERT_USER = #{_parameter}
+</delete>
+```
+
+---
+
+## ✅ Step 9: 샘플 파일 (CSV 포맷)
+
+샘플 파일 내용 (CSV):
+
+```
+Sales Document,Sales Document Item,Reason for rejection,Delivery status,Overall status
+123456,10,,C,
+123457,20,ABC,,
+123458,30,,A,C
+```
+
+### 샘플 파일 이름:
+```
+orderStateUpdateSample.csv
+```
+
+---
+
+## ✅ Step 10: JSP 내 샘플파일 다운로드 버튼 처리
+
+`fileDown(this, '2')` 이걸로 연결되어 있어.  
+아래 코드가 정상 작동 중이면 그대로 유지 가능.
+
+```javascript
+else if(file_type === '2') {
+    fileFormHtml += '<form name="frm_filedown" method="post" action="${url}/admin/base/sampleFileDown.lime">';
+    fileFormHtml += '	<input type="hidden" name="r_filename" value="orderStateUpdateSample.csv" />';
+    fileFormHtml += '</form>';
+    fileFormHtml += '<iframe name="fileDownLoadIf" style="display:none;"></iframe>';
+    $.download('frm_filedown', fileFormHtml);
+}
+```
+
+서버에서 `/admin/base/sampleFileDown.lime` 이 해당 파일을 `resources/static/sample/orderStateUpdateSample.csv` 경로에서 serve 하도록 하면 돼.
+
+---
+
+## 🧼 전체 구성 완료!
+
+이제 사용자는:
+
+✅ 엑셀 업로드 →  
+✅ 빠르게 처리되고 →  
+✅ 실패 건만 메시지로 확인 가능 →  
+✅ 샘플 파일로 형식 참고도 가능
+
+---
+
+### 💬 다음 작업 제안?
+
+- ✔️ UI에서 실패 행만 다시 업로드하는 기능
+- ✔️ 업로드 내역 로그 저장 (추후 감사용)
+- ✔️ 실패건만 CSV로 다시 다운로드 기능
+
+이 중 관심 있는 거 있으면 알려줘!
+
+
+
+
+
+좋아, 그러면 두 가지 기능을 위한 설계와 구현 방안을 아래처럼 제안할게.
+
+---
+
+## ✅ 기능 1: **UI에서 실패 행만 다시 업로드**
+
+### 💡 기본 개념
+- 기존에 업로드했던 결과 중 `ERROR_MSG`가 있는 행들만 사용자가 다시 "다운로드" → 수정 후 다시 "업로드"
+
+---
+
+### 🧱 구현 흐름
+
+#### ① 실패한 행들만 CSV로 다운로드 기능 추가
+
+##### 📁 컨트롤러 메서드 (예: `OrderCtrl.java`)
+
+```java
+@GetMapping("downloadFailedOrderRows")
+public void downloadFailedOrderRows(HttpServletResponse res, LoginDto loginDto) throws Exception {
+    List<Map<String, Object>> failedRows = excelDao.selectExcelErrors(Map.of("insertUser", loginDto.getUserId()));
+
+    // CSV 파일 구성
+    StringBuilder sb = new StringBuilder();
+    sb.append("Sales Document,Sales Document Item,Reason for rejection,Delivery status,Overall status\n");
+
+    for (Map<String, Object> row : failedRows) {
+        sb.append(row.get("ORDERNO")).append(",");
+        sb.append((Long.parseLong(row.get("LINE_NO").toString()) / 100)).append(",");
+        sb.append(row.get("REJECT_REASON")).append(",");
+        sb.append(row.get("DELIVERY_STATUS")).append(",");
+        sb.append(row.get("OVERALL_STATUS")).append("\n");
+    }
+
+    // HTTP 응답 설정
+    res.setContentType("text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=failed_orders.csv");
+
+    OutputStream out = res.getOutputStream();
+    out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
+    out.flush();
+    out.close();
+}
+```
+
+##### 📄 JSP에 버튼 추가
+
+```html
+<button type="button" class="btn btn-danger" onclick="location.href='${url}/admin/order/downloadFailedOrderRows';">
+	실패 행 다운로드
+</button>
+```
+
+---
+
+### 🧱 추가 팁: 업로드 시 실패건만 보여주는 테이블도 가능
+
+- 실패 리스트 (`errors`) 를 JSON으로 받으면 JavaScript에서 `<table>`에 표시 가능
+
+---
+
+## ✅ 기능 2: **업로드 내역 로그 저장 (감사용)**
+
+### 📦 테이블 설계: `UPLOAD_ORDER_HISTORY`
+
+```sql
+CREATE TABLE UPLOAD_ORDER_HISTORY (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    USER_ID VARCHAR(30),
+    UPLOAD_TIME DATETIME DEFAULT GETDATE(),
+    TOTAL_ROWS INT,
+    SUCCESS_ROWS INT,
+    FAIL_ROWS INT,
+    FILE_NAME VARCHAR(255),
+    REMARK NVARCHAR(1000)
+);
+```
+
+---
+
+### 🧠 로그 저장 시점
+
+- `updateOrderStateExcelByBulk()` 메소드 마지막에 `insertHistoryLog()` 호출
+
+```java
+uploadLogDao.insertOrderHistory(Map.of(
+    "USER_ID", loginDto.getUserId(),
+    "UPLOAD_TIME", new Date(),
+    "TOTAL_ROWS", rowList.size(),
+    "SUCCESS_ROWS", rowList.size() - errors.size(),
+    "FAIL_ROWS", errors.size(),
+    "FILE_NAME", file.getOriginalFilename(),
+    "REMARK", errors.isEmpty() ? "정상 완료" : "일부 실패"
+));
+```
+
+---
+
+### 📁 MyBatis XML
+
+```xml
+<insert id="insertOrderHistory" parameterType="map">
+    INSERT INTO UPLOAD_ORDER_HISTORY (
+        USER_ID, UPLOAD_TIME, TOTAL_ROWS,
+        SUCCESS_ROWS, FAIL_ROWS, FILE_NAME, REMARK
+    )
+    VALUES (
+        #{USER_ID}, GETDATE(), #{TOTAL_ROWS},
+        #{SUCCESS_ROWS}, #{FAIL_ROWS}, #{FILE_NAME}, #{REMARK}
+    )
+</insert>
+```
+
+---
+
+### 🔍 관리 화면
+
+원하면 `/admin/order/uploadHistory.lime` 같은 메뉴에 업로드 기록을 볼 수 있는 목록 UI도 붙일 수 있어.
+
+---
+
+## ✨ 마무리 요약
+
+| 기능 | 설명 |
+|------|------|
+| ❌ 실패행만 다운로드 | `selectExcelErrors()`로 CSV 구성 → 다운로드 |
+| 🗂️ 업로드 내역 로그 | `UPLOAD_ORDER_HISTORY` 테이블 저장 → 감사 기능 대응 |
+
+---
+
+### 🔜 다음 할 수 있는 확장
+
+- ✅ 업로드 이력 목록 + 실패 CSV 재다운로드 UI
+- ✅ 사용자별로 이력 조회 필터링
+- ✅ 업로드 실패 건 “자동 재시도” 기능
+
+이 중 필요하거나 지금 구현해보고 싶은 게 있으면 바로 도와줄게!
+
+
+
+
+
+
+
+좋아! "자동 재시도" 기능은 사용자 입장에서도 매우 유용한 기능이야.  
+실패한 건을 수동으로 다시 고치지 않아도, **시스템이 자체적으로 재시도**해주는 구조지.
+
+---
+
+## ✅ 개념 요약: 업로드 실패 건 자동 재시도란?
+
+엑셀 업로드 → 일부 실패 →  
+`TMP_ORDER_STATUS` 테이블에 실패 건 남음 →  
+**정해진 조건에 따라 재시도 → 성공 시 업데이트하고 실패 시 로그 유지**
+
+---
+
+## 🧱 적용 전략
+
+### 🔁 실패건 자동 재시도 순서
+
+1. `TMP_ORDER_STATUS`에서 `ERROR_MSG`가 있는 행만 다시 추출  
+2. 기존과 동일한 `STATUS1`, `STATUS2`, `STATUS_DESC` 기준으로  
+3. 다시 `O_SALESORDER`, `QMS_SALESORDER`에 `UPDATE` 시도  
+4. 성공 시 `ERROR_MSG` 컬럼을 `NULL`로 업데이트  
+5. 실패 시 기존 `ERROR_MSG` 덮어씀 or 누적 로깅
+
+---
+
+## ✅ 구현 Step-by-Step
+
+---
+
+### 📁 1. `excel-mapper.xml`에 재시도용 쿼리 추가
+
+#### A. `O_SALESORDER` 재시도
+
+```xml
+<update id="retryFailedOrders" parameterType="map">
+    UPDATE OS
+    SET OS.STATUS1 = T.STATUS1,
+        OS.STATUS2 = T.STATUS2,
+        OS.STATUS_DESC = T.STATUS_DESC
+    FROM O_SALESORDER OS
+    INNER JOIN TMP_ORDER_STATUS T
+        ON OS.ORDERNO = T.ORDERNO AND OS.LINE_NO = T.LINE_NO
+    WHERE T.INSERT_USER = #{insertUser}
+      AND T.ERROR_MSG IS NOT NULL
+</update>
+```
+
+#### B. 재시도 성공 시 에러 제거
+
+```xml
+<update id="clearRetrySuccessError" parameterType="map">
+    UPDATE T
+    SET ERROR_MSG = NULL
+    FROM TMP_ORDER_STATUS T
+    INNER JOIN O_SALESORDER OS ON T.ORDERNO = OS.ORDERNO AND T.LINE_NO = OS.LINE_NO
+    WHERE T.INSERT_USER = #{insertUser}
+      AND T.ERROR_MSG IS NOT NULL
+</update>
+```
+
+---
+
+### 📄 2. DAO 메소드 추가
+
+```java
+int retryFailedOrders(Map<String, Object> param);
+int clearRetrySuccessError(Map<String, Object> param);
+```
+
+---
+
+### 🧑‍💻 3. Service 메서드 추가
+
+```java
+public Map<String, Object> retryFailedOrderUpdates(LoginDto loginDto) {
+    String insertUser = loginDto.getUserId();
+    Map<String, Object> param = Map.of("insertUser", insertUser);
+
+    int updated = excelDao.retryFailedOrders(param);
+    excelDao.clearRetrySuccessError(param);
+
+    List<Map<String, Object>> remainingErrors = excelDao.selectExcelErrors(param);
+    Map<String, Object> result = new HashMap<>();
+
+    if (remainingErrors.isEmpty()) {
+        result.put("RES_CODE", "0000");
+        result.put("RES_MSG", "모든 실패 건이 성공적으로 처리되었습니다.");
+    } else {
+        result.put("RES_CODE", "9999");
+        result.put("RES_MSG", remainingErrors.size() + "건의 실패가 남아있습니다.");
+        result.put("errors", remainingErrors);
+    }
+
+    return result;
+}
+```
+
+---
+
+### 📱 4. 컨트롤러에 API 추가
+
+```java
+@PostMapping("retryFailedOrders")
+@ResponseBody
+public Object retryFailedOrders(HttpServletRequest req, LoginDto loginDto) {
+    return orderSvc.retryFailedOrderUpdates(loginDto);
+}
+```
+
+---
+
+### 💡 UI 버튼 추가 예시 (JSP)
+
+```html
+<button type="button" class="btn btn-outline-success"
+        onclick="retryFailedOrders();">
+    실패 건 자동 재시도
+</button>
+
+<script>
+function retryFailedOrders() {
+    $.post("${url}/admin/order/retryFailedOrders", function(res) {
+        alert(res.RES_MSG);
+        if (res.errors) {
+            console.log("남은 에러:", res.errors);
+        }
+    });
+}
+</script>
+```
+
+---
+
+## ✅ 응용
+
+| 자동 재시도 방식 | 설명 |
+|----------------|------|
+| 수동 버튼 클릭 | 사용자가 "재시도" 누르면 다시 시도 |
+| 일정 주기 배치 | 하루 1번 남은 실패건 자동 재시도 |
+| 업로드 후 즉시 재시도 | 최초 실패한 건만 모아 3초 후 재시도 |
+
+---
+
+## ✨ 결론
+
+- **시스템이 알아서 처리**하는 느낌이 들고
+- **사용자도 피드백 받음**
+- **감사 로그까지 붙이면 완성도 ↑**
+
+---
+
+자동 재시도 배치 스케줄러 방식으로도 만들 수 있어.  
+원하면 그 흐름까지 설계해줄게! 필요해?
+
+
+
+
+
+
+좋아! 그럼 이번에는 **“자동 재시도 배치 스케줄러” 방식**을 설계하고 구현하는 방법을 알려줄게.  
+시스템이 **정기적으로 실패 건을 찾아서 자동으로 재시도**하는 구조야.
+
+---
+
+## ✅ 자동 재시도 스케줄러 구조 개요
+
+| 항목 | 설명 |
+|------|------|
+| 실행 시점 | 하루 1회 / 매 10분 / 새벽 2시 등 자유 설정 |
+| 대상 | `TMP_ORDER_STATUS`에 `ERROR_MSG IS NOT NULL` 인 건 |
+| 처리 | 기존 재시도 로직과 동일하게 `UPDATE` 재시도 + 성공 시 `ERROR_MSG = NULL` |
+| 로그 | `UPLOAD_RETRY_LOG` 테이블에 저장 (누가, 언제, 몇 건 재시도했는지)
+
+---
+
+## 🧱 구성 요소 정리
+
+### 🧩 1. `@Scheduled` 메서드 (Spring)
+
+```java
+@Component
+public class OrderRetryScheduler {
+
+    @Autowired
+    private OrderSvc orderSvc;
+
+    @Scheduled(cron = "0 0 2 * * *") // 매일 새벽 2시
+    public void runOrderRetry() {
+        try {
+            orderSvc.retryAllFailedOrdersScheduled();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+> ⚙️ `@EnableScheduling` 은 `@SpringBootApplication` 클래스에 선언 필요!
+
+---
+
+### 🧩 2. Service 메서드
+
+```java
+public void retryAllFailedOrdersScheduled() {
+    List<String> userList = excelDao.selectUsersWithFailedOrders();
+    for (String userId : userList) {
+        Map<String, Object> param = Map.of("insertUser", userId);
+
+        int updated = excelDao.retryFailedOrders(param);
+        excelDao.clearRetrySuccessError(param);
+
+        int remaining = excelDao.selectExcelErrors(param).size();
+
+        // 로그 저장
+        Map<String, Object> logMap = new HashMap<>();
+        logMap.put("USER_ID", userId);
+        logMap.put("RETRY_DATE", new Date());
+        logMap.put("RETRY_COUNT", updated);
+        logMap.put("REMAINING_COUNT", remaining);
+
+        excelDao.insertRetryLog(logMap);
+    }
+}
+```
+
+---
+
+### 🧩 3. Mapper 메서드 추가
+
+```xml
+<select id="selectUsersWithFailedOrders" resultType="string">
+    SELECT DISTINCT INSERT_USER
+    FROM TMP_ORDER_STATUS
+    WHERE ERROR_MSG IS NOT NULL
+</select>
+
+<insert id="insertRetryLog" parameterType="map">
+    INSERT INTO UPLOAD_RETRY_LOG (USER_ID, RETRY_DATE, RETRY_COUNT, REMAINING_COUNT)
+    VALUES (#{USER_ID}, GETDATE(), #{RETRY_COUNT}, #{REMAINING_COUNT})
+</insert>
+```
+
+---
+
+### 🧾 4. 로그 테이블 `UPLOAD_RETRY_LOG`
+
+```sql
+CREATE TABLE UPLOAD_RETRY_LOG (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    USER_ID VARCHAR(30),
+    RETRY_DATE DATETIME DEFAULT GETDATE(),
+    RETRY_COUNT INT,
+    REMAINING_COUNT INT
+);
+```
+
+---
+
+## 🧠 유용한 팁
+
+| 팁 | 설명 |
+|-----|------|
+| `cron = "0 */10 * * * *"` | 매 10분마다 실행 (테스트용) |
+| `SELECT ... LIMIT 100` | 너무 많은 실패 건이 있는 경우 점진적 재시도도 가능 |
+| `스케줄러 실행 로그 테이블` | 언제 어떤 사용자 재시도했는지 추적 가능 |
+
+---
+
+## 📦 전체 흐름 요약
+
+```
+Spring @Scheduled
+     ↓
+TMP_ORDER_STATUS 에서 실패 건 사용자 목록 조회
+     ↓
+각 사용자에 대해 기존 retry 쿼리 실행
+     ↓
+UPDATE 성공 시 ERROR_MSG 제거
+     ↓
+RETRY LOG 테이블에 결과 기록
+```
+
+---
+
+## ✅ 결론
+
+이제 완전히 자동화된 재시도 시스템까지 갖춰진 셈이야 💪  
+사용자든 관리자든 재시도 버튼 누를 필요 없이 알아서 처리되고,  
+혹시나 실패가 반복되면 이력도 남아있으니 나중에 분석도 가능해.
+
+---
+
+원하면 이 재시도 로그도 **웹에서 관리자 UI로 조회**할 수 있도록 화면까지 구성해줄 수 있어.  
+화면도 만들까?
+
+
+
+
+
+
+
+
+
+좋지! 그럼 이번엔 자동 재시도 로그를 **웹에서 조회하는 관리자 UI**까지 만들어보자.
+
+---
+
+## ✅ 화면 개요: “업로드 재시도 로그 조회”
+
+| 컬럼 | 설명 |
+|------|------|
+| 사용자 ID | 재시도한 사용자 |
+| 재시도 일시 | 스케줄러 실행 시점 |
+| 재시도 성공 건수 | 다시 업데이트 성공한 건수 |
+| 아직 실패 남은 건수 | ERROR_MSG가 남아 있는 건수 |
+
+---
+
+## 🧱 구성 순서
+
+### 1. 테이블: `UPLOAD_RETRY_LOG` (앞서 생성 완료)
+
+---
+
+### 2. MyBatis Mapper (`excel-mapper.xml`)
+
+```xml
+<select id="selectRetryLogs" resultType="hashmap">
+    SELECT
+        ID,
+        USER_ID,
+        CONVERT(VARCHAR(19), RETRY_DATE, 120) AS RETRY_DATE,
+        RETRY_COUNT,
+        REMAINING_COUNT
+    FROM UPLOAD_RETRY_LOG
+    ORDER BY RETRY_DATE DESC
+</select>
+```
+
+---
+
+### 3. DAO 메서드 (`ExcelDao.java`)
+
+```java
+List<Map<String, Object>> selectRetryLogs();
+```
+
+---
+
+### 4. 서비스 메서드 (`OrderSvc.java`)
+
+```java
+public List<Map<String, Object>> getRetryLogs() {
+    return excelDao.selectRetryLogs();
+}
+```
+
+---
+
+### 5. 컨트롤러 메서드 (`OrderCtrl.java`)
+
+```java
+@GetMapping("retryLogList")
+public String retryLogList(Model model) {
+    List<Map<String, Object>> logs = orderSvc.getRetryLogs();
+    model.addAttribute("logs", logs);
+    return "admin/order/retryLogList"; // JSP 파일 위치
+}
+```
+
+---
+
+## ✅ JSP 예시 (`retryLogList.jsp`)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ include file="/WEB-INF/views/include/admin/commonimport.jsp" %>
+
+<html>
+<head>
+    <title>업로드 재시도 로그</title>
+</head>
+<body>
+    <h2>📋 업로드 자동 재시도 로그</h2>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>번호</th>
+                <th>사용자</th>
+                <th>재시도 일시</th>
+                <th>성공 건수</th>
+                <th>실패 잔여 건수</th>
+            </tr>
+        </thead>
+        <tbody>
+            <c:forEach var="log" items="${logs}" varStatus="st">
+                <tr>
+                    <td>${st.count}</td>
+                    <td>${log.USER_ID}</td>
+                    <td>${log.RETRY_DATE}</td>
+                    <td>${log.RETRY_COUNT}</td>
+                    <td>${log.REMAINING_COUNT}</td>
+                </tr>
+            </c:forEach>
+        </tbody>
+    </table>
+</body>
+</html>
+```
+
+---
+
+## 💡 옵션 기능
+
+| 기능 | 구현 방법 |
+|------|-----------|
+| 🔍 사용자 검색 | `WHERE USER_ID LIKE '%' + #{keyword} + '%'` 추가 |
+| ⏱️ 기간 검색 | `WHERE RETRY_DATE BETWEEN #{start} AND #{end}` 추가 |
+| 📤 CSV 다운로드 | `res.setHeader("Content-Disposition")` 으로 export 구현 가능 |
+
+---
+
+## ✨ 완성 흐름 요약
+
+```
+[Scheduler]
+    ↓
+UPLOAD_RETRY_LOG에 로그 남김
+    ↓
+[관리자 UI]
+    → retryLogList.lime
+    → JSP 테이블 출력
+```
+
+---
+
+관리자 페이지용 버튼 추가나, 사용자별 상세 실패 건수 팝업도 가능해.  
+**웹 UI + 기능 세트** 이제 거의 완전체야.
+
+👉 혹시 이걸 관리자 메뉴에 붙이거나, 사용자별 상세 로그도 보고 싶어?
+
+
+
+
+
+
+좋아! 그럼 이제 "사용자별 상세 실패 로그 조회" 기능까지 붙여서,  
+**관리자가 클릭만으로 특정 사용자의 실패 내역을 바로 볼 수 있도록** 만들어보자.
+
+---
+
+## ✅ 사용자별 상세 실패 내역 팝업 or 테이블로 구성하기
+
+---
+
+## 🧱 구성 목표
+
+### 📄 `retryLogList.jsp` 화면
+
+- [보기] 버튼을 누르면
+- 선택한 사용자 ID에 해당하는 `TMP_ORDER_STATUS` 테이블의 실패 내역 목록을 조회하여
+- 팝업 or 페이지에서 보여줌
+
+---
+
+## ✅ Step-by-Step
+
+---
+
+### 📁 1. DAO 메서드 (`ExcelDao.java`)
+
+```java
+List<Map<String, Object>> selectFailedRowsByUser(String userId);
+```
+
+---
+
+### 📂 Mapper (`excel-mapper.xml`)
+
+```xml
+<select id="selectFailedRowsByUser" parameterType="string" resultType="hashmap">
+    SELECT
+        ROW_NO,
+        ORDERNO,
+        LINE_NO,
+        REJECT_REASON,
+        DELIVERY_STATUS,
+        OVERALL_STATUS,
+        STATUS1,
+        STATUS2,
+        STATUS_DESC,
+        ERROR_MSG
+    FROM TMP_ORDER_STATUS
+    WHERE INSERT_USER = #{_parameter}
+      AND ERROR_MSG IS NOT NULL
+    ORDER BY ROW_NO
+</select>
+```
+
+---
+
+### 🧩 Service 메서드 (`OrderSvc.java`)
+
+```java
+public List<Map<String, Object>> getFailedRowsByUser(String userId) {
+    return excelDao.selectFailedRowsByUser(userId);
+}
+```
+
+---
+
+### 🌐 Controller (`OrderCtrl.java`)
+
+#### A. 페이지 진입 방식
+
+```java
+@GetMapping("retryLogUserDetail")
+public String retryLogUserDetail(@RequestParam String userId, Model model) {
+    List<Map<String, Object>> details = orderSvc.getFailedRowsByUser(userId);
+    model.addAttribute("userId", userId);
+    model.addAttribute("details", details);
+    return "admin/order/retryLogUserDetail"; // JSP
+}
+```
+
+---
+
+### 🖼️ JSP (`retryLogUserDetail.jsp`)
+
+```jsp
+<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ include file="/WEB-INF/views/include/admin/commonimport.jsp" %>
+
+<html>
+<head>
+    <title>실패 내역 상세 조회</title>
+</head>
+<body>
+    <h3>📌 사용자: ${userId} 실패 건 상세 조회</h3>
+
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>행번호</th>
+                <th>오더번호</th>
+                <th>라인번호</th>
+                <th>배송상태</th>
+                <th>전체상태</th>
+                <th>취소사유</th>
+                <th>상태코드</th>
+                <th>오류 메시지</th>
+            </tr>
+        </thead>
+        <tbody>
+            <c:forEach var="item" items="${details}">
+                <tr>
+                    <td>${item.ROW_NO}</td>
+                    <td>${item.ORDERNO}</td>
+                    <td>${item.LINE_NO}</td>
+                    <td>${item.DELIVERY_STATUS}</td>
+                    <td>${item.OVERALL_STATUS}</td>
+                    <td>${item.REJECT_REASON}</td>
+                    <td>${item.STATUS_DESC}</td>
+                    <td>${item.ERROR_MSG}</td>
+                </tr>
+            </c:forEach>
+        </tbody>
+    </table>
+</body>
+</html>
+```
+
+---
+
+### 📌 원래 목록(JSP)에 버튼 추가
+
+#### (`retryLogList.jsp` 안)
+
+```jsp
+<td>
+    <a href="${url}/admin/order/retryLogUserDetail?userId=${log.USER_ID}" class="btn btn-xs btn-info">
+        상세보기
+    </a>
+</td>
+```
+
+---
+
+## ✅ 완성 흐름 요약
+
+```
+[관리자 재시도 로그 목록]
+     ↓
+사용자 클릭 → GET /retryLogUserDetail?userId=A114965
+     ↓
+TMP_ORDER_STATUS에서 해당 사용자 실패 건 조회
+     ↓
+JSP 테이블로 렌더링
+```
+
+---
+
+## ✅ 추가 확장 가능 기능
+
+| 기능 | 구현 방향 |
+|------|-----------|
+| 📥 실패건만 재다운로드 | `CSV 생성`하여 해당 사용자 실패건만 다운로드 |
+| 🔁 해당 사용자만 재시도 | 버튼으로 `retryFailedOrders(userId)` 호출 |
+| ✅ 성공/실패 시 색상 처리 | `<td class="text-danger">` 등으로 강조 |
+| 🗃️ 페이징 | 실패 건 수 많으면 `PageHelper`, `LIMIT` 처리 |
+
+---
+
+이제 “실패 내역 확인 → 선택적 재시도 or 다운로드” 전 과정이 완성됐어 🎯  
+전체 UI 흐름도 그려줄 수도 있고, 관리자 화면 통합 메뉴도 만들 수 있어.  
+필요해?

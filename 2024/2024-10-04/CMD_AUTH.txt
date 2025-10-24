@@ -1,0 +1,18 @@
+
+
+C:\Temp\PSExec>RunPSExec.cmd
+
+C:\Temp\PSExec>C:\Temp\PSExec\PsExec.exe -s -i cmd.exe
+
+
+
+"C:\STS_EORDER\STS_4.8.0.RELEASE\SpringToolSuite4.exe"
+"C:\Users\Administrator\AppData\Local\Postman\Postman.exe"
+
+"C:\Program Files\SmartBear\ReadyAPI-3.43.1\bin\ReadyAPI.exe"
+
+"C:\Users\Administrator\AppData\Local\Postman"
+
+
+
+

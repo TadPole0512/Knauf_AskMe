@@ -1,0 +1,134 @@
+
+오류내용 : 'UDF_SETPASSWORD' is not a recognized built-in function name.
+
+메뉴 : 거래처관리 > 거래처 현황 > 계정관리
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\common\CommonCtrl.java
+
+310	/**
+311	 * 납품처계정 자동생성 Ajax.
+312	 * @작성일 : 2020. 3. 23.
+313	 * @작성자 : an
+314	 */
+315	@ResponseBody
+316	@PostMapping(value="/common/insertShiptoUserAjax")
+317	public Object insertShiptoUserAjax(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+318		return userSvc.insertShiptoUserTransaction(params, req, loginDto);
+319	}
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\UserSvc.java
+
+1257	/**
+1258	 * 납품처계정 자동생성
+1259	 * @작성일 : 2020. 3. 23.
+1260	 * @작성자 : an
+1261	 */
+1262	public Map<String, Object> insertShiptoUserTransaction(Map<String, Object> params, HttpServletRequest req, LoginDto loginDto) throws Exception {
+
+
+
+		// 계정이 없는 거래처
+1274		int custCnt = userDao.cntCustomerUser(custParam);
+1275		if(custCnt < 1) {
+1276			userDao.inCustomerUser(custParam); // 오류 발생
+1277			custParam.clear();
+1278		}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\UserDao.java
+
+84	public int inCustomerUser(Map<String, Object> param) {
+85		return sqlSession.insert("inCustomerUser", param);
+86	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_user.xml
+
+eorder.o_user.inCustomerUser
+
+714	<insert id="inCustomerUser" parameterType="hashmap">
+715		INSERT INTO O_USER(USERID, USER_PWD, PASSCHANGE_YN, USER_NM, AUTHORITY, TEL_NO, AGREE_YN, INSERT_DT, CUST_CD, DEPT_CD, JDEID, INSERTID, UPDATE_DT, UPDATEID, TEAM_NM, TEAM_CD, CELL_NO, DUMMY, FAIL_CNT)
+716		SELECT
+717	      oc.CUST_CD                          AS USERID,
+718	      UDF_SETPASSWORD(oc.CUST_CD)		  AS USER_PWD,
+719	      'N'                                 AS PASSCHANGE_YN,
+720	      TRIM(oc.CUST_NM)                    AS USER_NM,
+721	      'CO'                                AS AUTHORITY,
+722	      -- Trim(tel.WPAR1) + '-' + Trim(tel.WPPH1) AS TEL_NO,
+723	      ''								  AS TEL_NO,
+724	      'N'                                 AS AGREE_YN,
+725	      TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS INSERT_DT,
+726	      oc.CUST_CD                       	  AS CUST_CD,
+727	      ''                                  AS DEPT_CD,
+728	      ''                                  AS JDEID,
+729	      ''                                  AS INSERTID,
+730	      ''                                  AS UPDATE_DT,
+731	      ''                                  AS UPDATEID,
+732	      ''                                  AS TEAM_NM,
+733	      ''                                  AS TEAM_CD,
+734	      -- Trim(hptel.WPAR1) + '-' + Trim(hptel.WPPH1) AS CELL_NO,
+735	      ''								  AS CELL_NO,
+736	      '' DUMMY,
+737	      0 FAIL_CNT
+738	    FROM O_CUSTOMER oc 
+739	    WHERE oc.CUST_CD = #{mCustCd}
+740	</insert>
+	
+
+--10022040(String)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

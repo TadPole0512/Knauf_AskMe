@@ -1,0 +1,260 @@
+work history
+홍성근[Sungguen Hong]
+?
+홍성근[Sungguen Hong]
+?
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java
+
+331     // 2024-10-21 hsg 별칭 오류가 나서 수정. COD -> XX)
+332        List<Map<String, Object>> orderDetailList = orderSvc.getCustOrderDList(r_reqno, "", "", "XX.LINE_NO ASC ", 0, 0);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml
+
+list
+
+271?????????????????????<!-- 2024-10-18 HSG 조회조건 변경 : 종료일 이전이 아니라 종료일 다음날 이전으로 변경 -->
+272?????????????????????<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<]]> DATEADD(day, 1,CONVERT(DATE, #{r_inedate)))</if>
+
+
+
+C:\GitHub\Knauf_Eorder_JDE\src\main\resources\sql\mssql\o_qmsorder.xml
+
+49			<!-- 2024-10-24 hsg where 다음에 바로 and 가 나오는 오류 수정 -->
+50			<!-- AND 1 = 1 -->
+51			1 = 1
+
+
+145			<!-- 2024-10-24 hsg where 다음에 바로 and 가 나오는 오류 수정 -->
+146			<!-- AND 1 = 1 -->
+147			1 = 1
+
+
+
+{r_actualshipedt=20230508, rl_orderno=33713106, qms_status3=ALL, r_ordersdt=, rl_salesrepnm=, qms_status=ALL, qms_status2=ALL, rows=15, r_custcd=, qms_preyn=ALL, _search=false, r_shiptocd=, nd=1729746450733, r_actualshipsdt=20220401, page=1, sord=desc, r_orderedt=, sidx=, where=admin, r_adminauthority=AS, r_adminuserid=admin, r_startrow=1, r_endrow=15, totpage=0, startnumber=0, r_page=1, startpage=1, endpage=0, r_limitrow=15, limitrow15=selected='selected', r_orderby=ORDERNO DESC, LINE_NO ASC}
+
+
+
+
+/* eorder.o_qmsorder.cnt */
+SELECT
+	COUNT(*)
+FROM
+	qms_salesorder SO
+LEFT JOIN O_ITEM_NEW OIN ON
+	OIN.ITEM_CD = SO.ITEM_CD /*2024-09-30 hsg LINE_TY에 'Y'값이 없어 죠회가 되지 않아. LEFT JOIN 시 조건을 걸었음 */
+	and OIN.LINE_TY = 'Y'
+WHERE
+	/*2024-09-30 hsg LINE_TY에 'Y'값이 없어 죠회가 되지 않아. LEFT JOIN 시로 취치를 옮김 */
+	/* AND OIN.LINE_TY = 'Y' */
+	1 = 1
+	AND SO.ACTUAL_SHIP_DT >= ?
+	AND SO.ACTUAL_SHIP_DT <= ?
+	AND SO.ORDERNO LIKE '%' + ? + '%'
+
+;
+
+
+C:\GitHub\Knauf_Eorder_JDE\src\main\resources\sql\mssql\o_qmsorder.xml
+
+62	<!-- 2024-10-24 HSG 숫자형 변수의 조회조건에 LIKE로 되 있어서 오류발생  <if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%' </if> -->
+63	<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO #{rl_orderno} </if>
+
+
+
+159	<!-- 2024-10-24 HSG 숫자형 변수의 조회조건에 LIKE로 되어 있어서 오류발생  <if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO LIKE '%' + #{rl_orderno} + '%' </if> -->
+160	<if test="rl_orderno != null and rl_orderno != '' ">AND SO.ORDERNO #{rl_orderno} </if>
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml
+
+645		      <!-- 2024-10-24 HSG QMS 내화구조 품질관리서 수정. ,B.ADD1 +' '+ B.ADD2 + B.ADD3 + B.ADD4 AS CUST_ADDR -->
+646		      , B.ADD1 AS CUST_ADDR
+
+
+
+
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml
+
+190???<!-- 2024-10-21 HSG MS-SQL에서는 DUAL이라는 문법이 없고, SF_GETQMSID_SEQ함수에 접근하기 위해선 DBO.를 붙여줘야 한다.  -->
+191???<select id="getQmsOrderId" parameterType="hashmap" resultType="String">
+192???/* eorder.o_qmsorder.getQmsOrderId */
+193???/* SELECT SF_GETQMSID_SEQ(#{currQuarter}) AS NEW_QMS_ID FROM DUAL */
+194?????????SELECT dbo.SF_GETQMSID_SEQ(#{currQuarter}) AS NEW_QMS_ID
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml
+
+
+574???<!-- 2024-10-21 HSG MS-SQL에서는 WHERE절에서 두 개의 컬럼을 한 번에 비교할 수 없어서 WHERE절을 EXISTS로 수정 전 백업 -->
+??????<insert id="setQmsOrderFireproofInsert_2024-10-21_HSG" parameterType="hashmap" >
+??????/* eorder.o_qmsorder.setQmsOrderFireproofInsert */
+??????INSERT INTO QMS_ORD_FRCN(QMS_ID,QMS_SEQ,QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN)
+??????SELECT #{qmsId},#{qmsSeq},QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN
+??????  FROM QMS_ORD_FRCN
+?????? WHERE (QMS_ID,QMS_SEQ) IN (SELECT QMS_ID,QMS_SEQ
+??????                              FROM
+??????                            (SELECT RANK() OVER(PARTITION BY A.CUST_CD,C.SHIPTO_CD ORDER BY A.QMS_ID DESC, A.QMS_SEQ DESC,B.QMS_DETL_ID DESC) AS RNUM
+??????                                  ,A.*
+??????                              FROM QMS_ORD_MAST A
+??????                                  ,QMS_ORD_DETL B
+??????                                  ,QMS_SALESORDER C
+??????                             WHERE A.QMS_ID = B.QMS_ID
+??????                               AND A.QMS_SEQ = B.QMS_SEQ
+??????                               AND A.DELETEYN = 'N'
+??????                               AND B.DELETEYN = 'N'
+??????                               AND B.ORDERNO = C.ORDERNO
+??????                               AND B.LINE_NO = C.LINE_NO
+??????                               AND A.CUST_CD = #{custCd}
+??????                               AND C.SHIPTO_CD = #{orgShiptoCd}
+??????                            )WHERE RNUM = 1)
+??????</insert>
+??????
+
+599???<!-- 2024-10-21 HSG MS-SQL에서는 WHERE절에서 두 개의 컬럼을 한 번에 비교할 수 없어서 WHERE절을 EXISTS로 수정 -->
+??????<insert id="setQmsOrderFireproofInsert" parameterType="hashmap" >
+??????/* eorder.o_qmsorder.setQmsOrderFireproofInsert */
+??????INSERT INTO QMS_ORD_FRCN(QMS_ID,QMS_SEQ,QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN)
+??????SELECT #{qmsId},#{qmsSeq},QMS_FRCN_ID,KEYCODE,CREATEUSER,CREATETIME,UPDATEUSER,UPDATETIME,DELETEYN
+??????  FROM QMS_ORD_FRCN
+??????WHERE?EXISTS??????(
+????????????????????????????????????SELECT??????*
+????????????????????????????????????FROM??QMS_ORD_MAST A , QMS_ORD_DETL B , QMS_SALESORDER C
+????????????????????????????????????WHERE?A.QMS_ID = B.QMS_ID
+????????????????????????????????????AND?????????A.QMS_SEQ = B.QMS_SEQ
+????????????????????????????????????AND?????????QOF.QMS_ID = A.QMS_ID
+????????????????????????????????????AND?????????QOF.QMS_SEQ = A.QMS_SEQ
+????????????????????????????????????AND?????????A.DELETEYN = 'N'
+????????????????????????????????????AND?????????B.DELETEYN = 'N'
+????????????????????????????????????AND?????????B.ORDERNO = C.ORDERNO
+????????????????????????????????????AND?????????B.LINE_NO = C.LINE_NO
+????????????????????????????????????AND?????????A.CUST_CD = #{custCd}
+????????????????????????????????????AND?????????C.SHIPTO_CD = #{orgShiptoCd}
+??????????????????????????????)
+??????</insert>
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java
+
+1400        ??????//  2024-10-21 hsg MS-SQL에서 TO_CHAR 함수를 사용할 수 없어 FORMAT으로 변경
+//        ????????wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT >= TO_CHAR(SYSDATE, 'yyyymmdd'))";
+        ??????????wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT >= FORMAT(GETDATE(), 'yyyymmdd'))";
+        ????} else if( (cntDType==1) && bDeliv ) {
+        ????//  2024-10-21 hsg MS-SQL에서 TO_CHAR 함수를 사용할 수 없어 FORMAT으로 변경
+//        ????????wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT < TO_CHAR(SYSDATE, 'yyyymmdd'))";
+        ??????????wherebody_status += " AND ((SO.STATUS1=580 AND SO.STATUS2=620) AND SO.REQUEST_DT < FORMAT(GETDATE(), 'yyyymmdd'))";
+
+
+
+
+
+<!-- 이오더 자재주문서 폰트 크기 확대 요청 -->
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\common\orderPaperPop.jsp
+<!-- 2024-10-23 hsg 이오더 자재주문서 폰트 크기 확대 요청 관련 (td 태그에 스타일 추가 적용 : style="font-size: 15px; letter-spacing: 1px" -->
+239,240 / 257,258 / 260,261 / 270,271 / 278,279 / 288,299 / 298,299 / 310,311 / 320,321 / 336,227 / 378,379 / 381,382 /
+
+
+
+
+QMS 내화구조 품질관리서 수정내용
+
+18149847
+
+orderPrintPop(this, '', '');"
+
+ACTUAL_SHIP_DT:"202-09-26"
+ACTUAL_SHIP_QUARTER:"20243Q"
+
+qmsNoArr[rowData['QMS_ARR_TXT']]
+
+
+
+QMS 내화구조 품질관리서 수정내용을 보완하여 송부드립니다.
+
+자재유통업체 주소
+[기존 요청내용] - SAP
+AS-IS: O_CUSTOMER.ADD1 + ADD3 + ADD4
+TO-BE: O_CUSTOEMR.ADD1
+
+[신규 수정 요청내용] - 구E-ORDER
+AS-IS: O_CUSTOMER.ADD1 + ADD2 + ADD3 + ADD4
+TO-BE: O_CUSTOEMR.ADD1 + ADD2
+* ADD2를 추가하였습니다.
+
+
+
+getQmsPopMastList
+645?????????      <!--  2024-10-23 HSG 요청에 따라 조소를 ADD1만 가져오도록 수정 -->
+646?????????      <!-- ,B.ADD1 +' '+ B.ADD2 + B.ADD3 + B.ADD4 AS CUST_ADDR -->
+647?????????      ,B.ADD1 AS CUST_ADDR
+
+getQmsPopDetlGridList
+getQmsFireproofList
+
+
+/* eorder.o_qmsorder.cnt */
+SELECT		      <!-- 2024-10-25 hsg 요청에 의해서 QMS 내화구조 품질관리서 수정 ,B.ADD1 +' '+ B.ADD2 + B.ADD3 + B.ADD4 AS CUST_ADDR -->
+		      ,B.ADD1 +' '+ B.ADD2 AS CUST_ADDR
+
+
+FROM	qms_salesorder SO
+		LEFT JOIN O_ITEM_NEW OIN
+				ON OIN.ITEM_CD = SO.ITEM_CD /*2024-09-30 hsg LINE_TY에 'Y'값이 없어 죠회가 되지 않아. LEFT JOIN 시 조건을 걸었음 */
+				and OIN.LINE_TY = 'Y'
+WHERE	1 = 1
+		/*2024-09-30 hsg LINE_TY에 'Y'값이 없어 죠회가 되지 않아. LEFT JOIN 시로 취치를 옮김 */
+		/* AND OIN.LINE_TY = 'Y' */
+AND		SO.ACTUAL_SHIP_DT >= ?
+AND		SO.ACTUAL_SHIP_DT <= ?
+AND		SO.ORDERNO LIKE '%' + ? + '%'
+
+;
+
+
+C:\GitHub\Knauf_Eorder_JDE\src\main\resources\sql\mssql\o_qmsorder.xml
+
+116	<!-- 2024-10-25 hsg ORDERNO를 bigint로 형변환 시킴. dbo.SF_GETQMSID_YYYY(ORDERNO,LINE_NO) -->
+117	,dbo.SF_GETQMSID_YYYY(CAST(ORDERNO AS bigint),LINE_NO)AS QMS_ARR 
+118	,dbo.SF_GETQMSID_YYYY(CAST(ORDERNO AS bigint),LINE_NO)AS QMS_ARR_TXT 
+
+
+
+621	<!-- 2024-10-25 hsg 요청에 의해서 QMS 내화구조 품질관리서 수정 ,B.ADD1 +' '+ B.ADD2 + B.ADD3 + B.ADD4 AS CUST_ADDR -->
+622	,B.ADD1 +' '+ B.ADD2 AS CUST_ADDR
+
+
+
+
+
+
+
+
+내화구조 품질관리서
+
+
+
+
+
+
+
+
+
+
+
+
+
+

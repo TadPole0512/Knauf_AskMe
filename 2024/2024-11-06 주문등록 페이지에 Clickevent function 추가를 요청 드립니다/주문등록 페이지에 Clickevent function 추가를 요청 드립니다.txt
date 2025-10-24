@@ -1,0 +1,1193 @@
+
+/* ***************************************************************************************************************************************** */
+/* *********** 주문관리 > 주문등록 *********** */
+
+https://eordertest.knaufapac.kr/eorder/front/order/orderAdd.lime
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\front\order\orderAdd.jsp
+
+
+170	/**
+171	 * 주문등록 폼.
+172	 * @작성일 : 2020. 4. 3.
+173	 * @작성자 : kkyu
+174	 */
+175	@GetMapping(value="orderAdd")
+176	public String orderAdd(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+177		commonSvc.getFrontCommonData(params, req, model, loginDto);
+178
+179		String copyReqNo = Converter.toStr(params.get("copy_reqno")); // 다른 주문건의 주문번호를 받아와 그 주문정보를 그대로 입력한다.
+180
+181		String reqNo = Converter.toStr(params.get("r_reqno")); // 임시저장 상태의 건을 수정 또는 주문접수로 넘길때 파라미터.
+182
+183		//String userId = loginDto.getUserId();
+184		String custCd = loginDto.getCustCd();
+185		String shiptoCd = loginDto.getShiptoCd();
+186		String authority = loginDto.getAuthority(); // CO=거래처,CT=납풉처.
+187
+188		//params.put("where", "front");
+189		//params.put("r_custcd", loginDto.getCustCd());
+190		//if(!StringUtils.equals("CO", loginDto.getAuthority())) {
+191		//	params.put("r_shiptocd", loginDto.getShiptoCd());
+192		//}
+193
+194		// 웹주문현황 리스트 폼에서 복사 폼.
+195		if(!StringUtils.equals("", copyReqNo)) {
+196			Map<String, Object> custOrderH = orderSvc.getCustOrderHOne(loginDto, copyReqNo);
+197			if(CollectionUtils.isEmpty(custOrderH)) throw new LimeBizException(MsgCode.DATA_NOT_FOUND_ERROR);
+198
+199			model.addAttribute("pageType", "COPY");
+200			model.addAttribute("custOrderH", custOrderH);
+201			model.addAttribute("custOrderD", orderSvc.getCustOrderDList(copyReqNo, custCd, shiptoCd, "LINE_NO ASC ", 0, 0));
+202		}
+203
+204		// 임시저장(99) 상태에서 수정 폼.
+205		// 주문접수(00) 상태에서 수정 폼 이동 추가.
+206		if(!StringUtils.equals("", reqNo)) {
+207			String m_statuscd = Converter.toStr(params.get("m_statuscd"));
+208			logger.debug("m_statuscd : {}", m_statuscd);
+209
+210			Map<String, Object> custOrderH = orderSvc.getCustOrderHOne(loginDto, reqNo);
+211			if(CollectionUtils.isEmpty(custOrderH)) throw new LimeBizException(MsgCode.DATA_NOT_FOUND_ERROR);
+212
+213			// 접근가능한 상태인지 체크.
+214			if(!StatusUtil.ORDER.statusCheck(Converter.toStr(custOrderH.get("STATUS_CD")), m_statuscd)) {
+215				req.setAttribute("resultAjax", "<script>alert('"+MsgCode.DATA_STATUS_ERROR.getMessage()+"'); history.back();</script>");
+216				//req.setAttribute("resultAjax", "<script>window.open('about:blank','_self').close(); alert('"+MsgCode.DATA_STATUS_ERROR.getMessage()+"');</script>");
+217				return "textAjax";
+218			}
+219
+220			model.addAttribute("pageType", "EDIT");
+221			model.addAttribute("custOrderH", custOrderH);
+222			model.addAttribute("custOrderD", orderSvc.getCustOrderDList(reqNo, custCd, shiptoCd, "LINE_NO ASC ", 0, 0));
+223		}else {
+224			model.addAttribute("pageType", "ADD");
+225			if(StringUtils.equals("CT", authority)) model.addAttribute("shipto", customerSvc.getShipTo(shiptoCd));
+226		}
+227
+228		model.addAttribute("todayDate", Converter.dateToStr("yyyy-MM-dd"));
+229		model.addAttribute("orderStatus", StatusUtil.ORDER.getMap()); // 주문상태 Map형태로 가져오기.
+230		model.addAttribute("orderStatusToJson", StatusUtil.ORDER.getMapToJson()); // 주문상태 JSON형태로 가져오기.
+231
+232		model.addAttribute("main2BannerList",boardSvc.getBannerListForFront("3",10));
+233
+234		return "front/order/orderAdd";
+235	}
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CommonSvc.java
+
+
+266	/**
+267	 * 프론트 로그인 이후 시점, 공통으로 사용하는 메소드.
+268	 * 프론트 컨트롤러 모든 폼에 해당 함수 호출해야 함.
+269	 *
+270	 * config 테이블에서 list로 받아와서 필요한 것만 람다식으로 model에 담았지만, 리스트에서 많은 데이터를 필요로 한다면 for문 사용이 나을듯하네...
+271	 *
+272	 * @작성일 : 2020. 4. 6.
+273	 * @작성자 : kkyu
+274	 */
+275	public void getFrontCommonData(Map<String, Object> params, HttpServletRequest req, Model model, LoginDto loginDto) throws LimeBizException{
+276		Map<String, Object> svcMap = new HashMap<>();
+277		List<Map<String, Object>> configList = configDao.list(params);
+278
+279		// header >>> 로고 이미지 가져오기. => 필요없네...
+280		Map<String, Object> config1 = configList.stream().filter(x -> x.get("CF_ID").equals("SYSTEMLOGO")).findFirst().get();
+281		logger.debug("config logo map : {}", config1);
+282		model.addAttribute("logo", config1.get("CF_VALUE"));
+283
+284		// header >>> 임시저장(99) 개수 가져오기.
+285		String today = Converter.dateToStr("yyyy-MM-dd");
+286		String[] ri_statuscd = {"99"};
+287		svcMap.put("r_insdate", today);
+288		svcMap.put("r_inedate", today);
+289		svcMap.put("r_userid", loginDto.getUserId());
+290		svcMap.put("ri_statuscd", ri_statuscd);
+291		model.addAttribute("orderStatus99Cnt", custOrderHDao.cnt(svcMap));
+292		svcMap.clear();
+293
+294		// bottom >>> 영역 영업사원, CS담당자 정보 가져오기
+295		Map<String, Object> ctMap = customerSvc.getCustomer(loginDto.getCustCd());
+296		model.addAttribute("ctMap", ctMap);
+297
+298		// bottom >>> 거래처 가상계좌 번호 가져오기.
+299		//params.put("r_ayan8", loginDto.getCustCd());
+300		//model.addAttribute("custVAccount", commonDao.getCustVAcount(params));
+301	}
+
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ConfigDao.java
+
+
+19	public List<Map<String, Object>> list(Map<String, Object> svcMap){
+20		return sqlSession.selectList("eorder.config.list", svcMap);
+21	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\config.xml
+
+
+5	<select id="list" parameterType="hashmap" resultType="hashmap">
+6		SELECT * FROM (
+7			SELECT ROW_NUMBER() OVER(
+8			<choose>
+9				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+10				<otherwise>ORDER BY (SELECT 1)</otherwise>
+11			</choose>
+12			) AS ROWNUM
+13			, XX.*
+14		FROM (
+15			SELECT * FROM CONFIG
+16			<where>
+17				<if test="r_cfid != null and r_cfid != ''">AND CF_ID = #{r_cfid}</if>
+18				<if test="ri_cfid != null and ri_cfid != ''">
+19					AND CF_ID IN <foreach collection="ri_cfid" item="cf_id" separator="," open="(" close=")">#{cf_id}</foreach>
+20				</if>
+21			</where>
+22			) XX
+23		) S
+24		<where>
+25			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >
+26				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+27			</if>
+28		</where>
+29	</select>
+
+
+
+
+/* *********** header >>> 임시저장(99) 개수 가져오기. *********** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderHDao.java
+
+
+35	public int cnt(Map<String, Object> svcMap) {
+36		return sqlSession.selectOne("eorder.o_cust_order_h.cnt", svcMap);
+37	}
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml
+
+
+180	<select id="cnt" parameterType="hashmap" resultType="int">
+181		SELECT COUNT(*)
+182		FROM O_CUST_ORDER_H COH
+183			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+184			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+185			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+186		<where>
+187			<if test="r_userid != null and r_userid != '' ">AND RTRIM(COH.USERID) = RTRIM(#{r_userid})</if>
+188			<if test="r_reqno != null and r_reqno != '' ">AND COH.REQ_NO = #{r_reqno}</if>
+189			<if test="rl_reqno != null and rl_reqno != '' ">AND COH.REQ_NO LIKE '%' + #{rl_reqno} + '%'</if>
+190			<if test="r_custcd != null and r_custcd != '' ">AND COH.CUST_CD = #{r_custcd}</if>
+191			<if test="rl_custcd != null and rl_custcd != '' ">AND COH.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+192			<if test="r_custnm != null and r_custnm != '' ">AND CU.CUST_NM = #{r_custnm}</if>
+193			<if test="rl_custnm != null and rl_custnm != '' ">AND CU.CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+194			<if test="r_shiptocd != null and r_shiptocd != '' ">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+195			<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND US_SALES.USER_NM LIKE '%' + #{rl_salesusernm} + '%'</if>
+196			<if test="rl_receiver != null and rl_receiver != '' ">AND COH.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+197			<if test="r_csuserid != null and r_csuserid != '' ">
+198				AND US_SALES.USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_csuserid})
+199			</if>
+200			<if test="r_insdate != null and r_insdate != '' ">AND COH.INDATE <![CDATA[>=]]> CONVERT(DATE, #{r_insdate})</if>
+201			<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<=]]> CONVERT(DATE, #{r_inedate})</if>
+202			<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+203			<if test="ri_statuscd != null">
+204				AND COH.STATUS_CD IN <foreach collection="ri_statuscd" item="status_cd" separator="," open="(" close=")">#{status_cd}</foreach>
+205			</if>
+206
+207			<!-- 관리자 권한에 따른 조건절 -->
+208			<if test="r_adminauthority != null and r_adminauthority != '' ">
+209				<if test='"AD".equals(r_adminauthority)'>
+210				</if>
+211				<if test='"CS".equals(r_adminauthority)'>
+212					AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+213				</if>
+214				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+215					<if test='"SH".equals(r_adminauthority)'>
+216						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+217					</if>
+218					<if test='"SM".equals(r_adminauthority)'>
+219						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+220					</if>
+221					<if test='"SR".equals(r_adminauthority)'>
+222						AND CU.SALESREP_CD = #{r_adminuserid}
+223					</if>
+224				</if>
+225				<if test='"MK".equals(r_adminauthority)'>
+226				</if>
+227			</if>
+228			<!-- End. -->
+229		</where>
+230	</select>
+
+
+
+
+/* *********** bottom >>> 영역 영업사원, CS담당자 정보 가져오기 *********** */
+
+
+/eorder/src/main/java/com/limenets/eorder/svc/CustomerSvc.java
+
+
+49	public Map<String, Object> getCustomer(String r_custcd){
+50		Map<String, Object> svcMap = new HashMap<>();
+51		svcMap.put("r_custcd", r_custcd);
+52		return this.getCustomer(svcMap);
+53	}
+54	public Map<String, Object> getCustomer(Map<String, Object> svcMap){
+55		return customerDao.one(svcMap);
+56	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustomerDao.java
+
+
+22	public Map<String, Object> one(Map<String, Object> svcMap) {
+23		return sqlSession.selectOne("eorder.o_customer.one", svcMap);
+24	}
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 웹주문현황 리스트 폼에서 복사 폼.	*********** */
+		// 임시저장(99) 상태에서 수정 폼.
+		// 주문접수(00) 상태에서 수정 폼 이동 추가.
+
+196	Map<String, Object> custOrderH = orderSvc.getCustOrderHOne(loginDto, copyReqNo);
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java
+
+
+109	public Map<String, Object> getCustOrderHOne(LoginDto loginDto, String req_no){
+110		Map<String, Object> svcMap = new HashMap<>();
+111		svcMap.put("r_reqno", req_no);
+112		svcMap.put("r_custcd", loginDto.getCustCd());
+113		svcMap.put("r_shiptocd", loginDto.getShiptoCd());
+114		return this.getCustOrderHOne(svcMap);
+115	}
+116	public Map<String, Object> getCustOrderHOne(Map<String, Object> svcMap){
+117		return custOrderHDao.one(svcMap);
+118	}
+
+
+129	   /**
+130	 * Get O_CUST_ORDER_D List.
+131	 * @작성일 : 2020. 4. 2.
+132	 * @작성자 : kkyu
+133	 */
+134	public List<Map<String, Object>> getCustOrderDList(String req_no, String cust_cd, String shipto_cd, String order_by, int start_row, int end_row){
+135		Map<String, Object> svcMap = new HashMap<>();
+136		svcMap.put("r_reqno", req_no);
+137		svcMap.put("r_custcd", cust_cd);
+138		svcMap.put("r_shiptocd", shipto_cd);
+139		svcMap.put("r_orderby", (StringUtils.equals("", order_by) ? "XX.REQ_NO DESC, XX.LINE_NO ASC " : order_by));
+140		svcMap.put("r_startrow", start_row);
+141		svcMap.put("r_endrow", end_row);
+142		return this.getCustOrderDList(svcMap);
+143	}
+144	public List<Map<String, Object>> getCustOrderDList(Map<String, Object> svcMap){
+145		return custOrderDDao.list(svcMap);
+146	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderHDao.java
+
+
+31	public Map<String, Object> one(Map<String, Object> svcMap) {
+32		return sqlSession.selectOne("eorder.o_cust_order_h.one", svcMap);
+33	}
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_h.xml
+
+
+121	<select id="one" parameterType="hashmap" resultType="hashmap">
+122		SELECT COH.*
+123			, (SELECT USER_NM FROM O_USER WHERE RTRIM(USERID) = RTRIM(COH.USERID)) AS USER_NM
+124			, CU.CUST_NM
+125			, ST.SHIPTO_NM
+126			, ST.QUOTE_QT
+127			, US_SALES.USERID AS SALESUSERID, US_SALES.USER_NM AS SALESUSER_NM
+128			, (SELECT CSUSERID FROM O_CSSALESMAP WHERE SALESUSERID = US_SALES.USERID AND FIXEDYN = 'Y') AS CSUSERID
+129			, (SELECT SUB1.USER_NM FROM O_USER SUB1, O_CSSALESMAP SUB2 WHERE SUB1.USERID = SUB2.CSUSERID AND SUB2.SALESUSERID = US_SALES.USERID AND SUB2.FIXEDYN = 'Y') AS CSUSER_NM
+130			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_PARENT='C01' AND CC_CODE = COH.RETURN_CD) AS RETURN_REASON
+131		FROM O_CUST_ORDER_H COH
+132			LEFT JOIN O_CUSTOMER CU ON COH.CUST_CD = CU.CUST_CD
+133			LEFT JOIN O_SHIPTO ST ON COH.SHIPTO_CD = ST.SHIPTO_CD
+134			LEFT JOIN O_USER US_SALES ON CU.SALESREP_CD = US_SALES.USERID
+135		<where>
+136			<if test="r_userid != null and r_userid != '' ">AND RTRIM(COH.USERID) = RTRIM(#{r_userid})</if>
+137			<if test="r_reqno != null and r_reqno != '' ">AND COH.REQ_NO = #{r_reqno}</if>
+138			<if test="rl_reqno != null and rl_reqno != '' ">AND COH.REQ_NO LIKE '%' + #{rl_reqno} + '%'</if>
+139			<if test="r_custcd != null and r_custcd != '' ">AND COH.CUST_CD = #{r_custcd}</if>
+140			<if test="rl_custcd != null and rl_custcd != '' ">AND COH.CUST_CD LIKE '%' + #{rl_custcd} + '%'</if>
+141			<if test="r_custnm != null and r_custnm != '' ">AND CU.CUST_NM = #{r_custnm}</if>
+142			<if test="rl_custnm != null and rl_custnm != '' ">AND CU.CUST_NM LIKE '%' + #{rl_custnm} + '%'</if>
+143			<if test="r_shiptocd != null and r_shiptocd != '' ">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+144			<if test="rl_salesusernm != null and rl_salesusernm != '' ">AND US_SALES.USER_NM LIKE '%' + #{rl_salesusernm} + '%'</if>
+145			<if test="rl_receiver != null and rl_receiver != '' ">AND COH.RECEIVER LIKE '%' + #{rl_receiver} + '%'</if>
+146			<if test="r_csuserid != null and r_csuserid != '' ">
+147				AND US_SALES.USERID IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_csuserid})
+148			</if>
+149			<if test="r_insdate != null and r_insdate != '' ">AND COH.INDATE <![CDATA[>=]]> CONVERT(DATE, #{r_insdate})</if>
+150			<if test="r_inedate != null and r_inedate != '' ">AND COH.INDATE <![CDATA[<=]]> CONVERT(DATE, #{r_inedate})</if>
+151			<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+152			<if test="ri_statuscd != null">
+153				AND COH.STATUS_CD IN <foreach collection="ri_statuscd" item="status_cd" separator="," open="(" close=")">#{status_cd}</foreach>
+154			</if>
+155
+156			<!-- 관리자 권한에 따른 조건절 -->
+157			<if test="r_adminauthority != null and r_adminauthority != '' ">
+158				<if test='"AD".equals(r_adminauthority)'>
+159				</if>
+160				<if test='"CS".equals(r_adminauthority)'>
+161					AND CU.SALESREP_CD IN (SELECT SALESUSERID FROM O_CSSALESMAP WHERE CSUSERID = #{r_adminuserid})
+162				</if>
+163				<if test='"SH".equals(r_adminauthority) or "SM".equals(r_adminauthority) or "SR".equals(r_adminauthority)'>
+164					<if test='"SH".equals(r_adminauthority)'>
+165						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE2 = #{r_adminuserid})
+166					</if>
+167					<if test='"SM".equals(r_adminauthority)'>
+168						AND CU.SALESREP_CD IN (SELECT USERID FROM O_USER WHERE USER_CATE3 = #{r_adminuserid})
+169					</if>
+170					<if test='"SR".equals(r_adminauthority)'>
+171						AND CU.SALESREP_CD = #{r_adminuserid}
+172					</if>
+173				</if>
+174				<if test='"MK".equals(r_adminauthority)'>
+175				</if>
+176			</if>
+177		</where>
+178	</select>
+
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CustOrderDDao.java
+
+
+39	public List<Map<String, Object>> list(Map<String, Object> svcMap) {
+40		return sqlSession.selectList("eorder.o_cust_order_d.list", svcMap);
+41	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_cust_order_d.xml
+
+
+94	<select id="list" parameterType="hashmap" resultType="hashmap">
+95		SELECT * FROM (
+96			SELECT ROW_NUMBER() OVER(
+97			<choose>
+98				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+99				<otherwise>ORDER BY (SELECT 1)</otherwise>
+100			</choose>
+101			) AS ROWNUM
+102			, XX.* FROM (
+103			SELECT COD.*
+104				, COH.CUST_CD, COH.SHIPTO_CD
+105				, IT.DESC1, IT.DESC2
+106				, ITI.*
+107				, (SELECT COUNT(*) FROM ITEMRECOMMEND WHERE ITR_ITEMCD = COD.ITEM_CD) AS RECOMMEND_ITEM_COUNT
+108				, CASE WHEN SALES_CD1 = 'A' AND (SALES_CD2 IN ('02','06','US1') OR (SALES_CD2 = '76' AND PLAN_FMLY = 'H15' ) ) THEN 'Y' ELSE 'N' END AS FIREPROOF_YN
+109			FROM O_CUST_ORDER_D COD
+110				LEFT JOIN O_CUST_ORDER_H COH ON COD.REQ_NO = COH.REQ_NO
+111				LEFT JOIN O_ITEM_NEW IT ON COD.ITEM_CD = IT.ITEM_CD
+112				LEFT JOIN ITEMINFO ITI ON COD.ITEM_CD = ITI.ITI_ITEMCD
+113			<where>
+114				<if test="r_reqno != null and r_reqno != ''">AND COD.REQ_NO = #{r_reqno}</if>
+115				<if test="r_custcd != null and r_custcd != ''">AND COH.CUST_CD = #{r_custcd}</if>
+116				<if test="r_shiptocd != null and r_shiptocd != ''">AND COH.SHIPTO_CD = #{r_shiptocd}</if>
+117				<if test="r_lineno != null and r_lineno != ''">AND COD.LINE_NO = #{r_lineno}</if>
+118				<if test="r_itemcd != null and r_itemcd != ''">AND IT.ITEM_CD = #{r_itemcd}</if>
+119				<if test="r_statuscd != null and r_statuscd != '' ">AND COH.STATUS_CD = #{r_statuscd}</if>
+120			</where>
+121			) XX
+122		) S
+123		<where>
+124			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >
+125				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+126			</if>
+127		</where>
+128	</select>
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 프론트(로그인,인덱스)에 출력할 배너리스트	*********** */
+
+
+232		model.addAttribute("main2BannerList",boardSvc.getBannerListForFront("3",10));
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\BoardSvc.java
+
+
+732	/**
+733	 * 프론트(로그인,인덱스)에 출력할 배너리스트
+734	 * @param bn_type 1: 로그인메인배너 , 2: 메인1 배너(상단), 3: 메인2 배너	 (중단)
+735	 * @param limitrow 출력개수
+736	 * @return
+737	 */
+738	public List<Map<String ,Object>> getBannerListForFront(String bn_type,int limitrow){
+739		Map<String, Object> svcMap = new HashMap<String, Object>();
+740
+741		svcMap.put("r_bntype", bn_type);
+742		svcMap.put("r_orderby", "BN_INDATE DESC");
+743		svcMap.put("r_limitrow", limitrow);
+744		return bannerDao.listForFront(svcMap);
+745	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\BannerDao.java
+
+
+41	public List<Map<String, Object>> listForFront(Map<String, Object> svcMap) {
+42		return sqlSession.selectList("eorder.banner.listForFront", svcMap);
+43	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\banner.xml
+
+
+115	   <select id="listForFront" parameterType="hashmap" resultType="hashmap">
+116		SELECT *
+117		FROM (
+118			SELECT ROW_NUMBER() OVER(
+119				/*ORDER BY (SELECT 1)*/
+120				<choose>
+121					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+122					<otherwise>ORDER BY (SELECT 1)</otherwise>
+123				</choose>
+124			) AS ROWNUM
+125			, *
+126			FROM BANNER
+127			<where>
+128				BN_USEYN = 'Y'
+129				<if test=" r_bntype != null and r_bntype != '' ">AND BN_TYPE = #{ r_bntype }</if>
+130			</where>
+131		) XX
+132		<where>
+133			<if test="r_limitrow != null and r_limitrow != ''">ROWNUM <![CDATA[<=]]> #{ r_limitrow }</if>
+134		</where>
+135		<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${ r_orderby }</if>  -->
+136
+137	</select>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CustomerSvc.java
+
+
+58	public Map<String, Object> getShipTo(String r_shiptocd){
+59		Map<String, Object> svcMap = new HashMap<>();
+60		svcMap.put("r_shiptocd", r_shiptocd);
+61		return shipToDao.one(svcMap);
+62	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ShipToDao.java
+
+
+15	public Map<String, Object> one(Map<String, Object> svcMap) {
+16		return sqlSession.selectOne("eorder.o_shipto.one", svcMap);
+17	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_shipto.xml
+
+
+5	<select id="one" parameterType="hashmap" resultType="hashmap">
+6		SELECT ST.*
+7		FROM O_SHIPTO ST
+8		<where>
+9			<if test="r_shiptocd != null and r_shiptocd != '' ">AND ST.SHIPTO_CD = #{r_shiptocd}</if>
+10			<if test="r_custcd != null and r_custcd != '' ">AND ST.CUST_CD = #{r_custcd}</if>
+11			<if test="rl_shiptonm != null and rl_shiptonm != '' ">AND ST.SHIPTO_NM = #{rl_shiptonm}</if>
+12		</where>
+13	</select>
+
+
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 정보공유 > 공지사항 *********** */
+
+http://localhost:8080/eorder/admin/board/noticeList.lime
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\front\board\noticeList.jsp
+
+
+
+/* *********** FBoardCtrl.noticeList  *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\front\FBoardCtrl.java
+
+
+61	/**
+62	 * 공지사항 리스트 폼.
+63	 * @작성일 : 2020. 3. 25.
+64	 * @작성자 : isaac
+65	 */
+66	@RequestMapping(value="noticeList", method={RequestMethod.GET, RequestMethod.POST})
+67	public String noticeList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws LimeBizException {
+68		// bottom영역 영업사원, CS담당자 정보 가져오기
+69		commonSvc.getFrontCommonData(params, req, model, loginDto);
+70
+71		params.put("r_bdid","notice");
+72		Map<String, Object> resMap = boardSvc.getBoardList(params,req);
+73
+74		model.addAllAttributes(resMap);
+75
+76		model.addAttribute("main2BannerList",boardSvc.getBannerListForFront("3",10));
+77
+78		return "front/board/noticeList";
+79	}
+
+
+
+/* *********** // bottom영역 영업사원, CS담당자 정보 가져오기  *********** */
+
+/* *********** commonSvc.getFrontCommonData  *********** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CommonSvc.java
+
+
+
+226	/**
+227	 * 프론트 로그인 이후 시점, 공통으로 사용하는 메소드.
+228	 * 프론트 컨트롤러 모든 폼에 해당 함수 호출해야 함.
+229	 *
+230	 * config 테이블에서 list로 받아와서 필요한 것만 람다식으로 model에 담았지만, 리스트에서 많은 데이터를 필요로 한다면 for문 사용이 나을듯하네...
+231	 *
+232	 * @작성일 : 2020. 4. 6.
+233	 * @작성자 : kkyu
+234	 */
+235	public void getFrontCommonData(Map<String, Object> params, HttpServletRequest req, Model model, LoginDto loginDto) throws LimeBizException{
+236		Map<String, Object> svcMap = new HashMap<>();
+237		List<Map<String, Object>> configList = configDao.list(params);
+238
+239		// header >>> 로고 이미지 가져오기. => 필요없네...
+240		Map<String, Object> config1 = configList.stream().filter(x -> x.get("CF_ID").equals("SYSTEMLOGO")).findFirst().get();
+241		logger.debug("config logo map : {}", config1);
+242		model.addAttribute("logo", config1.get("CF_VALUE"));
+243
+244		// header >>> 임시저장(99) 개수 가져오기.
+245		String today = Converter.dateToStr("yyyy-MM-dd");
+246		String[] ri_statuscd = {"99"};
+247		svcMap.put("r_insdate", today);
+248		svcMap.put("r_inedate", today);
+249		svcMap.put("r_userid", loginDto.getUserId());
+250		svcMap.put("ri_statuscd", ri_statuscd);
+251		model.addAttribute("orderStatus99Cnt", custOrderHDao.cnt(svcMap));
+252		svcMap.clear();
+253
+254		// bottom >>> 영역 영업사원, CS담당자 정보 가져오기
+255		Map<String, Object> ctMap = customerSvc.getCustomer(loginDto.getCustCd());
+256		model.addAttribute("ctMap", ctMap);
+257
+258		// bottom >>> 거래처 가상계좌 번호 가져오기.
+259		//params.put("r_ayan8", loginDto.getCustCd());
+260		//model.addAttribute("custVAccount", commonDao.getCustVAcount(params));
+261	}
+
+
+
+/* *********** configDao.list  *********** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\ConfigDao.java
+
+
+19	public List<Map<String, Object>> list(Map<String, Object> svcMap){
+20		return sqlSession.selectList("eorder.config.list", svcMap);
+21	}
+
+
+
+/* *********** eorder.config.list  *********** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\config.xml
+
+
+5	<select id="list" parameterType="hashmap" resultType="hashmap">
+6		SELECT * FROM (
+7			SELECT ROW_NUMBER() OVER(
+8			<choose>
+9				<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+10				<otherwise>ORDER BY (SELECT 1)</otherwise>
+11			</choose>
+12			) AS ROWNUM
+13			, XX.*
+14		FROM (
+15			SELECT * FROM CONFIG
+16			<where>
+17				<if test="r_cfid != null and r_cfid != ''">AND CF_ID = #{r_cfid}</if>
+18				<if test="ri_cfid != null and ri_cfid != ''">
+19					AND CF_ID IN <foreach collection="ri_cfid" item="cf_id" separator="," open="(" close=")">#{cf_id}</foreach>
+20				</if>
+21			</where>
+22			) XX
+23		) S
+24		<where>
+25			<if test="r_endrow != null and r_endrow != '' and r_startrow != null and r_startrow != ''" >
+26				ROWNUM BETWEEN #{r_startrow} AND #{r_endrow}
+27			</if>
+28		</where>
+29	</select>
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 게시판 리스트 가져오기 *********** */
+
+/* *********** boardSvc.getBoardLis *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\BoardSvc.java
+
+
+194	/**
+195	 * 게시판 리스트 가져오기
+196	 * @작성일 : 2020. 3. 16.
+197	 * @작성자 : isaac
+198	 */
+199	public Map<String, Object> getBoardList(Map<String, Object> params, HttpServletRequest req){
+200		Map<String, Object> resMap = new HashMap<>();
+201
+202		int totalCnt = this.getBoardCnt(params);
+203		String r_bdid = Converter.toStr(params.get("r_bdid"));
+204	   /* if(r_bdid == "sample")
+205		{
+206			int replycnt = this.getBoardCntrep(params);
+207			System.out.println("---------***********-----페이징 뜯어고치기 시작--------***********---------------");
+208			System.out.println(replycnt);
+209			totalCnt = totalCnt + replycnt;
+210		}
+211		*/
+212		this.initPager(params,resMap,req,totalCnt);
+213
+214
+215		String r_orderby = "";
+216		String sidx = Converter.toStr(params.get("sidx")); //정렬기준컬럼
+217		String sord = Converter.toStr(params.get("sord")); //내림차순,오름차순
+218		//System.out.println(sidx+" " +sord);
+219		//System.out.println("확인중 확인중");
+220
+221		r_orderby = sidx + " " + sord;
+222		if(StringUtils.equals("", sidx))  r_orderby = "BD_NOTICEYN DESC , BD_INDATE DESC ";	 //BDA_NOTICHK 공지사항은 리스트 항시 상단에 출력
+223		params.put("r_orderby", r_orderby);
+224
+225		// 엑셀 다운로드.
+226		String where = Converter.toStr(params.get("where"));
+227		if ("excel".equals(where)) {
+228			params.remove("r_startrow");
+229			params.remove("r_endrow");
+230		}
+231
+232		String bdtype = params.get("r_bdtype")==null ? "" : params.get("r_bdtype").toString();
+233		String bdtype2 = params.get("r_bdtype2")==null ? "" : params.get("r_bdtype2").toString();
+234
+235		List<BoardDto> list = this.getBoardList(params);
+236		resMap.put("list", list);
+237		//System.out.println(list);
+238
+239		Map<String, Object> svcMap = new HashMap<>();
+240		svcMap.put("r_cccode", bdtype);
+241		svcMap.put("r_depth", 3);
+242		resMap.put("referenceCategory2List", commonCodeSvc.getCategoryListWithDepth(svcMap));
+243
+244		svcMap.clear();
+245		svcMap.put("r_cccode", bdtype2);
+246		svcMap.put("r_depth", 4);
+247		resMap.put("referenceCategory3List", commonCodeSvc.getCategoryListWithDepth(svcMap));
+248
+249		/*System.out.println("###############BoardSvc	PARAMS#######################");
+250		for( String key : params.keySet() ){
+251			String value = String.valueOf( params.get(key));
+252			System.out.println( String.format("키 : "+key+", 값 : "+value));
+253		}
+254
+255		System.out.println("####################BoardSvc   RESMAP###################");
+256		for(String key : resMap.keySet()) {
+257			String value = String.valueOf( resMap.get(key));
+258			System.out.println("키 : "+key+", 값 : "+value);
+259			}*/
+260
+261		return resMap;
+262	}
+
+
+
+/* *********** this.getBoardCnt  *********** */
+
+342	public int getBoardCnt(Map<String, Object> params) {
+343		return boardDao.cnt(params);
+344	}
+
+
+
+
+/* *********** boardDao.cnt *********** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\BoardDao.java
+
+
+52	public int cnt(Map<String, Object> svcMap) {
+53		return Converter.toInt(sqlSession.selectOne("eorder.board.cnt", svcMap));
+54	}
+
+
+
+
+/* *********** eorder.board.cnt *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\board.xml
+
+87	<select id="cnt" parameterType="hashmap" resultType="long">
+88		SELECT COUNT(*) FROM BOARD BD
+89		LEFT OUTER JOIN O_USER US ON BD.BD_INID = US.USERID
+90		<where>
+91				<if test="r_bdseq != null and r_bdseq != ''">BD_SEQ = #{ r_bdseq }</if>
+92	    		<if test="r_bdid != null and r_bdid != ''">AND BD_ID = #{ r_bdid }</if>
+93	    		<if test="r_bdtype != null and r_bdtype != ''">AND BD_TYPE = #{ r_bdtype }</if>
+94	    		<if test="r_bdtype2 != null and r_bdtype2 != ''">AND BD_TYPE2 = #{ r_bdtype2 }</if>
+95	    		<if test="r_bdtype3 != null and r_bdtype3 != ''">AND BD_TYPE3 = #{ r_bdtype3 }</if>
+96	    		<if test="rl_bdtitle != null and rl_bdtitle != '' ">AND BD_TITLE LIKE '%' + #{rl_bdtitle} + '%'</if>
+97	    		<if test="rl_usernm != null and rl_usernm != '' ">AND USER_NM LIKE '%' + #{rl_usernm} + '%'</if>
+98	    		<if test="r_bdnoticeyn != null and r_bdnoticeyn != ''">AND BD_NOTICEYN = #{ r_bdnoticeyn }</if>
+99	    		<if test="r_bdfileyn != null and r_bdfileyn != ''">AND BD_FILEYN = #{ r_bdfileyn }</if>
+100	    		<if test="r_bddisplaytype != null and r_bddisplaytype != ''">AND BD_DISPLAYTYPE = #{ r_bddisplaytype }</if>
+101	    		<if test="r_bdsdate != null and r_bdsdate != '' "><![CDATA[AND BD_INDATE >= CONVERT(DATE, #{r_bdsdate})]]></if>
+102				<if test="r_bdedate != null and r_bdedate != '' "><![CDATA[AND BD_INDATE < DATEADD(DAY, 1, #{r_bdedate})]]></if>
+103	    </where>
+104	</select>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 페이징 처리 *********** */
+
+
+/* *********** this.initPager *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\BoardSvc.java
+
+
+1973	/**
+1974	 * 페이징 관련 변수
+1975	 * @작성일 : 2020. 4. 13.
+1976	 * @작성자 : isaac
+1977	 * @param params
+1978	 * @param resMap
+1979	 * @param req
+1980	 */
+1981	public void initPager(Map<String, Object> params, Map<String, Object> resMap ,HttpServletRequest req, int totalCnt){
+1982		Pager pager = new Pager();
+1983		pager.gridSetInfo(totalCnt, params, req);
+1984		resMap.put("total", Converter.toInt(params.get("totpage")));
+1985		resMap.put("listTotalCount", totalCnt);
+1986
+1987		// Start. Define Only For Form-Paging.
+1988		resMap.put("startnumber", params.get("startnumber"));
+1989		resMap.put("r_page", params.get("r_page"));
+1990		resMap.put("startpage", params.get("startpage"));
+1991		resMap.put("endpage", params.get("endpage"));
+1992		resMap.put("r_limitrow", params.get("r_limitrow"));
+1993		// End.
+1994		System.out.println("###############BoardSvc initPager  PARAMS#######################");
+1995	//	  for( String key : params.keySet() ){
+1996	//		  String value = String.valueOf( params.get(key));
+1997	//		  System.out.println( String.format("키 : "+key+", 값 : "+value));
+1998	//	  }
+1999
+2000
+2001		System.out.println("###############BoardSvc initPager	RESMAP#######################");
+2002	//	  for( String key : resMap.keySet() ){
+2003	//		  String value = String.valueOf( resMap.get(key));
+2004	//		  System.out.println( String.format("키 : "+key+", 값 : "+value));
+2005	//	  }
+2006	}
+
+
+
+
+
+/* *********** pager.gridSetInfo *********** */
+
+/eorder/src/main/java/com/limenets/common/util/Pager.java
+
+11	/**
+12	 * 그리드 페이징 & 폼 페이징
+13	 * page:페이지, rows:레코드수
+14	 */
+15	public void gridSetInfo(int totalCnt, Map<String, Object> params, HttpServletRequest req) {
+16		Device device = DeviceUtils.getCurrentDevice(req);
+17
+18		int r_page = Converter.toInt(params.get("page"), 1); // 페이지
+19		int r_limitrow = Converter.toInt(params.get("rows"), 10); // 한페이지에 보여줄 레코드수
+20
+21		if (r_page == 0) r_page = 1;
+22		if (r_limitrow == 0) r_limitrow = 10;
+23
+24		if (r_limitrow > 0) {
+25			int totalPage = ( totalCnt % r_limitrow == 0 ) ? totalCnt / r_limitrow : totalCnt / r_limitrow + 1; // 전체페이지 수
+26			if (r_page > totalPage) r_page = 1;
+27
+28			int r_endrow = r_page * r_limitrow; // 끝지점
+29			int r_startrow = r_endrow - r_limitrow + 1; // 시작지점
+30
+31			// 파라미터 설정 For Form & Grid.
+32			params.put("r_startrow", r_startrow);
+33			params.put("r_endrow", r_endrow);
+34			params.put("totpage", totalPage);
+35
+36			// 파라미터 설정 For Only Form.
+37			int startnumber = totalCnt - ( r_limitrow * ( r_page - 1 ) ); // 일련번호 설정
+38			int viewpageea = (device.isMobile() || device.isTablet()) ? 5 : 10; // 페이징처리시 보여지는 페이지수 > 접속기기가 모바일(태블릿)=5, PC=10.
+39			//int viewpageea = Converter.toInt(params.get("r_viewpageea"), 10);
+40			int startpage = r_page - (r_page - 1) % viewpageea; // 페이징처리시 처음 보여지는 페이지수
+41			int endpage = startpage + viewpageea - 1; // 페이징처리시 마지막에 보여지는 페이지수
+42			if(totalPage < endpage) endpage = totalPage;
+43			params.put("startnumber", startnumber);
+44			params.put("r_page", r_page);
+45			params.put("startpage", startpage);
+46			params.put("endpage", endpage);
+47			params.put("r_limitrow", r_limitrow);
+48			params.put("limitrow"+r_limitrow, "selected='selected'");
+49
+50		}
+51		else { // r_limitrow = -1 로 설정하여 페이징 안타게 처리.
+52			params.put("r_startrow", "");
+53			params.put("r_endrow", "");
+54		}
+55	}
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 목록 가져오기 *********** */
+
+/* *********** this.getBoardList *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\BoardSvc.java
+
+300	public List<BoardDto> getBoardList(Map<String, Object> params){
+301		return boardDao.list(params);
+302	}
+
+
+
+/* *********** boardDao.list *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\BoardDao.java
+
+40	public List<BoardDto> list(Map<String, Object> svcMap) {
+41		return sqlSession.selectList("eorder.board.list", svcMap);
+42	}
+
+
+
+/* *********** eorder.board.list *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\board.xml
+
+54	<select id="list" parameterType="hashmap" resultType="com.limenets.eorder.dto.BoardDto">
+55		SELECT * FROM (
+56			SELECT ROW_NUMBER() OVER(
+57				<choose>
+58					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+59					<otherwise>ORDER BY (SELECT 1)</otherwise>
+60				</choose>
+61			) AS ROWNUM
+62			, XX.* FROM (
+63				SELECT BD.*, US.*
+64				, (SELECT CC_NAME FROM COMMONCODE WHERE CC_CODE = BD_TYPE) BD_TYPENM
+65				FROM BOARD BD
+66				LEFT OUTER JOIN O_USER US ON BD.BD_INID = US.USERID
+67				<where>
+68					<if test="r_bdid != null and r_bdid != ''">BD_ID = #{ r_bdid }</if>
+69					<if test="r_bdtype != null and r_bdtype != ''">AND BD_TYPE = #{ r_bdtype }</if>
+70					<if test="r_bdtype2 != null and r_bdtype2 != ''">AND BD_TYPE2 = #{ r_bdtype2 }</if>
+71					<if test="r_bdtype3 != null and r_bdtype3 != ''">AND BD_TYPE3 = #{ r_bdtype3 }</if>
+72					<if test="rl_bdtitle != null and rl_bdtitle != '' ">AND BD_TITLE LIKE '%' + #{rl_bdtitle} + '%'</if>
+73					<if test="rl_usernm != null and rl_usernm != '' ">AND USER_NM LIKE '%' + #{rl_usernm} + '%'</if>
+74					<if test="r_bdnoticeyn != null and r_bdnoticeyn != ''">AND BD_NOTICEYN = #{ r_bdnoticeyn }</if>
+75					<if test="r_bdfileyn != null and r_bdfileyn != ''">AND BD_FILEYN = #{ r_bdfileyn }</if>
+76					<if test="r_bddisplaytype != null and r_bddisplaytype != ''">AND BD_DISPLAYTYPE = #{ r_bddisplaytype }</if>
+77					<if test="r_bdsdate != null and r_bdsdate != '' "><![CDATA[AND BD_INDATE >= CONVERT(DATE, #{r_bdsdate})]]></if>
+78					<if test="r_bdedate != null and r_bdedate != '' "><![CDATA[AND BD_INDATE < DATEADD(DAY, 1, #{r_bdedate})]]></if>
+79				</where>
+80	      	) XX
+81		) S
+82	    <where>
+83	<if test="r_limitrow != null and r_limitrow != ''">ROWNUM <![CDATA[<=]]> #{ r_limitrow }</if>
+84		</where>
+85	</select>
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** Work *********** */
+
+/* *********** commonCodeSvc.getCategoryListWithDepth *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\CommonCodeSvc.java
+
+82	public List<Map<String, Object>> getCategoryListWithDepth(Map<String, Object> svcMap) {
+83		List<Map<String, Object>> ret = commonCodeDao.getCategoryListWithDepth(svcMap);
+84		return ret;
+85	}
+
+
+/* *********** commonCodeDao.getCategoryListWithDepth *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\CommonCodeDao.java
+
+
+39	public List<Map<String, Object>> getCategoryListWithDepth(Map<String, Object> svcMap) {
+40		return sqlSession.selectList("eorder.commonCode.getCategoryListWithDepth", svcMap);
+41	}
+
+
+
+
+/* *********** eorder.commonCode.getCategoryListWithDepth *********** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\commonCode.xml
+
+
+128	<select id="getCategoryListWithDepth" parameterType="hashmap" resultType="hashmap">
+129		SELECT c.CC_CODE, c.CC_NAME FROM COMMONCODE c
+130		WHERE c.CC_CODE LIKE '' + #{r_cccode} + '%'
+131		AND c.CC_DEPTH = #{r_depth}
+132		ORDER BY c.CC_CODE
+133	</select>
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 프론트(로그인,인덱스)에 출력할 배너리스트	*********** */
+
+/* *********** boardSvc.getBannerListForFront *********** */
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\BoardSvc.java
+
+
+733	/**
+734	 * 프론트(로그인,인덱스)에 출력할 배너리스트
+735	 * @param bn_type 1: 로그인메인배너 , 2: 메인1 배너(상단), 3: 메인2 배너	 (중단)
+736	 * @param limitrow 출력개수
+737	 * @return
+738	 */
+739	public List<Map<String ,Object>> getBannerListForFront(String bn_type,int limitrow){
+740		Map<String, Object> svcMap = new HashMap<String, Object>();
+741
+742		svcMap.put("r_bntype", bn_type);
+743		svcMap.put("r_orderby", "BN_INDATE DESC");
+744		svcMap.put("r_limitrow", limitrow);
+745		return bannerDao.listForFront(svcMap);
+746	}
+
+
+
+/* *********** bannerDao.listForFront *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\BannerDao.java
+
+
+41	public List<Map<String, Object>> listForFront(Map<String, Object> svcMap) {
+42		return sqlSession.selectList("eorder.banner.listForFront", svcMap);
+43	}
+
+
+
+/* *********** eorder.banner.listForFront *********** */
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\banner.xml
+
+
+115	   <select id="listForFront" parameterType="hashmap" resultType="hashmap">
+116		SELECT *
+117		FROM (
+118			SELECT ROW_NUMBER() OVER(
+119				/*ORDER BY (SELECT 1)*/
+120				<choose>
+121					<when test = " r_orderby != null and r_orderby != '' ">ORDER BY ${r_orderby}</when>
+122					<otherwise>ORDER BY (SELECT 1)</otherwise>
+123				</choose>
+124			) AS ROWNUM
+125			, *
+126			FROM BANNER
+127			<where>
+128				BN_USEYN = 'Y'
+129				<if test=" r_bntype != null and r_bntype != '' ">AND BN_TYPE = #{ r_bntype }</if>
+130			</where>
+131		) XX
+132		<where>
+133			<if test="r_limitrow != null and r_limitrow != ''">ROWNUM <![CDATA[<=]]> #{ r_limitrow }</if>
+134		</where>
+135		<!-- <if test=" r_orderby != null and r_orderby != '' ">ORDER BY ${ r_orderby }</if>  -->
+136
+137	</select>
+
+
+
+
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 정보공유 > 공지사항 *********** */
+
+http://localhost:8080/eorder/admin/board/noticeList.lime
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\front\board\noticeList.jsp
+
+
+48	// 공지 상세 팝업 띄우기.
+49	function boardViewPop(obj, bdSeq){
+50		if(!isApp()){
+51			// 팝업 세팅.
+52			var widthPx = 955;
+53			var heightPx = 720;
+54			var options = 'toolbar=no, location=no, status=no, directories=no, channelmode=no, menubar=no, scrollbars=yes, resizable=yes, width='+widthPx+', height='+heightPx;
+55
+56			$('form[name="frmPop"]').find('input[name="r_bdseq"]').val(bdSeq);
+57
+58			window.open('', 'noticeViewPop', options);
+59			$('form[name="frmPop"]').prop('action', '${url}/front/board/noticeViewPop.lime');
+60			$('form[name="frmPop"]').submit();
+61
+62		}
+63		else{
+64			// 모달팝업
+65			//$('#boardViewPopMId').modal('show');
+66			var link = '${url}/front/board/noticeViewPop.lime?r_bdseq='+bdSeq+'&layer_pop=Y&';
+67			// 부모창refresh
+68			$(document).on('hidden.bs.modal', function (e) {   // bootstrap modal refresh
+69			   $(e.target).removeData('bs.modal');
+70			});
+71			$('#boardViewPopMId').modal({
+72				remote: link
+73			});
+74		}
+75	}
+
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** 정보공유 > 공지사항 > 뷰팝업 *********** */
+
+https://eordertest.knaufapac.kr/eorder/front/board/noticeViewPop.lime
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\front\board\noticeViewPop.jsp
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\front\FBoardCtrl.java
+
+
+142	/**
+143	 * 공지사항 폼 > 팝업 폼.
+144	 * @작성일 : 2020. 4. 13.
+145	 * @작성자 : isaac
+146	 */
+147	@RequestMapping(value="noticeViewPop", method={RequestMethod.GET, RequestMethod.POST})
+148	public String noticeViewPop(@RequestParam Map<String, Object> params, LoginDto loginDto, Model model) throws LimeBizException {
+149		BoardDto resMap = boardSvc.getBoardOne(params);
+150		model.addAttribute("boardOne", resMap);
+151		model.addAttribute("restoreXSSContent", HttpUtils.restoreXss(Converter.toStr(resMap.getBD_CONTENT())));
+152
+153		return "front/board/noticeViewPop";
+154	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\BoardSvc.java
+
+
+332	public BoardDto getBoardOne(Map<String, Object> params){
+333		return boardDao.one(params);
+334	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\BoardDao.java
+
+
+60	public BoardDto one(Map<String, Object> svcMap) {
+61		return sqlSession.selectOne("eorder.board.one", svcMap);
+62	}
+
+
+
+C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\board.xml
+
+
+163	<select id="one" parameterType="hashmap" resultType="com.limenets.eorder.dto.BoardDto">
+164		SELECT BD.*
+165			, (SELECT CC_NAME FROM COMMONCODE WHERE CC_CODE =
+166			(CASE WHEN LEN(BD.BD_TYPE3)=10 THEN BD.BD_TYPE3 ELSE BD.BD_TYPE END)
+167			) BD_TYPENM
+168		FROM BOARD BD
+169		LEFT OUTER JOIN O_USER US ON BD.BD_INID = US.USERID
+170		<where>
+171			<if test="r_bdseq != null and r_bdseq != ''">BD_SEQ = #{ r_bdseq }</if>
+172			<if test="r_bdid != null and r_bdid != ''">AND BD_ID = #{ r_bdid }</if>
+173			<if test="r_bdtype != null and r_bdtype != ''">AND BD_TYPE = #{ r_bdtype }</if>
+174			<if test="r_bdtype2 != null and r_bdtype2 != ''">AND BD_TYPE2 = #{ r_bdtype2 }</if>
+175			<if test="r_bdtype3 != null and r_bdtype3 != ''">AND BD_TYPE3 = #{ r_bdtype3 }</if>
+176			<if test="rl_bdtitle != null and rl_bdtitle != '' ">AND BD_TITLE LIKE '%' + #{ rl_bdtitle } + '%'</if>
+177			<if test="rl_usernm != null and rl_usernm != '' ">AND USER_NM LIKE '%' + #{ rl_usernm } + '%'</if>
+178			<if test="r_bdnoticeyn != null and r_bdnoticeyn != ''">AND BD_NOTICEYN = #{ r_bdnoticeyn }</if>
+179			<if test="r_bdfileyn != null and r_bdfileyn != ''">AND BD_FILEYN = #{ r_bdfileyn }</if>
+180			<if test="r_bddisplaytype != null and r_bddisplaytype != ''">AND BD_DISPLAYTYPE = #{ r_bddisplaytype }</if>
+181			<if test="r_bdsdate != null and r_bdsdate != '' "><![CDATA[AND BD_INDATE >= CONVERT(DATE, #{r_bdsdate})]]></if>
+182			<if test="r_bdedate != null and r_bdedate != '' "><![CDATA[AND BD_INDATE < DATEADD(DAY, 1, #{r_bdedate})]]></if>
+183		</where>
+184	</select>
+
+
+

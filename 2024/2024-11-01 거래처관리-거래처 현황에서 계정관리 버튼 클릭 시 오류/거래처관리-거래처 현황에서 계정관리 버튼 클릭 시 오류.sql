@@ -1,0 +1,52 @@
+INSERT INTO O_USER	(
+						USERID,
+						USER_PWD,
+						PASSCHANGE_YN,
+						USER_NM,
+						AUTHORITY,
+						TEL_NO,
+						AGREE_YN,
+						INSERT_DT,
+						CUST_CD,
+						DEPT_CD,
+						JDEID,
+						INSERTID,
+						UPDATE_DT,
+						UPDATEID,
+						TEAM_NM,
+						TEAM_CD,
+						CELL_NO,
+						DUMMY,
+						FAIL_CNT
+					)
+SELECT
+		oc.CUST_CD AS USERID,
+		/* 2024-10-31 HSG 함수명 앞에 dbo 추가 */
+		dbo.UDF_SETPASSWORD(oc.CUST_CD) AS USER_PWD,
+		'N' AS PASSCHANGE_YN,
+		TRIM(oc.CUST_NM) AS USER_NM,
+		'CO' AS AUTHORITY,
+		-- Trim(tel.WPAR1) + '-' + Trim(tel.WPPH1) AS TEL_NO,
+		'' AS TEL_NO, 'N' AS AGREE_YN,
+		/* 2024-10-31 HSG MS-SQL 문법에 맞게 TO_CHAR를 FORMAT으로 SYSDATE를 GETDATE()로 변경. TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') AS INSERT_DT, */
+		FORMAT(GETDATE(),'YYYYMMDDHH24MISS') AS INSERT_DT,
+		oc.CUST_CD AS CUST_CD,
+		'' AS DEPT_CD,
+		'' AS JDEID,
+		'' AS INSERTID,
+		'' AS UPDATE_DT,
+		'' AS UPDATEID,
+		'' AS TEAM_NM,
+		'' AS TEAM_CD,
+		-- Trim(hptel.WPAR1) + '-' + Trim(hptel.WPPH1) AS CELL_NO,
+		'' AS CELL_NO,
+		'' DUMMY,
+		0 FAIL_CNT
+FROM	O_CUSTOMER oc
+WHERE	oc.CUST_CD = '10022040'
+
+;
+
+
+
+

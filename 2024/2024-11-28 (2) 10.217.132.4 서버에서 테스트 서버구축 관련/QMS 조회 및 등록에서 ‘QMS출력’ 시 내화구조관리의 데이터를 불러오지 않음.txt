@@ -1,0 +1,152 @@
+
+
+/* ***************************************************************************************************************************************** */
+/* *********** QMS 조회 및 등록 > QMS 출력 : http://localhost:8080/eorder/front/report/qmsReport.lime *********** */
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\webapp\WEB-INF\views\admin\order\qmsOrderList.jsp *********** */
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\ctrl\admin\OrderCtrl.java *********** */
+
+
+422    /**
+     * QMS 조회 및 등록.
+     * @작성일 : 2021. 3. 29.
+     * @작성자 : jihye lee
+     */
+    @RequestMapping(value="qmsOrderList")
+    public String qmsItemList(@RequestParam Map<String, Object> params, HttpServletRequest req, HttpServletResponse res, LoginDto loginDto, Model model) throws Exception {
+        //model.addAttribute("salesOrderStatus", StatusUtil.SALESORDER.getMap()); // 출하상태 Map형태로 가져오기.
+        //model.addAttribute("salesOrderStatusToJson", StatusUtil.SALESORDER.getMapToJson()); // 출하상태 JSON형태로 가져오기.
+        //model.addAttribute("qmlStatusList", StatusUtil.QMS.getList()); // QMS 상태 List<Map>형태로 가져오기.
+        
+        // 주문일 세팅.
+        // jsh 시작일자 -90일 기본값 적용
+        //Calendar cal = Calendar.getInstance();
+        /*Date toDayDate = Converter.dateAdd(new Date(),5,-90);
+        String toDay = Converter.dateToStr("yyyy-MM-dd",toDayDate);
+        String fromDay = Converter.dateToStr("yyyy-MM-dd");
+        model.addAttribute("ordersdt", toDay);
+        model.addAttribute("orderedt", fromDay);*/
+        
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -90);
+        Map<String, Object> quater = Converter.getQuaterDate(cal);
+        model.addAttribute("ordersdt", quater.get("ordersdt"));
+        model.addAttribute("orderedt", quater.get("orderedt"));
+        
+        model.addAttribute("preYear", quater.get("preYear"));
+        model.addAttribute("preQuat", quater.get("preQuat"));
+        
+        // 내부사용자 웹주문현황  > 별도 권한 설정.
+        orderSvc.setParamsForAdminOrderList(params, req, loginDto, model);
+        
+        List<Map<String, Object>> orderYearList = orderSvc.getQmsOrderYearList(params, req);
+        List<Map<String, Object>> releaseYearList = orderSvc.getQmsReleaseYearList(params, req);
+        
+        model.addAttribute("orderYearList", orderYearList);
+        model.addAttribute("releaseYearList", releaseYearList);
+        
+        // 현재날짜 기준 직전분기
+        /*String preYear = fromDay.substring(0,4) + "년";
+        String preQuat = "";
+        String tmpYear = fromDay.substring(0,4);
+        String tmpDay = fromDay.substring(5);
+        String[] rangeDay = tmpDay.split("-");
+        if(Integer.parseInt(rangeDay[0]) <= 3) {
+            preYear = String.valueOf(Integer.parseInt(fromDay.substring(0,4)) - 1) + "년";
+            preQuat = "4분기";
+        }else if(Integer.parseInt(rangeDay[0]) >= 4 && Integer.parseInt(rangeDay[0]) <= 6){
+            preQuat = "1분기";
+        }else if(Integer.parseInt(rangeDay[0]) >= 7 && Integer.parseInt(rangeDay[0]) <= 9){
+            preQuat = "2분기";
+        }else{
+            preQuat = "3분기";
+        }
+        
+        model.addAttribute("preYear", preYear);
+        model.addAttribute("preQuat", preQuat);*/
+        
+        return "admin/order/qmsOrderList";
+    }   
+
+
+
+
+/* *********** List<Map<String, Object>> orderYearList = orderSvc.getQmsOrderYearList(params, req); *********** */
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\svc\OrderSvc.java *********** */
+
+3367    public List<Map<String, Object>> getQmsOrderYearList(Map<String, Object> params, HttpServletRequest req) {
+        return qmsOrderDao.getQmsOrderYearList(params);
+    }
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\java\com\limenets\eorder\dao\QmsOrderDao.java *********** */
+
+
+232    public List<Map<String, Object>> getQmsOrderYearList(Map<String, Object> svcMap) {
+        return sqlSession.selectList("eorder.o_qmsorder.getQmsOrderYearList", svcMap);
+    }
+
+
+
+
+
+/* *********** C:\GitHub\Knauf_Eorder_NEW\src\main\resources\sql\mssql\o_qmsorder.xml *********** */
+
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
