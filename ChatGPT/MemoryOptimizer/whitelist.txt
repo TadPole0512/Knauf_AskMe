@@ -1,0 +1,9 @@
+vscode.exe
+idea64.exe
+dbeaver.exe
+mstsc.exe
+Teams.exe
+chrome.exe
+msedge.exe
+explorer.exe
+dwm.exe

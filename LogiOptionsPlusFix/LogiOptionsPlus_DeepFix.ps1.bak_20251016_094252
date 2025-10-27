@@ -1,0 +1,267 @@
+﻿<# 
+LogiOptionsPlus_DeepFix.ps1
+Version: 1.3.0
+Purpose:
+  If Logi Options+ shows endless loading even after cache/service/reinstall, perform deep diagnostics & fully clean residuals,
+  then relaunch in "safe mode" (GPU off, proxy bypass for app-only), check enterprise policy/proxy issues, and repair runtimes.
+#>
+
+[CmdletBinding()]
+param(
+  [ValidateSet("Diagnose","DeepClean","DeepCleanRun")][string]$Mode = "DeepCleanRun",
+  [string]$OutDir = "$env:ProgramData\LogiOptionsPlusFix\DeepLogs"
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+# ---------- Constants ----------
+$ReportTime = (Get-Date).ToString("yyyyMMdd_HHmmss")
+$SessionId = [Guid]::NewGuid().ToString()
+$WorkRoot = Join-Path $OutDir $ReportTime
+$LogFile  = Join-Path $WorkRoot "DeepFixLog.txt"
+$Report   = Join-Path $WorkRoot "DeepFixReport.md"
+
+$AppExeCandidates = @(
+  "$env:LOCALAPPDATA\Programs\LogiOptionsPlus\LogiOptionsPlus.exe",
+  "$env:ProgramFiles\Logi\LogiOptionsPlus\LogiOptionsPlus.exe",
+  "$env:LOCALAPPDATA\Logi\LogiOptionsPlus\LogiOptionsPlus.exe"
+)
+$Services = @('LogiOptionsPlus Service','LogiBoltService','LogiOverlayService','LogiOptionsPlusAgent')
+$ProcNames = @('LogiOptionsPlus','LogiOptionsPlusAgent','OptionsPlus','LogiOverlay')
+$DataRoots = @("$env:APPDATA\LogiOptionsPlus","$env:LOCALAPPDATA\LogiOptionsPlus","$env:LOCALAPPDATA\Packages\Logi*","$env:PROGRAMDATA\LogiOptionsPlus")
+$LegacyApps = @('Logitech Options','Logitech G HUB','SetPoint')
+$WingetIds = @('Logitech.OptionsPlus','Microsoft.EdgeWebView2Runtime','Microsoft.VC++2015-2022Redist-x64')
+
+# (추정) 네트워크 엔드포인트 후보 — 통신 차단 탐지용(없어도 스킵)
+$TestHosts = @(
+  'logi.com','www.logitech.com','software.logitech.com','update.logi.com','options.logi.com','api.logi.com'
+)
+
+# ---------- Helpers ----------
+function New-Dir($p){ if(-not (Test-Path $p)){ New-Item -ItemType Directory -Force -Path $p | Out-Null } }
+function Log($m){ $ts=(Get-Date).ToString("HH:mm:ss"); "$ts  $m" | Tee-Object -FilePath $LogFile -Append | Out-Null }
+function Stop-Procs($names){ foreach($n in $names){ Get-Process -Name $n -ErrorAction SilentlyContinue | ForEach-Object{ try{ $_ | Stop-Process -Force; Log "Killed: $($_.ProcessName) PID=$($_.Id)" }catch{} } } }
+function Stop-Svcs($names){ foreach($s in $names){ try{ $svc=Get-Service -Name $s -ErrorAction SilentlyContinue; if($svc -and $svc.Status -ne 'Stopped'){ Stop-Service $s -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Log "Service stopped: $s" } }catch{} } }
+function Start-Svcs($names){ foreach($s in $names){ try{ $svc=Get-Service -Name $s -ErrorAction SilentlyContinue; if($svc){ Start-Service $s -ErrorAction SilentlyContinue; Log "Service started: $s" } }catch{} } }
+function Remove-PathSafe($path){ if(Test-Path $path){ try{ Remove-Item $path -Recurse -Force -ErrorAction Stop; Log "Removed: $path" }catch{ Log "Remove warn: $path => $($_.Exception.Message)" } } }
+function Zip-Dir($src,$zip){
+  Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
+  if(Test-Path $zip){ Remove-Item $zip -Force -ErrorAction SilentlyContinue }
+  [System.IO.Compression.ZipFile]::CreateFromDirectory($src,$zip)
+}
+
+# ---------- Init ----------
+New-Dir $WorkRoot
+"Session: $SessionId`nTime: $(Get-Date) `nUser: $env:USERNAME `nMode: $Mode`n" | Out-File -FilePath $LogFile -Encoding utf8
+Log "WorkRoot: $WorkRoot"
+
+# ---------- System Snapshot ----------
+$sysInfo = Get-ComputerInfo -Property OsName,OsVersion,WindowsVersion,OsBuildNumber
+$admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)
+$proxy = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction SilentlyContinue
+$proxyEnabled = $null; $proxyServer = $null
+if($proxy){ if($proxy.PSObject.Properties['ProxyEnable']){ $proxyEnabled=$proxy.ProxyEnable }; if($proxy.PSObject.Properties['ProxyServer']){ $proxyServer=$proxy.ProxyServer } }
+Log "OS: $($sysInfo.OsName) $($sysInfo.OsVersion) build $($sysInfo.OsBuildNumber) | Admin=$admin"
+Log "ProxyEnabled=$proxyEnabled ProxyServer=$proxyServer"
+
+# ---------- Quick Diagnose ----------
+Log "=== Quick Diagnose ==="
+# 1) 이벤트 로그(최근 150개 중 Logi 키워드)
+$events = Get-WinEvent -LogName Application -MaxEvents 150 -ErrorAction SilentlyContinue | Where-Object {
+  $_.ProviderName -like "*Logi*" -or $_.Message -like "*Logi*" -or $_.Message -like "*Options+*"
+}
+$evTop = $events | Select-Object -First 10 TimeCreated,ProviderName,Id,LevelDisplayName,Message
+$evPath = Join-Path $WorkRoot "Events.txt"
+$events | Format-Table -AutoSize | Out-String | Out-File -FilePath $evPath -Encoding utf8
+Log "Events captured: $evPath"
+
+# 2) 서비스 상태
+foreach($s in $Services){ $svc = Get-Service -Name $s -ErrorAction SilentlyContinue; if($svc){ Log ("Service {0}: {1} ({2})" -f $s,$svc.Status, (Get-CimInstance Win32_Service -Filter "Name='$($svc.Name)'" -ErrorAction SilentlyContinue).StartMode) } else { Log "Service $s: Not found" } }
+
+# 3) 앱 바이너리/버전
+$foundExe = $null
+foreach($p in $AppExeCandidates){ if(Test-Path $p){ $foundExe = $p; break } }
+if($foundExe){ try{ $ver=(Get-Item $foundExe).VersionInfo.ProductVersion }catch{ $ver="Unknown" }; Log "AppExe: $foundExe (Version $ver)" } else { Log "AppExe: Not found" }
+
+# 4) 네트워크 엔드포인트 테스트 (DNS+TCP 443)
+$netCsv = Join-Path $WorkRoot "EndpointTest.csv"
+"Host,Resolve,Connect443" | Out-File $netCsv -Encoding utf8
+foreach($h in $TestHosts){
+  $resolved=$false; $connect=$false
+  try{ Resolve-DnsName $h -ErrorAction Stop | Out-Null; $resolved=$true }catch{}
+  try{
+    $client = New-Object System.Net.Sockets.TcpClient
+    $iar = $client.BeginConnect($h,443,$null,$null)
+    $ok = $iar.AsyncWaitHandle.WaitOne(1500) # 1.5s
+    if($ok -and $client.Connected){ $connect=$true }
+    $client.Close()
+  }catch{}
+  "$h,$resolved,$connect" | Add-Content $netCsv -Encoding utf8
+}
+Log "Endpoint test: $netCsv"
+
+if($Mode -eq 'Diagnose'){ Log "Diagnose mode only. Report will be generated."; }
+
+# ---------- Deep Clean (optional) ----------
+if($Mode -ne 'Diagnose'){
+  Log "=== Deep Clean Phase ==="
+  # 프로세스/서비스 중지
+  Stop-Procs $ProcNames
+  Stop-Svcs  $Services
+
+  # 구버전 충돌 앱/남은 설치 제거(winget)
+  $winget = Get-Command winget -ErrorAction SilentlyContinue
+  if($winget){
+    foreach($id in $WingetIds){
+      try{ Log "winget upgrade: $id"; winget upgrade --id $id --silent --accept-source-agreements --accept-package-agreements | Tee-Object -FilePath $LogFile -Append | Out-Null }catch{}
+    }
+    # Options+ 제거 후 재설치: DeepCleanRun에서 수행
+    try{
+      Log "winget uninstall Logitech.OptionsPlus (ignore errors if not installed)"
+      winget uninstall --id "Logitech.OptionsPlus" --silent --accept-source-agreements --accept-package-agreements | Tee-Object -FilePath $LogFile -Append | Out-Null
+    }catch{ Log "winget uninstall warn: $($_.Exception.Message)" }
+  }else{
+    Log "winget not available; skip runtime upgrades."
+  }
+
+  # 잔존 폴더 백업 후 제거
+  $backupDir = Join-Path $WorkRoot "PreCleanBackup"
+  New-Dir $backupDir
+  foreach($root in $DataRoots){
+    Get-ChildItem -Path $root -Force -ErrorAction SilentlyContinue | ForEach-Object {
+      $src=$_.FullName
+      $dst = Join-Path $backupDir ($src -replace '[:\\]','_')
+      try{
+        if($_.PSIsContainer){ Copy-Item $src $dst -Recurse -Force -ErrorAction Stop } else { New-Dir (Split-Path $dst); Copy-Item $src $dst -Force -ErrorAction Stop }
+      }catch{ Log "Backup warn: $src => $($_.Exception.Message)" }
+      Remove-PathSafe $src
+    }
+  }
+  # ProgramData/ProgramFiles 밑 흔적
+  foreach($pp in @("$env:ProgramFiles\Logi","$env:ProgramFiles\Logitech","$env:ProgramFiles(x86)\Logi","$env:ProgramFiles(x86)\Logitech")){
+    Get-ChildItem -Path $pp -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'Logi|Logitech' } | ForEach-Object { Remove-PathSafe $_.FullName }
+  }
+  # 시작프로그램 레거시 제거
+  foreach($rk in @('HKCU:\Software\Microsoft\Windows\CurrentVersion\Run','HKLM:\Software\Microsoft\Windows\CurrentVersion\Run')){
+    try{
+      $props = Get-ItemProperty -Path $rk -ErrorAction SilentlyContinue
+      if($props){
+        $props.PSObject.Properties | Where-Object { $_.Name -match 'Logitech|Options' } | ForEach-Object {
+          try{ Remove-ItemProperty -Path $rk -Name $_.Name -Force; Log "Removed autorun: $($_.Name) from $rk" }catch{}
+        }
+      }
+    }catch{}
+  }
+  # 스케줄 작업 흔적
+  try{ schtasks /Query /FO LIST | findstr /I "Logi Logitech Options" | Out-File (Join-Path $WorkRoot "Tasks.txt") }catch{}
+}
+
+# ---------- Reinstall & Safe-Mode Launch ----------
+if($Mode -eq 'DeepCleanRun'){
+  $winget = Get-Command winget -ErrorAction SilentlyContinue
+  if($winget){
+    try{
+      Log "Installing Edge WebView2 Runtime (if applicable)"
+      winget install --id "Microsoft.EdgeWebView2Runtime" --silent --accept-source-agreements --accept-package-agreements | Tee-Object -FilePath $LogFile -Append | Out-Null
+    }catch{}
+    try{
+      Log "Installing VC++ 2015-2022 x64 (if applicable)"
+      winget install --id "Microsoft.VC++2015-2022Redist-x64" --silent --accept-source-agreements --accept-package-agreements | Tee-Object -FilePath $LogFile -Append | Out-Null
+    }catch{}
+    try{
+      Log "Installing Logitech.OptionsPlus"
+      winget install --id "Logitech.OptionsPlus" --silent --accept-source-agreements --accept-package-agreements | Tee-Object -FilePath $LogFile -Append | Out-Null
+    }catch{ Log "Options+ install warn: $($_.Exception.Message)" }
+  }else{
+    Log "winget not available; please install Options+ manually after deep clean."
+  }
+
+  # 실행 파일 재탐색
+  $exe = $null
+  foreach($p in $AppExeCandidates){ if(Test-Path $p){ $exe=$p; break } }
+  if($exe){
+    # 안전모드 실행: GPU 끄고, 네트워크 프록시 무시(프로세스 범위), Electron 로그 활성
+    $env:ELECTRON_ENABLE_LOGGING = "1"
+    $env:ELECTRON_NO_ATTACH_CONSOLE = "1"
+    $env:LOGI_OPTIONS_OFFLINE = ""   # 빈값(정책 차단일 때 의미 없음, 서버 통신 시도 로그만 잡음)
+    $env:HTTPS_PROXY = ""
+    $env:HTTP_PROXY  = ""
+    $env:NO_PROXY    = "*"
+    $args = @('--disable-gpu','--disable-features=UseOzonePlatform','--no-sandbox')
+    $outLog = Join-Path $WorkRoot "OptionsPlus_console.txt"
+    Log "Launching in safe mode: $exe $($args -join ' ')"
+    Start-Process -FilePath $exe -ArgumentList $args -RedirectStandardOutput $outLog -RedirectStandardError $outLog
+  }else{
+    Log "Options+ EXE not found after reinstall."
+  }
+
+  # 서비스 재시작(있다면)
+  Start-Svcs $Services
+}
+
+# ---------- Policy/Cert Hints ----------
+# 루트 인증서 체인/SSL MITM 의심 포인트: 잘 알려진 호스트 대상 간단 체커
+$sslLog = Join-Path $WorkRoot "SSL_Check.txt"
+try{
+  $targets = @('www.google.com','www.microsoft.com')
+  foreach($t in $targets){
+    try{
+      $req = [System.Net.HttpWebRequest]::Create("https://$t/")
+      $req.Method = "GET"
+      $req.Timeout = 3000
+      $resp = $req.GetResponse()
+      $cert = $req.ServicePoint.Certificate
+      if($cert){
+        $issuer = $cert.Issuer
+        $subject = $cert.Subject
+        Add-Content $sslLog "Host=$t | Issuer=$issuer | Subject=$subject"
+      }
+      $resp.Close()
+    }catch{
+      Add-Content $sslLog "Host=$t | SSL error: $($_.Exception.Message)"
+    }
+  }
+  Log "SSL check: $sslLog"
+}catch{}
+
+# ---------- Report ----------
+$lines = @()
+$lines += "# Logi Options+ DeepFix Report"
+$lines += "- Session: $SessionId"
+$lines += "- Time: $(Get-Date)"
+$lines += "- Mode: $Mode"
+$lines += "- Admin: $admin"
+$lines += ""
+$lines += "## System"
+$lines += "- OS: $($sysInfo.OsName) $($sysInfo.OsVersion) build $($sysInfo.OsBuildNumber)"
+$lines += "- ProxyEnabled: $proxyEnabled"
+$lines += "- ProxyServer : $proxyServer"
+$lines += ""
+$lines += "## Events (Application, Logi related — top 10)"
+foreach($e in $evTop){
+  $msg = $e.Message -replace "`r|`n"," "
+  $lines += "- [$($e.TimeCreated)] $($e.ProviderName) #$($e.Id) $($e.LevelDisplayName) : $msg"
+}
+$lines += ""
+$lines += "## Endpoint Connectivity (DNS/443)"
+$epCsv = Get-Content $netCsv -ErrorAction SilentlyContinue
+if($epCsv){ $lines += ($epCsv -join "`r`n") } else { $lines += "- (skipped)" }
+$lines += ""
+$lines += "## Files"
+$lines += "- Events: $evPath"
+$lines += "- SSL: $sslLog"
+$lines += "- ConsoleLog (if launched): $WorkRoot\\OptionsPlus_console.txt"
+$lines += "- Full Log: $LogFile"
+$lines += ""
+$lines += "## Next Hints"
+$lines += "1) **ConsoleLog**에서 Electron 에러/렌더러 충돌/GPU 관련 로그 확인"
+$lines += "2) Endpoint CSV에서 **Resolve=True but Connect=False** 인 호스트가 있으면 프록시/방화벽/SSL검사 차단 의심"
+$lines += "3) 회사 EDR/프록시 팀에 **Options+ 화이트리스트** 요청(호스트: logi.com / logitech.com 관련, SSL MITM 예외)"
+$lines += "4) DeepClean 후에도 실행 즉시 무한 스피너면 **GPU/드라이버** 혹은 **MSIX 잔존** 의심 → 현재 스크립트가 GPU를 끄고 실행"
+$lines += "5) 동시에 G HUB/구 Options 사용 중이면 언인스톨·재부팅 후 단독 실행"
+
+$md = $lines -join "`r`n"
+$md | Out-File -FilePath $Report -Encoding utf8
+Log "Report written: $Report"
+Write-Host "`nDone. Report: $Report`nLog: $LogFile`n"

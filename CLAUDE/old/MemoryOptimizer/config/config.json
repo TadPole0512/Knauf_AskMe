@@ -1,0 +1,110 @@
+{
+  "version": "2.0",
+  "monitoring": {
+    "enabled": true,
+    "interval_seconds": 10,
+    "thresholds": {
+      "info": 80,
+      "warning": 85,
+      "caution": 90,
+      "critical": 95,
+      "emergency": 99
+    }
+  },
+  "whitelist": {
+    "description": "절대 종료하지 않을 프로세스 목록",
+    "processes": [
+      "vscode.exe",
+      "Code.exe",
+      "idea64.exe",
+      "dbeaver.exe",
+      "mstsc.exe",
+      "Teams.exe",
+      "chrome.exe",
+      "msedge.exe",
+      "firefox.exe",
+      "explorer.exe",
+      "dwm.exe",
+      "csrss.exe",
+      "winlogon.exe",
+      "services.exe",
+      "svchost.exe",
+      "lsass.exe"
+    ]
+  },
+  "auto_optimize": {
+    "description": "자동 최적화 활성화 항목 (true=승인 필요 없음)",
+    "clear_temp": true,
+    "clear_browser_cache": false,
+    "suspend_tabs": false,
+    "reduce_visuals": false,
+    "limit_background": false,
+    "disable_telemetry": false,
+    "optimize_working_set": true
+  },
+  "optimization_levels": {
+    "level1": {
+      "trigger_percent": 90,
+      "actions": [
+        "clear_temp",
+        "flush_dns",
+        "empty_recycle_bin",
+        "dotnet_gc"
+      ]
+    },
+    "level2": {
+      "trigger_percent": 95,
+      "actions": [
+        "level1_all",
+        "optimize_working_set",
+        "lower_background_priority",
+        "pause_non_essential_services"
+      ]
+    },
+    "level3": {
+      "trigger_percent": 99,
+      "actions": [
+        "level2_all",
+        "kill_non_whitelisted_high_memory"
+      ],
+      "high_memory_threshold_mb": 500
+    }
+  },
+  "schedule": {
+    "deep_clean_enabled": true,
+    "deep_clean_time": "02:00",
+    "report_interval": "daily",
+    "auto_restart_threshold_days": 7
+  },
+  "special_modes": {
+    "remote_desktop_pause": true,
+    "ide_build_protection": true,
+    "teams_meeting_boost": true,
+    "gaming_mode_detection": true
+  },
+  "paths": {
+    "log_dir": "C:\\ProgramData\\MemoryOptimizer_CLAUDE\\logs",
+    "report_dir": "C:\\ProgramData\\MemoryOptimizer_CLAUDE\\reports",
+    "cache_file": "C:\\ProgramData\\MemoryOptimizer_CLAUDE\\cache.json"
+  },
+  "browser_settings": {
+    "kill_before_cache_clean": true,
+    "restart_after_clean": false,
+    "suspend_idle_tabs_minutes": 30
+  },
+  "windows_update": {
+    "clean_cache": true,
+    "stop_service_timeout_seconds": 10,
+    "restart_service_after_clean": true
+  },
+  "notifications": {
+    "show_tray_notifications": true,
+    "critical_level_alert": true,
+    "optimization_complete_notification": false
+  },
+  "logging": {
+    "level": "INFO",
+    "max_log_files": 30,
+    "max_log_size_mb": 10
+  }
+}

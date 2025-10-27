@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<devices>
+	<device path="\\?\hid#{00001812-0000-1000-8000-00805f9b34fb}_dev_vid&amp;02046d_pid&amp;b031_rev&amp;0010_d8db5a6ca709&amp;col02#9&amp;9bdfeb4&amp;0&amp;0001#{4d1e55b2-f16f-11cf-88cb-001111000030}" pid="B031" name="" radio="\\?\usb#vid_8087&amp;pid_0033#5&amp;210ecf5e&amp;0&amp;10#{0850302a-b344-4fda-9be9-90576b8d46f0}" interface="blehidpp"/>
+</devices>
+

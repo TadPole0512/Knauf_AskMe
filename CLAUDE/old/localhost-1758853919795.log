@@ -1,0 +1,156 @@
+ga_corp_vehicle.js?v=20250926112919:302 Console was cleared
+ga_corp_vehicle.js?v=20250926112919:303 🔍 법인차량생성 콤보박스 근본원인 분석 시작
+ga_corp_vehicle.js?v=20250926112919:304 ======================================================================
+ga_corp_vehicle.js?v=20250926112919:307 📸 1단계: 현재 상태 스냅샷
+ga_corp_vehicle.js?v=20250926112919:318 (index)Value(index)ValuehiddenValue''textValue''domExiststruelistExiststrueitemCount3visibleText'"", "직접등록", "고정자산 등록 후 생성"'Object
+ga_corp_vehicle.js?v=20250926112919:321 🌐 2단계: API 응답 모니터링 설정
+ga_corp_vehicle.js?v=20250926112919:144 🔄 데이터-DOM 매핑 과정 추적
+ga_corp_vehicle.js?v=20250926112919:204 ✅ API 요청/응답 모니터링 설정 완료
+ga_corp_vehicle.js?v=20250926112919:325 🔧 3단계: gf_formCombo 디버깅 설정
+ga_corp_vehicle.js?v=20250926112919:29 🔍 gf_formCombo 함수 내부 동작 추적
+ga_corp_vehicle.js?v=20250926112919:93 ✅ gf_formCombo 디버깅 래퍼 설정 완료
+ga_corp_vehicle.js?v=20250926112919:329 🎨 4단계: CSS 렌더링 문제 확인
+ga_corp_vehicle.js?v=20250926112919:247 🎨 CSS 렌더링 문제 확인
+ga_corp_vehicle.js?v=20250926112919:255 🎨 아이템 0 CSS 분석: {display: 'inline-block', visibility: 'visible', opacity: '1', height: '30px', fontSize: '12px', …}
+ga_corp_vehicle.js?v=20250926112919:255 🎨 아이템 1 CSS 분석: {display: 'inline-block', visibility: 'visible', opacity: '1', height: '30px', fontSize: '12px', …}
+ga_corp_vehicle.js?v=20250926112919:255 🎨 아이템 2 CSS 분석: {display: 'inline-block', visibility: 'visible', opacity: '1', height: '30px', fontSize: '12px', …}
+ga_corp_vehicle.js?v=20250926112919:281 📦 부모 컨테이너 CSS:
+ga_corp_vehicle.js?v=20250926112919:286 레벨 0 (DIV): {overflow: 'visible', position: 'relative', zIndex: 'auto', transform: 'none'}
+ga_corp_vehicle.js?v=20250926112919:286 레벨 1 (DIV): {overflow: 'hidden', position: 'static', zIndex: 'auto', transform: 'none'}
+ga_corp_vehicle.js?v=20250926112919:286 레벨 2 (FORM): {overflow: 'visible', position: 'static', zIndex: 'auto', transform: 'none'}
+ga_corp_vehicle.js?v=20250926112919:286 레벨 3 (DIV): {overflow: 'visible', position: 'static', zIndex: 'auto', transform: 'none'}
+ga_corp_vehicle.js?v=20250926112919:286 레벨 4 (DIV): {overflow: 'visible', position: 'static', zIndex: 'auto', transform: 'none'}
+ga_corp_vehicle.js?v=20250926112919:333 🔬 5단계: gf_formCombo 내부 로직 분석
+ga_corp_vehicle.js?v=20250926112919:212 🔬 gf_formCombo 내부 로직 역추적
+ga_corp_vehicle.js?v=20250926112919:216 📝 gf_formCombo 함수 소스:
+ga_corp_vehicle.js?v=20250926112919:217 function(options) {
+        console.log("📋 gf_formCombo 호출됨:", options);
+
+        // 성공 콜백 래핑
+        const originalSuccess = options.success;
+        options.success = function(data) {
+            console.log("📊 API 응답 데이터:", data);
+            console.log("📊 데이터 구조 분석:");
+
+            if (data && data.length > 0) {
+                data.forEach((item, index) => {
+                    console.log(`데이터 ${index}:`, {
+                        모든속성: Object.keys(item),
+                        값들: item,
+                        가능한_code_필드: [
+                            item.code, item.CODE,
+                            item.comm_code, item.COMM_CODE,
+                            item.code_value, item.CODE_VALUE
+                        ],
+                        가능한_name_필드: [
+                            item.name, item.NAME,
+                            item.code_name, item.CODE_NAME,
+                            item.comm_name, item.COMM_NAME
+                        ]
+                    });
+                });
+            }
+
+            // 원본 success 함수 호출
+            if (originalSuccess) {
+                const result = originalSuccess.call(this, data);
+
+                // DOM 생성 후 상태 확인
+                setTimeout(() => {
+                    console.log("🏗️ DOM 생성 후 상태:");
+                    analyzeDOMStructure();
+                }, 100);
+
+                return result;
+            }
+        };
+
+        // 에러 콜백 래핑
+        const originalError = options.error;
+        options.error = function(xhr, status, error) {
+            console.error("❌ gf_formCombo 에러:");
+            console.error("Status:", status);
+            console.error("Error:", error);
+            console.error("Response Text:", xhr.responseText);
+
+            if (originalError) {
+                return originalError.call(this, xhr, status, error);
+            }
+        };
+
+        // 원본 함수 호출
+        return originalGfFormCombo.call(this, options);
+    }
+ga_corp_vehicle.js?v=20250926112919:221 🌐 관련 전역 변수들:
+ga_corp_vehicle.js?v=20250926112919:227 콤보 관련 전역 변수: (45) ['clientInformation', 'performance', 'onformdata', 'ExcelFormatConverter', 'gf_getComboPopupData', 'gf_formDataToJson', 'gf_inputNumberFormat', 'gf_getFormatDate', 'gf_getFormatDate2', 'gf_set_button_popup', 'gf_getComboData', 'gf_getComboDataAsync', 'gf_backgroundCombo', 'gf_formCombo', 'formCombo', 'formComboCallBack', 'multiFormCombo', 'multiFormComboCallBack', 'gf_gridCombo', 'gf_getComboValues', 'gf_modal_popup', 'gf_comm_popup', 'gf_popup', 'gf_getPopupData', 'gf_form_auth', 'gf_formChange_detector', 'gf_formSearch', 'gf_formClear', 'gf_formValidationCheck', 'gf_formBtnClick', 'gf_formChange', 'gf_pastePopup', 'gf_editCellPopup', 'gf_gridValidationPopup', 'gf_makeActiveCombo', 'picForm', 'popup', 'debugGfFormComboProcess', 'reverseEngineerGfFormCombo', 'f_formCombo', 'f_searchFormCombo', 'FormColumn', 'f_popup_callback', 'f_formChange', 'f_searchFormChange']
+ga_corp_vehicle.js?v=20250926112919:232 💡 jQuery 객체 메서드 확인:
+ga_corp_vehicle.js?v=20250926112919:238 콤보 관련 메서드: (2) ['droppable', 'dropzone']
+ga_corp_vehicle.js?v=20250926112919:337 🔄 6단계: 콤보박스 재초기화 (모니터링 중)
+ga_corp_vehicle.js?v=20250926112919:343 ======================================================================
+ga_corp_vehicle.js?v=20250926112919:344 ✅ 근본원인 분석 설정 완료 - 콤보박스 재생성 과정을 모니터링합니다
+ga_corp_vehicle.js?v=20250926112919:345 📋 주의: Network 탭과 Console을 함께 확인하세요
+undefined
+ga_corp_vehicle.js?v=20250926112919:339 콤보박스 재생성 시작...
+ga_corp_vehicle.js?v=20250926112919:35 📋 gf_formCombo 호출됨: {popup_code: 'ALL_BUSINESS_ID', tag_id: 'comm_business_id_div', async: false, empty: true}
+ga_corp_vehicle.js?v=20250926112919:152 🌐 API 요청 시작: {method: 'POST', url: '/comm_popup_result.ajax', args: Array(3)}
+ga_corp_vehicle.js?v=20250926112919:161 📤 API 요청 데이터: popup_code=ALL_BUSINESS_ID
+ga_corp_vehicle.js?v=20250926112919:165 📥 API 응답: {status: 200, statusText: '', responseText: '[{"code_value":1,"code_name":"삼주마리타임 주식회사"}]', responseHeaders: 'connection: keep-alive\r\ncontent-type: application/…p-alive: timeout=20\r\ntransfer-encoding: chunked\r\n'}
+ga_corp_vehicle.js?v=20250926112919:174 📊 파싱된 응답: [{…}]
+ga_corp_vehicle.js?v=20250926112919:178 🔍 필드 구조 분석:
+ga_corp_vehicle.js?v=20250926112919:180 사용 가능한 필드들: (2) ['code_value', 'code_name']
+ga_corp_vehicle.js?v=20250926112919:192 코드 필드 후보: (2) ['code_value', 'code_name']
+ga_corp_vehicle.js?v=20250926112919:193 이름 필드 후보: ['code_name']
+ga_corp_vehicle.js?v=20250926112919:35 📋 gf_formCombo 호출됨: {popup_code: 'comm_mu_code', tag_id: 'fuel_division_code_div', param: {…}, async: true, empty: true}
+ga_corp_vehicle.js?v=20250926112919:152 🌐 API 요청 시작: {method: 'POST', url: '/comm_popup_result.ajax', args: Array(3)}args: (3) [true, undefined, undefined]method: "POST"url: "/comm_popup_result.ajax"[[Prototype]]: Object
+ga_corp_vehicle.js?v=20250926112919:161 📤 API 요청 데이터: popup_code=comm_mu_code&param=%7B%22code_master%22%3A%22ga002%22%7D
+ga_corp_vehicle.js?v=20250926112919:35 📋 gf_formCombo 호출됨: {popup_code: 'comm_mu_code', tag_id: 'own_division_code_div', param: {…}, async: true, empty: true}
+ga_corp_vehicle.js?v=20250926112919:152 🌐 API 요청 시작: {method: 'POST', url: '/comm_popup_result.ajax', args: Array(3)}
+ga_corp_vehicle.js?v=20250926112919:161 📤 API 요청 데이터: popup_code=comm_mu_code&param=%7B%22code_master%22%3A%22ga003%22%7D
+ga_corp_vehicle.js?v=20250926112919:35 📋 gf_formCombo 호출됨: {popup_code: 'comm_mu_code', tag_id: 'rent_division_code_div', param: {…}, async: true, empty: true}
+ga_corp_vehicle.js?v=20250926112919:152 🌐 API 요청 시작: {method: 'POST', url: '/comm_popup_result.ajax', args: Array(3)}
+ga_corp_vehicle.js?v=20250926112919:161 📤 API 요청 데이터: popup_code=comm_mu_code&param=%7B%22code_master%22%3A%22ga004%22%7D
+ga_corp_vehicle.js?v=20250926112919:35 📋 gf_formCombo 호출됨: {popup_code: 'comm_mu_code', tag_id: 'work_division_code_div', param: {…}, async: true, empty: true}
+ga_corp_vehicle.js?v=20250926112919:152 🌐 API 요청 시작: {method: 'POST', url: '/comm_popup_result.ajax', args: Array(3)}
+ga_corp_vehicle.js?v=20250926112919:161 📤 API 요청 데이터: popup_code=comm_mu_code&param=%7B%22code_master%22%3A%22ga005%22%7D
+ga_corp_vehicle.js?v=20250926112919:35 📋 gf_formCombo 호출됨: {popup_code: 'comm_mu_code', tag_id: 'use_type_code_div', param: {…}, async: true, empty: true}
+ga_corp_vehicle.js?v=20250926112919:152 🌐 API 요청 시작: {method: 'POST', url: '/comm_popup_result.ajax', args: Array(3)}
+ga_corp_vehicle.js?v=20250926112919:161 📤 API 요청 데이터: popup_code=comm_mu_code&param=%7B%22code_master%22%3A%22aa000%22%7D
+ga_corp_vehicle.js?v=20250926112919:35 📋 gf_formCombo 호출됨: {popup_code: 'comm_mu_code', tag_id: 'create_channel_code_div', param: {…}, async: true, empty: true}
+ga_corp_vehicle.js?v=20250926112919:152 🌐 API 요청 시작: {method: 'POST', url: '/comm_popup_result.ajax', args: Array(3)}
+ga_corp_vehicle.js?v=20250926112919:161 📤 API 요청 데이터: popup_code=comm_mu_code&param=%7B%22code_master%22%3A%22ga006%22%7D
+ga_corp_vehicle.js?v=20250926112919:165 📥 API 응답: {status: 200, statusText: '', responseText: '[{"attribute19":"","attribute18":"","attribute17":…ttribute2":"","attribute11":"","attribute10":""}]', responseHeaders: 'connection: keep-alive\r\ncontent-type: application/…p-alive: timeout=20\r\ntransfer-encoding: chunked\r\n'}
+ga_corp_vehicle.js?v=20250926112919:174 📊 파싱된 응답: (4) [{…}, {…}, {…}, {…}]
+ga_corp_vehicle.js?v=20250926112919:178 🔍 필드 구조 분석:
+ga_corp_vehicle.js?v=20250926112919:180 사용 가능한 필드들: (25) ['attribute19', 'attribute18', 'attribute17', 'attribute16', 'attribute15', 'code_name', 'CODE_VALUE', 'attribute20', 'sort_seq', 'attribute9', 'attribute8', 'attribute5', 'attribute4', 'CODE_NAME', 'attribute7', 'attribute6', 'attribute1', 'attribute14', 'code_value', 'attribute13', 'attribute3', 'attribute12', 'attribute2', 'attribute11', 'attribute10']
+ga_corp_vehicle.js?v=20250926112919:192 코드 필드 후보: (4) ['code_name', 'CODE_VALUE', 'CODE_NAME', 'code_value']
+ga_corp_vehicle.js?v=20250926112919:193 이름 필드 후보: (2) ['code_name', 'CODE_NAME']
+ga_corp_vehicle.js?v=20250926112919:165 📥 API 응답: {status: 200, statusText: '', responseText: '[{"attribute19":"","attribute18":"","attribute17":…ttribute2":"","attribute11":"","attribute10":""}]', responseHeaders: 'connection: keep-alive\r\ncontent-type: application/…p-alive: timeout=20\r\ntransfer-encoding: chunked\r\n'}
+ga_corp_vehicle.js?v=20250926112919:174 📊 파싱된 응답: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+ga_corp_vehicle.js?v=20250926112919:178 🔍 필드 구조 분석:
+ga_corp_vehicle.js?v=20250926112919:180 사용 가능한 필드들: (25) ['attribute19', 'attribute18', 'attribute17', 'attribute16', 'attribute15', 'code_name', 'CODE_VALUE', 'attribute20', 'sort_seq', 'attribute9', 'attribute8', 'attribute5', 'attribute4', 'CODE_NAME', 'attribute7', 'attribute6', 'attribute1', 'attribute14', 'code_value', 'attribute13', 'attribute3', 'attribute12', 'attribute2', 'attribute11', 'attribute10']
+ga_corp_vehicle.js?v=20250926112919:192 코드 필드 후보: (4) ['code_name', 'CODE_VALUE', 'CODE_NAME', 'code_value']
+ga_corp_vehicle.js?v=20250926112919:193 이름 필드 후보: (2) ['code_name', 'CODE_NAME']
+ga_corp_vehicle.js?v=20250926112919:165 📥 API 응답: {status: 200, statusText: '', responseText: '[{"attribute19":"","attribute18":"","attribute17":…ttribute2":"","attribute11":"","attribute10":""}]', responseHeaders: 'connection: keep-alive\r\ncontent-type: application/…p-alive: timeout=20\r\ntransfer-encoding: chunked\r\n'}
+ga_corp_vehicle.js?v=20250926112919:174 📊 파싱된 응답: (5) [{…}, {…}, {…}, {…}, {…}]
+ga_corp_vehicle.js?v=20250926112919:178 🔍 필드 구조 분석:
+ga_corp_vehicle.js?v=20250926112919:180 사용 가능한 필드들: (25) ['attribute19', 'attribute18', 'attribute17', 'attribute16', 'attribute15', 'code_name', 'CODE_VALUE', 'attribute20', 'sort_seq', 'attribute9', 'attribute8', 'attribute5', 'attribute4', 'CODE_NAME', 'attribute7', 'attribute6', 'attribute1', 'attribute14', 'code_value', 'attribute13', 'attribute3', 'attribute12', 'attribute2', 'attribute11', 'attribute10']
+ga_corp_vehicle.js?v=20250926112919:192 코드 필드 후보: (4) ['code_name', 'CODE_VALUE', 'CODE_NAME', 'code_value']
+ga_corp_vehicle.js?v=20250926112919:193 이름 필드 후보: (2) ['code_name', 'CODE_NAME']
+ga_corp_vehicle.js?v=20250926112919:165 📥 API 응답: {status: 200, statusText: '', responseText: '[{"attribute19":"","attribute18":"","attribute17":…ttribute2":"","attribute11":"","attribute10":""}]', responseHeaders: 'connection: keep-alive\r\ncontent-type: application/…p-alive: timeout=20\r\ntransfer-encoding: chunked\r\n'}
+ga_corp_vehicle.js?v=20250926112919:174 📊 파싱된 응답: (6) [{…}, {…}, {…}, {…}, {…}, {…}]
+ga_corp_vehicle.js?v=20250926112919:178 🔍 필드 구조 분석:
+ga_corp_vehicle.js?v=20250926112919:180 사용 가능한 필드들: (25) ['attribute19', 'attribute18', 'attribute17', 'attribute16', 'attribute15', 'code_name', 'CODE_VALUE', 'attribute20', 'sort_seq', 'attribute9', 'attribute8', 'attribute5', 'attribute4', 'CODE_NAME', 'attribute7', 'attribute6', 'attribute1', 'attribute14', 'code_value', 'attribute13', 'attribute3', 'attribute12', 'attribute2', 'attribute11', 'attribute10']
+ga_corp_vehicle.js?v=20250926112919:192 코드 필드 후보: (4) ['code_name', 'CODE_VALUE', 'CODE_NAME', 'code_value']
+ga_corp_vehicle.js?v=20250926112919:193 이름 필드 후보: (2) ['code_name', 'CODE_NAME']
+ga_corp_vehicle.js?v=20250926112919:165 📥 API 응답: {status: 200, statusText: '', responseText: '[{"attribute19":"","attribute18":"","attribute17":…te2":null,"attribute11":null,"attribute10":null}]', responseHeaders: 'connection: keep-alive\r\ncontent-type: application/…p-alive: timeout=20\r\ntransfer-encoding: chunked\r\n'}
+ga_corp_vehicle.js?v=20250926112919:174 📊 파싱된 응답: (2) [{…}, {…}]
+ga_corp_vehicle.js?v=20250926112919:178 🔍 필드 구조 분석:
+ga_corp_vehicle.js?v=20250926112919:180 사용 가능한 필드들: (25) ['attribute19', 'attribute18', 'attribute17', 'attribute16', 'attribute15', 'code_name', 'CODE_VALUE', 'attribute20', 'sort_seq', 'attribute9', 'attribute8', 'attribute5', 'attribute4', 'CODE_NAME', 'attribute7', 'attribute6', 'attribute1', 'attribute14', 'code_value', 'attribute13', 'attribute3', 'attribute12', 'attribute2', 'attribute11', 'attribute10']
+ga_corp_vehicle.js?v=20250926112919:192 코드 필드 후보: (4) ['code_name', 'CODE_VALUE', 'CODE_NAME', 'code_value']
+ga_corp_vehicle.js?v=20250926112919:193 이름 필드 후보: (2) ['code_name', 'CODE_NAME']
+ga_corp_vehicle.js?v=20250926112919:165 📥 API 응답: {status: 200, statusText: '', responseText: '[{"attribute19":"","attribute18":"","attribute17":…ttribute2":"","attribute11":"","attribute10":""}]', responseHeaders: 'connection: keep-alive\r\ncontent-type: application/…p-alive: timeout=20\r\ntransfer-encoding: chunked\r\n'}
+ga_corp_vehicle.js?v=20250926112919:174 📊 파싱된 응답: (2) [{…}, {…}]
+ga_corp_vehicle.js?v=20250926112919:178 🔍 필드 구조 분석:
+ga_corp_vehicle.js?v=20250926112919:180 사용 가능한 필드들: (25) ['attribute19', 'attribute18', 'attribute17', 'attribute16', 'attribute15', 'code_name', 'CODE_VALUE', 'attribute20', 'sort_seq', 'attribute9', 'attribute8', 'attribute5', 'attribute4', 'CODE_NAME', 'attribute7', 'attribute6', 'attribute1', 'attribute14', 'code_value', 'attribute13', 'attribute3', 'attribute12', 'attribute2', 'attribute11', 'attribute10']
+ga_corp_vehicle.js?v=20250926112919:192 코드 필드 후보: (4) ['code_name', 'CODE_VALUE', 'CODE_NAME', 'code_value']0: "code_name"1: "CODE_VALUE"2: "CODE_NAME"3: "code_value"length: 4[[Prototype]]: Array(0)
+ga_corp_vehicle.js?v=20250926112919:193 이름 필드 후보: (2) ['code_name', 'CODE_NAME']

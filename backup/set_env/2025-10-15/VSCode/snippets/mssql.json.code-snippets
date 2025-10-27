@@ -1,0 +1,1090 @@
+{
+	// Place your GLOBAL snippets here. Each snippet is defined under a snippet name and has a scope, prefix, body and 
+	// description. Add comma separated ids of the languages where the snippet is applicable in the scope field. If scope 
+	// is left empty or omitted, the snippet gets applied to all languages. The prefix is what is 
+	// used to trigger the snippet and the body will be expanded and inserted. Possible variables are: 
+	// $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. 
+	// Placeholders with the same ids are connected.
+	// Example:
+	// "Print to console": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "log",
+	// 	"body": [
+	// 		"console.log('$1');",
+	// 		"$2"
+	// 	],
+	// 	"description": "Log output to console"
+	// }
+
+	"기본 select문": {
+		"prefix": "sff",
+		"body": [
+				   "SELECT *",
+				   "FROM ${1}",
+				   "WHERE 1 = 1",
+				   ";"
+				],
+		"description": "기본 select문"
+	},
+
+	"작업 단위": {
+		"prefix": "szz",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** Work *********** */",
+					";",
+					"",
+					"${1}",
+					"",
+					";",
+					""
+				],
+		"description": "작업 단위"
+	},
+
+	"Book URL Interface Log": {
+		"prefix": "bil",
+		"body": [
+					"SELECT * FROM URLAccessEntryBookLog",
+					"WHERE 1 = 1",
+					"AND param = '${1}'",
+					"ORDER BY URLAccessEntryBookLogNo desc",
+					";",
+					""
+				],
+		"description": "Book URL Interface Log"
+	},
+
+	"Book URL Interface Result": {
+		"prefix": "bir",
+		"body": [
+					"execute [dbo].[sp_URLAccess_GET_ERP_Interface_Book_Entry]",
+						"@doco = ${1}279171",
+					"",
+					"",
+					"",
+					"-- Book 인터페이스 테스트 확인",
+					"SELECT *  from Book where PDDOCO = 279171;",
+					"SELECT * FROM Scheduler_DateTime",
+					"WHERE ProcedureName = 'sp_Interface_Get_ERP_PurchaseOrder';--12638",
+					"",
+					"SELECT * FROM BookAssay ba WHERE BookNo = 12638;",
+					"SELECT * FROM BookVessel bv WHERE BookNo = 12638;",
+					"SELECT * FROM BookInvoice bi WHERE BookNo = 12638;",
+					"SELECT * FROM Book WHERE BookNo = 12638;",
+					"",
+					"delete FROM BookAssay WHERE BookNo = 12638;",
+					"delete FROM BookVessel WHERE BookNo = 12638;",
+					"delete FROM BookInvoice WHERE BookNo = 12638;",
+					"delete FROM Book WHERE BookNo = 12638;",
+					""
+				],
+		"description": "Book URL Interface Result"
+	},
+
+	"원료일보 관련 프로시저": {
+		"prefix": "cdp",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** 원료일보 관련 프로시저 *********** */",
+					";",
+					"${1}",
+					"-- 원료일보 메일 발송관련",
+					"sp_Admin_Conc_DailyReport_SendMail_Log_Entry",
+					"sp_Common_DailyReport_SendMail_Info",
+					"sp_Common_DailyReport_SendMail_Info2",
+					"sp_Common_SendMail_DailyReport_Entry",
+					"sp_Common_SendMail_Send_Info",
+					"--",
+					"sp_Common_ReConc_DailyReport",
+					"-- 원료일보 마스터 관련",
+					"sp_Purchase_ConcDaily_DailyReport_Entry",
+					"sp_Purchase_ConcDaily_DailyReport_Info",
+					"-- 원료일보 LME관련",
+					"sp_Purchase_ConcDaily_LME_Delete",
+					"sp_Purchase_ConcDaily_LME_Entry",
+					"sp_Purchase_ConcDaily_LME_List",
+					"--원료일보 유가관련",
+					"sp_Purchase_ConcDaily_OilPrice_Delete",
+					"sp_Purchase_ConcDaily_OilPrice_Entry",
+					"sp_Purchase_ConcDaily_OilPrice_List",
+					"--원료일보 온산제련소 조업 현황",
+					"sp_Purchase_ConcDaily_OnsanProcessStatus_Delete",
+					"sp_Purchase_ConcDaily_OnsanProcessStatus_Entry",
+					"sp_Purchase_Conc_DailyReport_OnsanProcessStatus_List",
+					"-- 원료일보 리포트 관련",
+					"sp_Purchase_ConcDaily_Report_Create",
+					"sp_Purchase_ConcDaily_Report_Etc",
+					"sp_Purchase_ConcDaily_Report_Stock",
+					"-- 원료일보 주요원료현황 관련",
+					"sp_Purchase_ConcDaily_Stock_Detail",
+					"sp_Purchase_ConcDaily_StockDetail_Calc",
+					"-- 원료일보 주요원료현황 생성 관련",
+					"sp_Purchase_ConcDaily_StockDetail_Create",
+					"sp_Purchase_ConcDaily_StockDetail_Create_PreOutQty",
+					"sp_Purchase_ConcDaily_StockDetail_Create_Test",
+					"sp_Purchase_ConcDaily_StockDetail_Entry",
+					"sp_Purchase_ConcDaily_StockDetail_List",
+					"sp_Purchase_ConcDaily_StockDetail_List_TEST",
+					"sp_Purchase_ConcDaily_StockDetail_List_TEST2",
+					"sp_Purchase_ConcDaily_StockDetail_List2",
+					"-- 원료일보 주요원료현황 새로고침 관련",
+					"sp_Purchase_ConcDaily_StockDetail_Temp_Create",
+					"sp_Purchase_ConcDaily_StockDetail_Temp_Create_Test",
+					"sp_Purchase_ConcDaily_StockDetail_Temp_Entry",
+					"sp_Purchase_ConcDaily_StockDetail_Temp_Move",
+					"--",
+					"sp_Purchase_ConcDaily_StockDetail_Total_List",
+					"sp_Purchase_ConcDaily_Total_Report_Stock",
+					"-- 원료일보 Washing 처리 현황 관련",
+					"sp_Purchase_ConcDaily_Washing_Delete",
+					"sp_Purchase_ConcDaily_Washing_Entry",
+					"sp_Purchase_ConcDaily_Washing_List",
+					"",
+					"",
+					";",
+					""
+				],
+		"description": "원료일보 관련 프로시저"
+	},
+
+	"원료일보관련 테이블": {
+		"prefix": "cdt",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** 원료일보 관련 테이블 *********** */",
+					";",
+					"",
+					"-- 원료일보 코드",
+					"SELECT * FROM DailyReportCode drc;",
+					"${1}",
+					"-- 원료일보",
+					"SELECT * FROM Conc_DailyReport cdr",
+					"WHERE 1 = 1",
+					"AND BaseDate = '2024-03-20'",
+					"AND DailyReportNo = 1518",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					"--ORDER BY DailyReportNo DESC",
+					"ORDER BY BaseDate DESC",
+					";",
+					"",
+					"-- 원료일보 주요원료현황",
+					"SELECT * FROM Conc_DailyReportStock a",
+					"WHERE 1 = 1",
+					"--AND BaseDate = '2024-03-20'",
+					"--AND DailyReportNo = 1518",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					"ORDER BY DailyReportNo DESC",
+					";",
+					"",
+					"-- 원료일보 주요원료현황 임시",
+					"SELECT * FROM Conc_DailyReportStock_Temp a",
+					"WHERE 1 = 1",
+					"--AND BaseDate = '2024-03-20'",
+					"--AND DailyReportNo = 1518",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					"ORDER BY DailyReportNo DESC",
+					";",
+					"",
+					"-- 원료일보 환율",
+					"SELECT * FROM Conc_ExchangeRate cer",
+					"WHERE 1 = 1",
+					"AND ExchangeDate = '2024-03-19'",
+					"ORDER BY ExchangeDate DESC",
+					";",
+					"",
+					"-- 원료일보 LME",
+					"SELECT * FROM Conc_DailyReportLME a",
+					"WHERE 1 = 1",
+					"--AND BaseDate = '2024-03-19'",
+					"--AND DailyReportNo = 1518",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					"ORDER BY DailyReportNo DESC",
+					";",
+					"",
+					"WITH T0 AS (",
+									"select ccOre.SubCode  as ReportOreCode, Upper(ccOre.CodeName) as ReportOreName, ccOre.OrderBy as ReportOreOrderBy",
+										",ccItem.SubCode  as ReportItemCode, ccItem.CodeName as ReportItemName, ccItem.OrderBy as ReportItemOrderBy",
+									"from CommonCode ccOre, CommonCode ccItem",
+									"where 1 = 1",
+										"and ccOre.MainCode = 'D10'",
+										"and ccOre.SubCode != '@'",
+										"and ccOre.UseYN = 'Y'",
+										"and ccItem.MainCode = 'D20'",
+										"and ccItem.SubCode != '@'",
+										"and ccItem.UseYN = 'Y'",
+								")",
+					"SELECT a.DailyReportLMENo, a.DailyReportNo, a.BaseDate, a.ReportOreCode, c.ReportOreName, a.ReportItemCode, c.ReportItemName, a.ReportValue, a.Attr01, a.Attr02, a.Attr03, a.Attr04, a.Attr05",
+					"FROM Conc_DailyReportLME a",
+							"INNER JOIN T0 c ON c.ReportItemCode = a.ReportItemCode and c.ReportOreCode = a.ReportOreCode",
+					"WHERE 1 = 1",
+					"AND a.ReportOreCode = '10'",
+					"AND a.ReportItemCode = '60'",
+					"AND a.DailyReportNo = 1552",
+					"--ORDER BY a.DailyReportNo DESC, a.ReportItemCode ASC, a.ReportOreCode ASC",
+					"ORDER BY a.DailyReportNo DESC, CAST(a.ReportItemCode as int) ASC, a.ReportOreCode ASC",
+					";",
+					"",
+					"",
+					"-- OceanFreight",
+					"SELECT * FROM Conc_News_OceanFreight",
+					"ORDER BY isnull(UpdateDate, CreateDate) DESC",
+					";",
+					"",
+					"-- 업무특이사항",
+					"SELECT * FROM Conc_News",
+					"ORDER BY DailyReportNo DESC",
+					";",
+					"",
+					"-- 원료일보 유가",
+					"SELECT * FROM Conc_DailyReport_OilPrice a",
+					"WHERE 1 = 1",
+					"--AND OilPriceDate = '2024-03-19'",
+					"--AND DailyReportNo = 1518",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					"--ORDER BY OilPriceDate DESC, BaseOilCode ASC",
+					"ORDER BY DailyReportNo DESC",
+					";",
+					"",
+					"-- 원료일보 온산제련소 처리 현황",
+					"SELECT * FROM Conc_DailyReport_OnsanOperationStatus a",
+					"WHERE 1 = 1",
+					"--AND BaseDate = '2024-03-20'",
+					"--AND DailyReportNo = 1518",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					"ORDER BY BaseDate DESC, Class01 ASC, Class02 ASC",
+					";",
+					"",
+					"-- 원료일보 Washing",
+					"SELECT * FROM Conc_DailyReport_Washing a",
+					"WHERE 1 = 1",
+					"--AND WashingDate = '2024-03-20'",
+					"--AND DailyReportNo = 1518",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					"ORDER BY DailyReportNo DESC, WashingResultCode DESC",
+					";",
+					"",
+					"--원료일보 생성 결과 오류체크",
+					"SELECT *",
+					"FROM Conc_DailyReport_Result_Check a",
+					"WHERE 1 = 1",
+					"--AND DailyReportNo = 1520",
+					"--AND BaseDate = '2024-03-22'",
+					"--AND SectionName = '환율'",
+					"--AND SectionDate = '2024-03-21'",
+					"and exists (select * from Conc_DailyReport b where a.DailyReportNo = b.DailyReportNo and BaseDate = '2024-05-02')",
+					";",
+					"",
+					"",
+					"",
+					";",
+					""
+				],
+		"description": "원료일보관련 테이블"
+	},
+
+	"Cursor": {
+		"prefix": "csr",
+		"body": [
+						"DECLARE cursor_ CURSOR",
+						"FOR",
+							"SELECT PDKCOO",
+									", PDSFXO",
+									", PDLNID",
+							"FROM #T1;",
+					"",
+						"OPEN cursor_BookInterface;",
+					"",
+						"FETCH NEXT FROM cursor_BookInterface INTO @PDKCOO",
+																", @PDSFXO",
+																", @PDLNID",
+																";",
+					"",
+					"",
+							"WHILE (@@FETCH_STATUS <> -1)",
+							"BEGIN",
+								"IF ( (@@FETCH_STATUS <> -2) )",
+								"BEGIN",
+					"",
+					"",
+					"",
+								"END",
+					"",
+						"FETCH NEXT FROM cursor_BookInterface INTO @PDKCOO",
+																", @PDSFXO",
+																", @PDLNID",
+																";",
+					"",
+							"END",
+					"",
+					"",
+						"CLOSE cursor_BookInterface;",
+						"DEALLOCATE cursor_BookInterface;",
+						""
+				],
+		"description": "Cursor"
+	},
+
+	"프로시저 실행": {
+		"prefix": "eps",
+		"body": [
+					"--USE [KZICMSDB]",
+					"USE [KZICMS_TEST1]",
+					"GO",
+					"",
+					"DECLARE @return_value int",
+					"",
+					"EXEC @return_value = [dbo].[${1}]",
+					"@DailyReportNo = 295",
+					", @RetrDate = '2023-08-17'",
+					"",
+					"SELECT 'Return Value' = @return_value",
+					"",
+					"GO",
+					""
+				],
+		"description": "프로시저 실행"
+	},
+
+	"0으로 나누기 오류 발생": {
+		"prefix": "erzd",
+		"body": [
+					"SET ANSI_WARNINGS OFF;",
+					"SET ARITHIGNORE ON;",
+					"SET ARITHABORT OFF;"
+				],
+		"description": "0으로 나누기 오류 발생"
+	},
+
+	"각각의 원료, 아이템등 명칭 가져오기": {
+		"prefix": "gnm",
+		"body": [
+					"SELECT * FROM Conc_Master_LIMS cml WHERE conc_master_name LIKE '정광(Ag)';",
+					"SELECT * FROM Conc_Master_LIMS cml WHERE conc_master_no = 11750;",
+					"",
+					"SELECT * FROM Test_Item_LIMS til WHERE test_item_name = '';",
+					"SELECT * FROM Test_Item_LIMS til WHERE test_item_no = 000;",
+					"",
+					"SELECT * FROM ItemMaster_ERP ime WHERE IMLITM = 'Z042';",
+					"SELECT * FROM ItemMaster_ERP ime WHERE IMITM = 979335;",
+					"",
+					"SELECT * FROM Dept_ERP de WHERE ABAN8 = 11750;",
+					"SELECT * FROM Dept_ERP de WHERE ABALPH = '원료1팀';",
+					"",
+					"SELECT * FROM UserInfo ui WHERE UserNo = 110;",
+					"SELECT * FROM UserInfo ui WHERE UserID = 'lefta'",
+					"SELECT * FROM UserInfo ui2 WHERE UserName = '오재현';",
+					""
+				],
+		"description": "각각의 원료, 아이템등 명칭 가져오기"
+	},
+
+	"날짜를 J Date 타입으로 변경": {
+		"prefix": "jdt",
+		"body": [
+					"SELECT dbo.getToJdate('${1}') AS dt;",
+					"SELECT dbo.getToJdate(getDate()) AS dt, dbo.getToJTime(getDate()) AS tm;",
+					"",
+					"SELECT dbo.getToGdate(123340) AS dt1, dbo.getToGdate(dbo.getToJdate(getDate())) AS dt2;",
+					""
+				],
+		"description": "날짜를 J Date 타입으로 변경"
+	},
+
+	"메뉴 파일명 검색": {
+		"prefix": "mfn",
+		"body": [
+					"SELECT mm.MainID, mm.MainMenuName, ms.MenuID, ms.MenuName, ms.MenuUrl, ms.UseYN, CHARINDEX('/', ms.MenuUrl, CHARINDEX('/', ms.MenuUrl) + 1) AS SecondSlashPosition",
+							"\t\t\t, SUBSTRING(ms.MenuUrl, CHARINDEX('/', ms.MenuUrl, CHARINDEX('/', ms.MenuUrl) + 1)+1, len(ms.MenuUrl)) AS FileName",
+					"FROM MenuMain mm",
+						"\t\tINNER JOIN MenuSub ms ON mm.MenuNo = ms.MenuNo",
+					"WHERE 1 = 1",
+					"ORDER BY mm.OrderBy, ms.OrderBy",
+					";",
+					""
+				],
+		"description": "메뉴 파일명 검색"
+	},
+
+	"메뉴 관련": {
+		"prefix": "mns",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** 메뉴관련 *********** */",
+					";",
+					"",
+					"SELECT * FROM MenuMain mm;",
+					"",
+					"SELECT * FROM MenuSub ms;",
+					"",
+					"SELECT mm.MainID, mm.MainMenuName, ms.MenuID, ms.MenuName, ms.MenuUrl, ms.UseYN, CHARINDEX('/', ms.MenuUrl, CHARINDEX('/', ms.MenuUrl) + 1) AS SecondSlashPosition",
+							"\t\t\t, SUBSTRING(ms.MenuUrl, CHARINDEX('/', ms.MenuUrl, CHARINDEX('/', ms.MenuUrl) + 1)+1, len(ms.MenuUrl)) AS FileName",
+					"FROM MenuMain mm",
+						"\t\tINNER JOIN MenuSub ms ON mm.MenuNo = ms.MenuNo",
+					"WHERE 1 = 1",
+					"AND ms.MenuName LIKE '%%'",
+					"ORDER BY mm.OrderBy, ms.OrderBy",
+					";",
+					"",
+					";",
+					""
+				],
+		"description": "메뉴 관련"
+	},
+
+	"Merge": {
+		"prefix": "mrg",
+		"body": [
+						"MERGE INTO Conc_News AS a",
+						"USING (SELECT 1 AS dual) AS b ON (a.BookNo = @BookNo)",
+						"WHEN MATCHED THEN",
+							"\tUPDATE SET InvoiceNo = @InvoiceNo",
+										"\t\t\t\t, UpdateUser        = @UserNo",
+										"\t\t\t\t, UpdateDate        = GETDATE()",
+						"WHEN NOT MATCHED THEN",
+							"\tINSERT( BookNo, InvoiceNo, CreateUser, CreateDate )",
+							"\tVALUES ( @BookNo, @InvoiceNo, @UserNo, GETDATE() )",
+							";",
+							""
+				],
+		"description": "Merge"
+	},
+
+	"OpenQuery": {
+		"prefix": "opw",
+		"body": [
+					"WITH T0 AS (",
+					"\t\t\t\tSELECT *",
+					"\t\t\t\tFROM OPENQUERY(KZSELJEEDB, '",
+					"\t\t\t\t\t\t\t\t\t\t\t\tSELECT TRIM(c5yn) c5yn FROM F555913 WHERE c5co = ''00001'' AND c5yn = ''Y'' ",
+					"\t\t\t\t\t\t\t\t\t\t\t\tAND c5cfy = 2023 AND c5pn = 11",
+					"\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t')",
+					"\t\t\t)",
+					"SELECT *",
+					"FROM T0 a",
+					"WHERE 1 = 1",
+					";",
+					""
+				],
+		"description": "OpenQuery"
+	},
+
+	"오픈쿼리 ": {
+		"prefix": "opq",
+		"body": [
+					"SELECT *",
+					"FROM OPENQUERY(KZSELJEEDB, '",
+										"\t\t\t\t\t\t${1}",
+									"');",
+									""
+				],
+		"description": "오픈 쿼리 "
+	},
+
+	"PIVOT ": {
+		"prefix": "pvt",
+		"body": [
+					"SELECT * FROM #T1",
+					"PIVOT ( sum(result_value) FOR TestItem IN ( ${1} ) ) AS PVT",
+					"WHERE 1=1",
+					"ORDER BY PVT.ETA_Year, PVT.ETA_Month, PVT.ETA_DateTime, PVT.ETA_Date, PVT.VesselName, PVT.BookNo",
+					";",
+					""
+
+				],
+		"description": "PIVOT"
+	},
+
+	"스칼라 함수 생성": {
+		"prefix": "sfc",
+		"body": [
+					"USE [KZICMSDB]",
+					"GO",
+					"/****** Object:  UserDefinedFunction [dbo].[getToDryRate]    Script Date: 2023-08-01 오전 10:48:58 ******/",
+					"SET ANSI_NULLS ON",
+					"GO",
+					"SET QUOTED_IDENTIFIER ON",
+					"GO",
+					"",
+					"",
+					"ALTER function [dbo].[getToDryRate] (",
+						"\t@DeptNo    numeric(8,0)",
+						"\t, @ConcMasterNo    numeric(5,0)",
+					")",
+					"returns numeric(5,2)",
+					"as",
+					"",
+					"begin",
+					"",
+					"declare @returnRate as numeric(5,2)",
+					"",
+						"\tset @returnRate = 1;",
+					"",
+						"\tif (@DeptNo = 10108 and @ConcMasterNo in (2,3))",
+							"\t\tset @returnRate = 0.92;",
+					"",
+					"return @returnRate",
+					"",
+					"end",
+					""
+				],
+		"description": "스칼라 함수 생성"
+	},
+
+	"한줄 Select 문": {
+		"prefix": "sfg",
+		"body": [
+					"SELECT * FROM ${1} WHERE 1 = 1;"
+				],
+		"description": "한줄 Select 문"
+	},
+
+	"Inner join 조회문": {
+		"prefix": "sfj",
+		"body": [
+					"SELECT a.*",
+					"FROM ${1} a",
+						"\t\tINNER JOIN ${2} b ON a.${3} = b.${4}",
+					"WHERE 1 = 1",
+				],
+		"description": "Inner join 조회문"
+	},
+
+	"With문 포함 select 문": {
+		"prefix": "sfw",
+		"body": [
+					"WITH T0 AS (",
+									"\t\t\t\tSELECT *",
+									"\t\tFROM ${1}",
+									"\t\tWHERE 1 = 1",
+								"\t\t\t)",
+						", T1 as (",
+									"\t\tSELECT *",
+									"\t\tFROM T0",
+									"\t\tWHERE 1 = 1",
+								"\t\t\t)",
+					"SELECT *",
+					"FROM T0",
+					"WHERE 1 = 1",
+					";",
+					""
+				],
+		"description": "With문 포함 select 문"
+	},
+
+	"오픈 쿼리 ": {
+		"prefix": "opq",
+		"body": [
+					"SELECT *",
+					"FROM OPENQUERY(KZSELJEEDB, '",
+										"\t\t\t\t\t\t${1}",
+									"');",
+									""
+				],
+		"description": "오픈 쿼리 "
+	},
+
+	"IF문 ": {
+		"prefix": "sif",
+		"body": [
+					"IF (SELECT * FROM ${1} WHERE 1 = 1 AND ) > 0",
+					"BEGIN",
+					"",
+					"",
+					"",
+					"END",
+					"ELSE",
+					"BEGIN",
+					"",
+					"",
+					"",
+					"END",
+					";",
+					""
+				],
+		"description": "IF문"
+	},
+
+	"전체 프로시저 스크립트": {
+		"prefix": "spa",
+		"body": [
+					"SELECT OBJECT_NAME(object_id) SPName, definition",
+					"FROM sys.sql_modules",
+					"--WHERE OBJECTPROPERTY(object_id, 'IsFunction') = 1",
+					"--AND definition LIKE '%POInput_ERP%' ",
+					";",
+					""
+				],
+		"description": "전체 프로시저 스크립트"
+	},
+
+	"프로시저 상단 주석": {
+		"prefix": "spc",
+		"body": [
+					"/*********************************************************************************************************/",
+					"/*                                                                                                       */",
+					"/* Procedure Name :                                                                                      */",
+					"/* Description    :                                                                                      */",
+					"/*                                                                                                       */",
+					"/*-------------------------------------------------------------------------------------------------------*/",
+					"/* Date         In Charge            Description                                                         */",
+					"/*-------------------------------------------------------------------------------------------------------*/",
+					"/* 2023. 9. 27.   Hong Seong geun      신규생성                                                            */",
+					"/*                                                                                                       */",
+					"/*-------------------------------------------------------------------------------------------------------*/",
+					"/*",
+						"\tEXECUTE PROCEDURENAME",
+								"\t\t\t@UserNo    = null",
+						";",
+																															"*/",
+					"/*                                                                                                       */",
+					"/*********************************************************************************************************/",
+					""
+				],
+		"description": "프로시저 상단 주석"
+	},
+
+	"프로시저 골격": {
+		"prefix": "spt",
+		"body": [
+			"USE [KZICMS_TEST2]",
+			"GO",
+			"SET ANSI_NULLS ON",
+			"GO",
+			"SET QUOTED_IDENTIFIER ON",
+			"GO",
+			"CREATE PROCEDURE [dbo].[${1}]",
+				"@DailyReportNo AS NVARCHAR(50)",
+				",@User INT",
+			"",
+			"WITH recompile",
+			"AS",
+			"",
+			"/********************************************************************************************************************************/",
+			"/*                                                                                                                              */",
+			"/* Procedure Name :  PROCEDURENAME                                                                                                          */",
+			"/* Description    :                                                                                                             */",
+			"/*                                                                                                                              */",
+			"/*------------------------------------------------------------------------------------------------------------------------------*/",
+			"/* Date            In Charge            Description                                                                             */",
+			"/*------------------------------------------------------------------------------------------------------------------------------*/",
+			"/* ${2}   Hong Seong Geun      신규생성                                                                                  */",
+			"/*                                                                                                                              */",
+			"/*------------------------------------------------------------------------------------------------------------------------------*/",
+			"/*",
+				"EXECUTE [dbo].[PROCEDURENAME]",
+						"@UserNo    = null",
+				";",
+																																			"*/",
+			"/*                                                                                                                              */",
+			"/********************************************************************************************************************************/",
+			"",
+			"",
+			"BEGIN",
+			"",
+				"DECLARE @Error_Msg  AS NVARCHAR(4000)",
+			"",
+				"DECLARE @strSql     AS NVARCHAR(MAX)",
+			"",
+			"",
+			"",
+			"",
+				"CREATE TABLE #T1 (",
+									"conc_result_no NUMERIC(10,0) ",
+									", lot_no NUMERIC(3,0)",
+								")",
+				";",
+			"",
+			"",
+			"",
+				"BEGIN TRY",
+			"",
+					"SET NOCOUNT ON;",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+			"",
+					"SET NOCOUNT OFF;",
+			"",
+			"",
+			"",
+			"",
+					"--DROP TABLE #T1;",
+			"",
+					"RETURN 1;",
+			"",
+				"END TRY",
+			"",
+				"BEGIN CATCH",
+					"SET @Error_Msg = ERROR_MESSAGE()",
+					"DROP TABLE #T1;",
+			"",
+					"RAISERROR  (@Error_Msg,16,1)",
+					"RETURN 0;",
+				"END CATCH",
+			"",
+			"END",
+			""
+			],
+		"description": "프로시저 골격"
+	},
+
+	"stuff": {
+		"prefix": "stf",
+		"body": [
+					"WITH T0 AS (",
+									"\t\t\t\tSELECT CASE WHEN c.test_unit_name IS NULL THEN '[' + b.test_item_name + ']' ELSE '[' + b.item_name + ' ' + c.test_unit_name + ']' END AS DisplayTestItemName",
+									"\t\t\t\tFROM ${1} a",
+										"\t\t\t\t\t\tINNER JOIN Test_Item_LIMS b ON a.test_item_no = b.test_item_no",
+										"\t\t\t\t\t\tLEFT OUTER JOIN Test_Unit_LIMS c ON b.test_unit_no = c.test_unit_no",
+									"\t\t\t\tWHERE a.conc_master_no = 70",
+								")",
+					"SELECT DISTINCT stuff((SELECT ',' + DisplayTestItemName FROM T0 FOR xml PATH('')), 1, 1, '') AS DisplayTestItemName",
+					"FROM T0 a",
+					";",
+					""
+				],
+		"description": "stuff"
+	},
+
+	"with문 사이 select": {
+		"prefix": "sws",
+		"body": [
+					"--",
+					"--SELECT *",
+					"--FROM T1",
+					"--WHERE 1 = 1",
+					"--;",
+					"--",
+					"--",
+					""
+				],
+		"description": "with문 사이 select"
+	},
+
+	"한 줄 주석 긴 거": {
+		"prefix": "szc1",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					""
+				],
+		"description": "한 줄 주석 긴 거"
+	},
+
+	"한 줄 짧은 주석 - 중간 제목 삽입": {
+		"prefix": "szc3",
+		"body": [
+					"/* *********** ${1} *********** */",
+					""
+				],
+		"description": "한 줄 짧은 주석 - 중간 제목 삽입"
+	},
+
+	"여러줄 주석": {
+		"prefix": "szc4",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** ${1} *********** */",
+					"/* ***************************************************************************************************************************************** */",
+					""
+				],
+		"description": "여러줄 주석"
+	},
+
+	"중분류 구분 주석": {
+		"prefix": "szc5",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* ***********${1} *********** */",
+					""
+				],
+		"description": "중분류 구분 주석"
+	},
+
+	"프로시저 작업공간": {
+		"prefix": "szp",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** Work *********** */",
+					";",
+					"",
+					"BEGIN",
+					"",
+						"\tDECLARE @Error_Msg  AS NVARCHAR(4000)",
+					"",
+						"\t/* *********** 변수 선언 *********** */",
+					"",
+					"${1}",
+					"",
+					"",
+						"/* *********** 임시테이블 생성 *********** */",
+					"",
+					"",
+						"\tBEGIN TRY",
+					"",
+					"",
+							"\t\tSET NOCOUNT ON",
+					"",
+							"\t\t/* *********** 변수 설정 *********** */",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+					"",
+							"\t\tSET NOCOUNT OFF",
+					"",
+					"",
+					"",
+							"\t\t/* *********** 임시테이블 삭제 *********** */",
+					"--\t\tDROP TABLE #T1",
+					"",
+						"\tEND TRY",
+					"",
+					"",
+						"\tBEGIN CATCH",
+							"\tSET @Error_Msg = ERROR_MESSAGE()",
+							"\t--DROP TABLE #T1",
+						"\tRAISERROR  (@Error_Msg,16,1)",
+					"",
+						"\tEND CATCH",
+					"",
+					"END",
+					";",
+					""
+				],
+		"description": "프로시저 작업공간"
+	},
+
+	"프로시저 검색 구역": {
+		"prefix": "szs",
+		"body": [
+					"SELECT DISTINCT SPName",
+					"FROM (",
+								"\t\t\t(",
+									"\t\t\t\tSELECT ROUTINE_NAME SPName",
+									"\t\t\t\tFROM INFORMATION_SCHEMA.ROUTINES",
+									"\t\t\t\tWHERE ROUTINE_DEFINITION LIKE '%ConcBL_Head_ERP%'",
+									"\t\t\t\tAND ROUTINE_TYPE='PROCEDURE'",
+								"\t)",
+								"\tUNION ALL",
+								"\t(",
+									"\t\t\t\tSELECT OBJECT_NAME(id) SPName",
+									"\t\t\t\tFROM SYSCOMMENTS",
+									"\t\t\t\tWHERE [text] LIKE '%ConcBL_Head_ERP%'",
+									"\t\t\t\tAND OBJECTPROPERTY(id, 'IsProcedure') = 1",
+									"\t\t\t\tGROUP BY",
+											"\t\t\t\t\tOBJECT_NAME(id)",
+								"\t)",
+								"\tUNION ALL",
+								"\t(",
+									"\t\t\t\tSELECT OBJECT_NAME(object_id) SPName",
+									"\t\t\t\tFROM sys.sql_modules",
+									"\t\t\t\tWHERE OBJECTPROPERTY(object_id, 'IsProcedure') = 1",
+									"\t\t\t\tAND definition LIKE '%ConcBL_Head_ERP%' )",
+							"\t\t) AS T",
+					"ORDER BY",
+							"\t\tT.SPName",
+					";",
+					""
+				],
+		"description": "프로시저 검색 구역"
+	},
+
+	"임시테이블 작업 구역": {
+		"prefix": "szt",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** 임시테이블 생성 *********** */",
+					";",
+					"",
+						"\tCREATE TABLE #T1 (",
+										"\t\t\t\t\tRLK5CTNO NVARCHAR(30)",
+										"\t\t\t\t\t)",
+					"",
+					";",
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** 임시테이블 삭제 *********** */",
+					";",
+					"",
+					"--\tDROP TABLE #T1;",
+					"",
+					"--\tDELETE FROM #T1 WHERE 1 = 1;",
+					"",
+					"SELECT * FROM #T1 WHERE 1 = 1;",
+					"",
+					";",
+					""
+				],
+		"description": "임시테이블 작업 구역"
+	},
+
+	"뷰, 트리거, 프로시저 검색": {
+		"prefix": "vws",
+		"body": [
+					"/* ***************************************************************************************************************************************** */",
+					"/* *********** 뷰/트리거/프로시저 검색 *********** */",
+					";",
+					"",
+					"/* ******************************************",
+					"*",
+					"*\t1. 프로시저, 트리거, 뷰 내용 검색",
+					"*\t(프로시저, 뷰, 트리거 검색은 from만 바꿔주면 됨)",
+					"*\t\t- 프로시저: Sys.PROCEDURES",
+					"*\t\t- 트리거: sys.TRIGGERS",
+					"*\t\t- 뷰: sys.VIEWS",
+					"*",
+					"********************************************* */",
+					"",
+					"DECLARE @SEARCH_TEXT NVARCHAR(MAX) = '${cursor}검색텍스트'",
+					"",
+					"SELECT OBJECT_NAME(OBJECT_ID)       AS NAME",
+						"\t, OBJECT_DEFINITION(OBJECT_ID) AS CONTENTS",
+					"FROM SYS.TRIGGERS -- TRIGGERS, PROCEDURES, VIEWS",
+					"WHERE OBJECT_DEFINITION(OBJECT_ID) LIKE '%' + @SEARCH_TEXT + '%'",
+					"ORDER BY NAME",
+					"",
+					"",
+					";",
+					""
+				],
+		"description": "뷰, 트리거, 프로시저 검색"
+	},
+
+	"With문을 사용한 ERP 조회": {
+		"prefix": "opn",
+		"body": [
+					"WITH T0 AS (",
+									"SELECT *",
+									"FROM OPENQUERY(KZSELJEEDB, '",
+																	"\t\t\t\t\t\t\t\tSELECT TRIM(c5yn) c5yn FROM F555913 WHERE c5co = ''00001'' AND c5yn = ''Y'' ",
+																	"\t\t\t\t\t\t\t\tAND c5cfy = 2023 AND c5pn = 11",
+																"\t\t\t\t\t\t\t')",
+								"\t\t\t)",
+					"SELECT *",
+					"FROM T0 a",
+					"WHERE 1 = 1",
+					";",
+					""
+				],
+		"description": "With문을 사용한 ERP 조회"
+	},
+
+	"공통코드 조회": {
+		"prefix": "ccs",
+		"body": [
+					"SELECT *",
+					"FROM CommonCode cc",
+					"WHERE 1 = 1",
+					"and cc.UseYN = 'Y'",
+					"and cc.MainCode = '${1}'",
+					"and cc.SubCode != '@'",
+					"--and cc.SubCode = ''",
+					";",
+					"",
+					"SELECT *",
+					"FROM CommonCode a",
+							"inner join CommonCode b on a.Ref1 = b.SubCode and b.UseYN = 'Y' and b.MainCode = 'D61' and b.SubCode != '@'",
+					"WHERE 1 = 1",
+					"and a.UseYN = 'Y'",
+					"and a.MainCode = 'D62'",
+					"and a.SubCode != '@'",
+					"--and a.SubCode = ''",
+					";",
+					""
+				],
+		"description": "공통코드 조회"
+	},
+
+	"부서별 공통코드 조회": {
+		"prefix": "ccd",
+		"body": [
+					"SELECT *",
+					"FROM CommonCode ccd",
+					"WHERE 1 = 1",
+					"and ccd.UseYN = 'Y'",
+					"and ccd.MainCode = '${1}'",
+					"and ccd.SubCode != '@'",
+					"--and cc.SubCode = ''",
+					";",
+					""
+				],
+		"description": "부서별 공통코드 조회"
+	},
+
+	"이것 저것 조회": {
+		"prefix": "ets",
+		"body": [
+					"SELECT * FROM Conc_Master_LIMS cml WHERE conc_master_name LIKE '정광(Ag)';",
+					"SELECT * FROM Conc_Master_LIMS cml WHERE conc_master_no = 11750;",
+					"",
+					"SELECT * FROM Test_Item_LIMS til WHERE test_item_name = '';",
+					"SELECT * FROM Test_Item_LIMS til WHERE test_item_no = 000;",
+					"",
+					"SELECT * FROM ItemMaster_ERP ime WHERE IMLITM = 'Z042';",
+					"SELECT * FROM ItemMaster_ERP ime WHERE IMITM = 979335;",
+					"",
+					"SELECT * FROM Dept_ERP de WHERE ABAN8 = 11750;",
+					"SELECT * FROM Dept_ERP de WHERE ABALPH = '원료1팀';",
+					"",
+					"SELECT * FROM UserInfo ui WHERE UserNo = 110;",
+					"SELECT * FROM UserInfo ui WHERE UserID = 'lefta'",
+					"SELECT * FROM UserInfo ui2 WHERE UserName = '오재현';",
+					""
+				],
+		"description": "이것 저것 조회"
+	},
+
+	"constraint": {
+		"prefix": "prk",
+		"body": [
+					"primary key 추가",
+					"alter table 테이블명 add constraint primary key (컬럼명);",
+					"",
+					"foreign key 추가",
+					"alter table 테이블명 add constraint 제약조건이름 foreign key (컬럼명) references 부모테이블명 (pk컬럼명) on delete cascade / on update cascade;",
+					"",
+					"not null 추가",
+					"alter table 테이블명 modify 컬럼명 자료형 constraint 제약조건명 not null;",
+					"",
+					"제약조건 삭제",
+					"alter table 테이블명 drop constraint 제약조건명;",
+					"",
+					"제약조건 삭제 (foreign key)",
+					"alter table 테이블명 foreign key 제약조건명;",
+					""
+				],
+		"description": "제약조건의 추가 및 제거"
+	},
+
+
+	"해당 년월의 첫째날과 마지막 날 구하기": {
+		"prefix": "eom",
+		"body": [
+					"select DATEADD(d, -day(getDate())+1, getDate());",
+					"select DATEADD(d,-day(DATEADD(m,1,getDate())), DATEADD(m,1,getDate()));",
+					""
+				],
+		"description": "해당 년월의 첫째날과 마지막 날 구하기"
+	}
+
+
+}

@@ -1,0 +1,64 @@
+{
+	"folders": {},
+	"connections": {
+		"microsoft-1971b6ada4d-4f2a133f2f5d43a5": {
+			"provider": "sqlserver",
+			"driver": "microsoft",
+			"name": "ERPLIVE",
+			"save-password": true,
+			"configuration": {
+				"host": "1.234.16.88",
+				"port": "1433",
+				"database": "ERPLIVE",
+				"url": "jdbc:sqlserver://;serverName\u003d1.234.16.88;databaseName\u003dERPLIVE",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"provider-properties": {
+					"@dbeaver-show-all-schemas@": "false",
+					"sslTrustServerCertificate": "false"
+				},
+				"auth-model": "sqlserver_database"
+			}
+		},
+		"microsoft-19762947105-5cdaf341344b0e65": {
+			"provider": "sqlserver",
+			"driver": "microsoft",
+			"name": "master 2",
+			"save-password": true,
+			"configuration": {
+				"host": "localhost",
+				"port": "1433",
+				"database": "master",
+				"url": "jdbc:sqlserver://;serverName\u003dlocalhost;databaseName\u003dmaster",
+				"configurationType": "MANUAL",
+				"type": "dev",
+				"closeIdleConnection": true,
+				"properties": {
+					"instancename": "SQLEXPRESS"
+				},
+				"provider-properties": {
+					"@dbeaver-show-all-schemas@": "true",
+					"sslTrustServerCertificate": "false"
+				},
+				"auth-model": "sqlserver_windows"
+			}
+		}
+	},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"smart-commit": false,
+			"smart-commit-recover": true,
+			"auto-close-transactions": true,
+			"close-transactions-period": 1800,
+			"auto-close-connections": true,
+			"close-connections-period": 14400
+		}
+	}
+}

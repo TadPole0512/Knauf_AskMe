@@ -1,0 +1,270 @@
+
+[
+
+    {
+        "name": "KNAUF",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_DOC"],
+        "enabled": true
+    },
+    {
+        "name": "Work",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\C.Right\\A.Work\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_DOC"],
+        "enabled": true
+    },
+    {
+        "name": "DOC",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\C.Right\\C.DOC\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_DOC"],
+        "enabled": true
+    },
+    {
+        "name": "KNAUF",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "ASKME",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\A.Cow\\A.Zone\\2025\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "BACKUP",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\M.BACKUP\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "RUNNING_SQL",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\B.Rain\\A.SUPER\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "ADMIN",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\B.Rain\\A.SUPER\\10.admin\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SQL"],
+        "enabled": true
+    },
+    {
+        "name": "FRONT",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\B.Rain\\A.SUPER\\20.front\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SQL"],
+        "enabled": true
+    },
+    {
+        "name": "COMMON",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\B.Rain\\A.SUPER\\30.common\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SQL"],
+        "enabled": true
+    },
+    {
+        "name": "ACCUMSAP",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\B.Rain\\A.SUPER\\40.ACCUMSAP\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SQL"],
+        "enabled": true
+    },
+    {
+        "name": "REMOTE_DBeaver",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\DB\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SQL"],
+        "enabled": true
+    },
+    {
+        "name": "Knauf_Eorder_NEW",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\WORKSPACE\\Knauf_Eorder_NEW\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY"],
+        "enabled": true
+    },
+    {
+        "name": "VIEWS",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\WORKSPACE\\Knauf_Eorder_NEW\\src\\main\\webapp\\WEB-INF\\views\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY"],
+        "enabled": true
+    },
+    {
+        "name": "MSSQL",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\WORKSPACE\\Knauf_Eorder_NEW\\src\\main\\resources\\sql\\mssql\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY"],
+        "enabled": true
+    },
+    {
+        "name": "SVC",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\WORKSPACE\\Knauf_Eorder_NEW\\src\\main\\java\\com\\limenets\\eorder\\svc\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY"],
+        "enabled": true
+    },
+    {
+        "name": "Knauf_Eorder_SorinD",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\Knauf_Eorder\\Knauf-Eorder_SorinDAD\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY_SorinD"],
+        "enabled": true
+    },
+    {
+        "name": "Knauf-Eorder_SorinD_VIEWS",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\Knauf_Eorder\\Knauf-Eorder_SorinDAD\\src\\main\\webapp\\WEB-INF\\views\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY_SorinD"],
+        "enabled": true
+    },
+    {
+        "name": "Knauf-Eorder_SorinD_MSSQL",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\Knauf_Eorder\\Knauf-Eorder_SorinDAD\\src\\main\\resources\\sql\\mssql\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY_SorinD"],
+        "enabled": true
+    },
+    {
+        "name": "Knauf-Eorder_SorinD_SVC",
+        "rootPath": "c:\\WORK\\PROJECT\\30.KNAUF\\SMITHY\\Knauf_Eorder\\Knauf-Eorder_SorinDAD\\src\\main\\java\\com\\limenets\\eorder\\svc\\",
+        "paths": [],
+        "tags": ["LC_KNAUF_SMITHY_SorinD"],
+        "enabled": true
+    },
+    {
+        "name": "SETTINGS",
+        "rootPath": "c:\\WORK\\PROJECT\\SBM\\setting\\",
+        "paths": [],
+        "tags": ["LC_SBM_DOCS"],
+        "enabled": true
+    },
+    {
+        "name": "개발환경설정",
+        "rootPath": "c:\\staybymeerp-Intellij\\개발환경설정\\",
+        "paths": [],
+        "tags": ["LC_SBM_DOCS"],
+        "enabled": true
+    },
+    {
+        "name": "개발가이드",
+        "rootPath": "c:\\staybymeerp-Intellij\\개발가이드\\",
+        "paths": [],
+        "tags": ["LC_SBM_DOCS"],
+        "enabled": true
+    },
+    {
+        "name": "WORK",
+        "rootPath": "c:\\staybymeerp-Intellij\\",
+        "paths": [],
+        "tags": ["LC_SBM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "TDK",
+        "rootPath": "c:\\WORK\\PROJECT\\SBM\\TDK\\EPS_EMAX\\",
+        "paths": [],
+        "tags": ["LC_SBM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "삼주마린관련",
+        "rootPath": "c:\\WORK\\PROJECT\\SBM\\",
+        "paths": [],
+        "tags": ["LC_SBM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "요청사항 처리",
+        "rootPath": "c:\\WORK\\PROJECT\\SBM\\REQUEST\\",
+        "paths": [],
+        "tags": ["LC_SBM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "쿼리",
+        "rootPath": "c:\\WORK\\PROJECT\\SBM\\SQL\\",
+        "paths": [],
+        "tags": ["LC_SBM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "SEOJINCAM",
+        "rootPath": "c:\\WORK\\PROJECT\\50.SEOJINCAM\\",
+        "paths": [],
+        "tags": ["LC_SEOJINCAM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "DOCS",
+        "rootPath": "c:\\WORK\\PROJECT\\50.SEOJINCAM\\T.DOCS\\",
+        "paths": [],
+        "tags": ["LC_SEOJINCAM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "TEMP",
+        "rootPath": "c:\\WORK\\PROJECT\\50.SEOJINCAM\\V.Temp\\",
+        "paths": [],
+        "tags": ["LC_SEOJINCAM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "WORK",
+        "rootPath": "c:\\WORK\\PROJECT\\50.SEOJINCAM\\A.WORK\\",
+        "paths": [],
+        "tags": ["LC_SEOJINCAM_WORK"],
+        "enabled": true
+    },
+    {
+        "name": "DOWNLOADS",
+        "rootPath": "c:\\Users\\hsg\\Downloads\\",
+        "paths": [],
+        "tags": ["UNTITLED"],
+        "enabled": true
+    },
+    {
+        "name": "STROKESPLUS_X64",
+        "rootPath": "c:\\util\\strokesplus\\strokesplus__2.8.6.4_x64\\StrokesPlus_x64\\",
+        "paths": [],
+        "tags": ["util"],
+        "enabled": true
+    },
+    {
+        "name": "AUTOHOTKEY",
+        "rootPath": "c:\\util\\autohotkey\\",
+        "paths": [],
+        "tags": ["util"],
+        "enabled": true
+    },
+    {
+        "name": "T.TAB",
+        "rootPath": "c:\\WORK\\T.Tab\\",
+        "paths": [],
+        "tags": ["UNTITLED"],
+        "enabled": true
+    },
+    {
+        "name": "W.COLOR",
+        "rootPath": "c:\\WORK\\WORK\\W.Color\\",
+        "paths": [],
+        "tags": ["WORK"],
+        "enabled": true
+    },
+    {
+        "name": "X.AI",
+        "rootPath": "c:\\WORK\\X.AI\\",
+        "paths": [],
+        "tags": ["WORK"],
+        "enabled": true
+    }
+]

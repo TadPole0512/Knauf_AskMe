@@ -1,0 +1,1 @@
+Start-Process python -ArgumentList "C:\Tools\CLAUDE\MemoryOptimizer\scripts\memory_optimizer.py" -WindowStyle Hidden

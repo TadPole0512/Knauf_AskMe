@@ -1,0 +1,22 @@
+{
+  "monitoring": {
+    "interval_seconds": 10,
+    "thresholds": { "warning": 85, "caution": 90, "critical": 95, "emergency": 99 }
+  },
+  "paths": {
+    "root": "C:\\Tools\\ChatGPT\\MemoryOptimizer",
+    "data": "C:\\Tools\\ChatGPT\\MemoryOptimizer\\data",
+    "logs": "C:\\Tools\\ChatGPT\\MemoryOptimizer\\logs",
+    "reports": "C:\\Tools\\ChatGPT\\MemoryOptimizer\\reports",
+    "report_json": "C:\\Tools\\ChatGPT\\MemoryOptimizer\\data\\report.json"
+  },
+  "whitelist": [
+    "vscode.exe","idea64.exe","dbeaver.exe","mstsc.exe","Teams.exe",
+    "chrome.exe","msedge.exe","explorer.exe","dwm.exe"
+  ],
+  "special_modes": {
+    "remote_desktop_pause": true,
+    "ide_build_protection": true,
+    "teams_meeting_boost": true
+  }
+}
