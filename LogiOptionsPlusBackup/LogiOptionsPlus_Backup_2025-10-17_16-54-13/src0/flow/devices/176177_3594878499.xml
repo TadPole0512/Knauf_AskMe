@@ -1,0 +1,30 @@
+<device type = "mouse"
+        id = "176177"
+        serialNumber = "3594878499"
+        channel = "0"
+        random = "6c00df7e1f32b3d47a9050fc5683e4441b3b868a4342fd00df5b6749bcc68526"
+        password = "">
+  <settings counter = "0"
+            layout = "horizontal"
+            on = "true"
+            ctrlKey = "false"
+            copyPaste = "true"
+            dragDrop = "true"
+            hotCorners = "false"
+            keyboardLink = "false"
+            keyboardId = "4294967295"
+            keyboardSerialNumber = "4294967295">
+    <peer0 channel = "0"
+           keyboardChannel = "4294967295"
+           hostId = "TSPN-HSG03"
+           enabled = "true"/>
+    <peer1 channel = "1"
+           keyboardChannel = "4294967295"
+           hostId = ""
+           enabled = "true"/>
+    <peer2 channel = "2"
+           keyboardChannel = "4294967295"
+           hostId = ""
+           enabled = "true"/>
+  </settings>
+</device>

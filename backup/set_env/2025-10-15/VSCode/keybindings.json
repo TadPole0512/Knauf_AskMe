@@ -1,0 +1,7 @@
+// 키 바인딩을 이 파일에 넣어서 기본값 재정의
+[
+    {
+        "key": "ctrl+shift+alt+insert",
+        "command": "csdevkit.addNewProject"
+    }
+]

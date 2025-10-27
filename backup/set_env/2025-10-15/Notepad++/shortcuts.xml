@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<NotepadPlus>
+    <!--
+    You can organize you Macro menu & Run menu by adding the attribute 'FolderName="My sub-menu name"' to any Macro or Command node.
+    This will place the corresponding node within a "My sub-menu name" sub-menu in the appropriate menu. Please consider the following examples:
+    -->
+    <InternalCommands>
+        <Shortcut id="42056" Ctrl="no" Alt="no" Shift="no" Key="0" />
+        <Shortcut id="42024" Ctrl="no" Alt="no" Shift="no" Key="117" />
+        <Shortcut id="42043" Ctrl="yes" Alt="yes" Shift="yes" Key="220" />
+        <Shortcut id="42055" Ctrl="no" Alt="no" Shift="no" Key="120" />
+        <Shortcut id="42054" Ctrl="no" Alt="no" Shift="no" Key="121" />
+        <Shortcut id="42053" Ctrl="no" Alt="no" Shift="no" Key="0" />
+        <Shortcut id="42046" Ctrl="yes" Alt="yes" Shift="yes" Key="35" />
+        <Shortcut id="42086" Ctrl="yes" Alt="yes" Shift="yes" Key="36" />
+    </InternalCommands>
+    <Macros>
+        <Macro name="뒤로 이동 공백제거 후 이어 붙이기" Ctrl="yes" Alt="yes" Shift="yes" Key="46">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2336" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="맨 뒷 줄로 이동 -&gt; 쉼표(,)를 붙임 -&gt; 공백 제거 -&gt; 다음 문자를 붙인다." Ctrl="yes" Alt="yes" Shift="yes" Key="188">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="," />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2336" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="조건절 is null 추가" Ctrl="yes" Alt="yes" Shift="yes" Key="73">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2309" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2305" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="(" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="I" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="N" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="S" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="N" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="U" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="L" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="L" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="O" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="R" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=")" />
+        </Macro>
+        <Macro name="맨 뒤 공백 추가 이어붙이기" Ctrl="yes" Alt="yes" Shift="yes" Key="39">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2336" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="TO_CHAR로 감싸기" Ctrl="yes" Alt="yes" Shift="yes" Key="79">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2308" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="T" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="O" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="_" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="C" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="H" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="A" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="R" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="(" />
+            <Action type="0" message="2452" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2519" wParam="0" lParam="0" sParam="" />
+            <Action type="2" message="0" wParam="42002" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=")" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="A" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="S" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="컬럼명 열을 행으로" Ctrl="yes" Alt="yes" Shift="yes" Key="78">
+            <Action type="3" message="1700" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1601" wParam="0" lParam="0" sParam=", " />
+            <Action type="3" message="1625" wParam="0" lParam="1" sParam="" />
+            <Action type="3" message="1602" wParam="0" lParam="0" sParam="\r\n, " />
+            <Action type="3" message="1702" wParam="0" lParam="768" sParam="" />
+            <Action type="3" message="1701" wParam="0" lParam="1609" sParam="" />
+        </Macro>
+        <Macro name="컬럼명 행을 열로" Ctrl="yes" Alt="yes" Shift="yes" Key="77">
+            <Action type="3" message="1700" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1601" wParam="0" lParam="0" sParam="\r\n, " />
+            <Action type="3" message="1625" wParam="0" lParam="1" sParam="" />
+            <Action type="3" message="1602" wParam="0" lParam="0" sParam=", " />
+            <Action type="3" message="1702" wParam="0" lParam="768" sParam="" />
+            <Action type="3" message="1701" wParam="0" lParam="1609" sParam="" />
+        </Macro>
+        <Macro name="컬럼명 뒤 컬럼타입 삭제" Ctrl="yes" Alt="yes" Shift="yes" Key="82">
+            <Action type="3" message="1700" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1601" wParam="0" lParam="0" sParam="(^\s)*(,\s+)([a-zA-Z0-9_\[\]]+)(\s+)(.*)" />
+            <Action type="3" message="1625" wParam="0" lParam="2" sParam="" />
+            <Action type="3" message="1602" wParam="0" lParam="0" sParam="$1$2$3" />
+            <Action type="3" message="1702" wParam="0" lParam="768" sParam="" />
+            <Action type="3" message="1701" wParam="0" lParam="1609" sParam="" />
+        </Macro>
+        <Macro name="테이블 생성 쉼표(,) 앞으로 옮기기" Ctrl="yes" Alt="yes" Shift="yes" Key="89">
+            <Action type="3" message="1700" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1601" wParam="0" lParam="0" sParam="(^\s*)([a-zA-Z0-9_\-]+)(\s)([a-zA-Z0-9]+)(\(\d)?([,\s\d]*\))?(\s[a-zA-Z]*)?(\s[a-zA-Z]*)?(,)?" />
+            <Action type="3" message="1625" wParam="0" lParam="2" sParam="" />
+            <Action type="3" message="1602" wParam="0" lParam="0" sParam="$1$9 $2$3$4$5$6$7$8" />
+            <Action type="3" message="1702" wParam="0" lParam="768" sParam="" />
+            <Action type="3" message="1701" wParam="0" lParam="1609" sParam="" />
+        </Macro>
+        <Macro name="프로시저에 변수로 print 변환" Ctrl="yes" Alt="yes" Shift="yes" Key="34">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2336" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="p" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="r" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="i" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="n" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="t" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="&apos;" />
+            <Action type="0" message="2442" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2442" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=":" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="&apos;" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="+" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2452" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=";" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="맨 뒤 탭 추가 후 다음 줄 이어붙이기" Ctrl="yes" Alt="yes" Shift="yes" Key="221">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2336" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="윗 줄 공백만큼 공백 띄우기" Ctrl="yes" Alt="yes" Shift="yes" Key="219">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2300" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2442" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2309" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="SELECT 컬럼 정렬" Ctrl="yes" Alt="yes" Shift="yes" Key="76">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2300" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="로그 공백 줄이기" Ctrl="yes" Alt="yes" Shift="yes" Key="87">
+            <Action type="2" message="0" wParam="42024" lParam="0" sParam="" />
+            <Action type="2" message="0" wParam="42055" lParam="0" sParam="" />
+            <Action type="2" message="0" wParam="42054" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="URL 쿼리 조정" Ctrl="yes" Alt="yes" Shift="yes" Key="80">
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2309" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2442" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2336" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2309" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2442" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2300" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2336" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=";" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+        </Macro>
+        <Macro name="SELECT 정렬" Ctrl="yes" Alt="yes" Shift="yes" Key="48">
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="SELECT믕 첫 줄 컬럼" Ctrl="yes" Alt="yes" Shift="yes" Key="57">
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="SELECT문 두 번째줄" Ctrl="yes" Alt="yes" Shift="yes" Key="56">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+        </Macro>
+        <Macro name="FROM 정렬" Ctrl="yes" Alt="yes" Shift="yes" Key="55">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2304" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2300" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="LEFT 조인 들여쓰기" Ctrl="yes" Alt="yes" Shift="yes" Key="54">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="WHERE문 들여쓰기" Ctrl="yes" Alt="yes" Shift="yes" Key="53">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="AND 들여쓰기" Ctrl="yes" Alt="yes" Shift="yes" Key="52">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2300" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="SQL 끝에 세미콜론 추가" Ctrl="yes" Alt="yes" Shift="yes" Key="186">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=";" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="
+" />
+        </Macro>
+        <Macro name="from 절렬2" Ctrl="yes" Alt="yes" Shift="yes" Key="50">
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2178" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2454" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2179" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam=" " />
+            <Action type="0" message="2310" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2326" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2327" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="따옴표로 감싸기" Ctrl="yes" Alt="yes" Shift="yes" Key="222">
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2453" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="&apos;" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="1" message="2170" wParam="0" lParam="0" sParam="&apos;" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+        </Macro>
+        <Macro name="sql 작업" Ctrl="yes" Alt="yes" Shift="yes" Key="192">
+            <Action type="0" message="2316" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2452" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1700" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1601" wParam="0" lParam="0" sParam="\s+" />
+            <Action type="3" message="1625" wParam="0" lParam="2" sParam="" />
+            <Action type="3" message="1602" wParam="0" lParam="0" sParam="\t" />
+            <Action type="3" message="1702" wParam="0" lParam="896" sParam="" />
+            <Action type="3" message="1701" wParam="0" lParam="1609" sParam="" />
+            <Action type="0" message="2451" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2306" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2301" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2180" wParam="0" lParam="0" sParam="" />
+            <Action type="0" message="2319" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1700" wParam="0" lParam="0" sParam="" />
+            <Action type="3" message="1601" wParam="0" lParam="0" sParam="[ ]{3,}" />
+            <Action type="3" message="1625" wParam="0" lParam="2" sParam="" />
+            <Action type="3" message="1602" wParam="0" lParam="0" sParam="\t" />
+            <Action type="3" message="1702" wParam="0" lParam="896" sParam="" />
+            <Action type="3" message="1701" wParam="0" lParam="1609" sParam="" />
+            <Action type="0" message="2013" wParam="0" lParam="0" sParam="" />
+        </Macro>
+    </Macros>
+    <UserDefinedCommands>
+        <Command name="Get PHP help" Ctrl="no" Alt="yes" Shift="no" Key="112">https://www.php.net/$(CURRENT_WORD)</Command>
+        <Command name="Wikipedia Search" Ctrl="no" Alt="yes" Shift="no" Key="114">https://en.wikipedia.org/wiki/Special:Search?search=$(CURRENT_WORD)</Command>
+        <Command name="Open selected file path in new instance" Ctrl="no" Alt="yes" Shift="no" Key="117">$(NPP_FULL_FILE_PATH) $(CURRENT_WORD) -nosession -multiInst</Command>
+    </UserDefinedCommands>
+    <PluginCommands />
+    <ScintillaKeys />
+</NotepadPlus>

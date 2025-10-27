@@ -1,0 +1,41 @@
+﻿<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>Memory Optimizer Report</title>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;margin:24px;background:#0f1115;color:#e6e6e6}
+.card{background:#151822;border:1px solid #2a2f3a;border-radius:14px;padding:18px;margin:12px 0}
+.h{font-size:20px;margin-bottom:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #3a3f4a;margin-left:8px}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid #2a2f3a;padding:8px;text-align:left;font-size:13px}
+th{background:#1b1f2a}
+.small{opacity:.8;font-size:12px}
+</style></head>
+<body>
+<h1> Memory Optimizer - 진단 리포트</h1>
+<div class="card"><div class="h">요약 <span id="summaryBadge" class="badge">-</span></div><div id="summary"></div></div>
+<div class="card"><div class="h">상위 메모리 프로세스 (Top 30)</div>
+<table id="procs"><thead><tr><th>프로세스</th><th>PID</th><th>메모리(MB)</th></tr></thead><tbody></tbody></table></div>
+<div class="card"><div class="h">시작프로그램 영향도</div>
+<table id="startup"><thead><tr><th>항목</th><th>상태</th></tr></thead><tbody></tbody></table></div>
+<div class="small">생성 시각: <span id="ts"></span></div>
+<script>
+fetch('file:///C:/Tools/ChatGPT/MemoryOptimizer/data/report.json').then(r=>r.json()).then(j=>{
+  document.getElementById('ts').innerText = j.generated_at;
+  document.getElementById('summary').innerText = 총 메모리:  GB, 사용률: %;
+  document.getElementById('summaryBadge').innerText = j.summary.level_text;
+  const tb = document.querySelector('#procs tbody');
+  j.top_processes.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = <td></td><td></td><td></td>;
+    tb.appendChild(tr);
+  });
+  const ts = document.querySelector('#startup tbody');
+  j.startup_programs.forEach(s=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = <td></td><td></td>;
+    ts.appendChild(tr);
+  });
+});
+</script>
+</body></html>

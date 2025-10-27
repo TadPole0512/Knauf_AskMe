@@ -1,0 +1,359 @@
+<# 
+Fix-LogiOptionsPlus.ps1
+Version: 1.2.0
+Author: ChatGPT (for Windows 11 Enterprise)
+Purpose:
+  Diagnose and fix "endless loading" in Logitech Logi Options+ (aka Optimizer+).
+  Safe-by-default, rollback-friendly, single-file automation.
+
+USAGE:
+  pwsh -NoProfile -ExecutionPolicy Bypass -File C:\Tools\LogiOptionsPlusFix\Fix-LogiOptionsPlus.ps1 [-DiagnoseOnly] [-FixLevel 0|1|2|3] [-OutDir "C:\Logs"]
+#>
+
+[CmdletBinding()]
+param(
+  [switch]$DiagnoseOnly,
+  [ValidateSet(0,1,2,3)][int]$FixLevel = 1,
+  [string]$OutDir = "$env:ProgramData\LogiOptionsPlusFix\Logs"
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+# ----------- Constants -----------
+$AppNames = @('LogiOptions+', 'Logi Options+', 'LogiOptionsPlus')
+$ProcNames = @('LogiOptionsPlus', 'LogiOptionsPlusAgent', 'OptionsPlus', 'LogiOverlay')
+$ServiceNames = @('LogiOptionsPlus Service', 'LogiBoltService', 'LogiOverlayService','LogiOptionsPlusAgent')
+$AppPaths = @(
+  "$env:LOCALAPPDATA\Programs\LogiOptionsPlus\LogiOptionsPlus.exe",
+  "$env:ProgramFiles\Logi\LogiOptionsPlus\LogiOptionsPlus.exe",
+  "$env:LOCALAPPDATA\Logi\LogiOptionsPlus\LogiOptionsPlus.exe"
+)
+$DataRoots = @(
+  "$env:APPDATA\LogiOptionsPlus",           # Roaming
+  "$env:LOCALAPPDATA\LogiOptionsPlus",      # Local
+  "$env:LOCALAPPDATA\Packages\Logi*",       # MSIX leftover
+  "$env:PROGRAMDATA\LogiOptionsPlus"        # Common
+)
+$LikelyElectronCaches = @('Cache','Code Cache','GPUCache','Network','IndexedDB','Local Storage')
+$ReportTime = (Get-Date).ToString("yyyyMMdd_HHmmss")
+$SessionId = [Guid]::NewGuid().ToString()
+$WorkRoot = Join-Path $OutDir $ReportTime
+$LogFile = Join-Path $WorkRoot "FixLog.txt"
+$ReportMd = Join-Path $WorkRoot "FixReport.md"
+$BackupZip = Join-Path $WorkRoot "LOP_Backup.zip"
+
+# ----------- Helpers -----------
+function New-Dir($p){ if(-not (Test-Path $p)){ New-Item -ItemType Directory -Path $p -Force | Out-Null } }
+function Log($msg){ $stamp = (Get-Date).ToString("HH:mm:ss"); "$stamp  $msg" | Tee-Object -FilePath $LogFile -Append }
+function Try-Action([scriptblock]$Action, [string]$Label){
+  try { & $Action; Log "OK: $Label" } catch { Log "ERR: $Label => $($_.Exception.Message)"; throw }
+}
+function Stop-Quiet($name){
+  Get-Process -Name $name -ErrorAction SilentlyContinue | ForEach-Object {
+    try { $_ | Stop-Process -Force -ErrorAction Stop; Log "Killed: $($_.ProcessName) PID=$($_.Id)" } catch {}
+  }
+}
+function Zip-Folder($source, $zipPath){
+  Add-Type -AssemblyName 'System.IO.Compression.FileSystem'
+  if(Test-Path $zipPath){ Remove-Item $zipPath -Force -ErrorAction SilentlyContinue }
+  [System.IO.Compression.ZipFile]::CreateFromDirectory($source, $zipPath)
+}
+function Safe-OwnerAcl($path){
+  try{
+    $acl = Get-Acl -Path $path -ErrorAction Stop
+    return $true
+  }catch{
+    try{
+      $sid = New-Object System.Security.Principal.SecurityIdentifier "S-1-5-32-544" # Administrators
+      $rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators","FullControl","ContainerInherit, ObjectInherit","None","Allow")
+      $acl = New-Object System.Security.AccessControl.DirectorySecurity
+      $acl.SetOwner($sid)
+      $acl.AddAccessRule($rule)
+      Set-Acl -Path $path -AclObject $acl
+      return $true
+    }catch{ return $false }
+  }
+}
+
+# ----------- Init -----------
+New-Dir $WorkRoot
+"Session: $SessionId`nTime: $(Get-Date) `nUser: $env:USERNAME `n" | Out-File -FilePath $LogFile -Encoding utf8
+Log "WorkRoot: $WorkRoot"
+
+# Optional: Restore Point (if enabled)
+try {
+  $os = Get-CimInstance -ClassName Win32_OperatingSystem
+  if($os.SystemDrive -and (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore' -ErrorAction SilentlyContinue)){
+    Checkpoint-Computer -Description "LOP_Fix_$ReportTime" -RestorePointType "MODIFY_SETTINGS" | Out-Null
+    Log "Restore Point created."
+  } else {
+    Log "Restore Point not available."
+  }
+} catch { Log "Restore Point skipped: $($_.Exception.Message)" }
+
+# ----------- Discovery / Diagnose -----------
+$Diag = [ordered]@{}
+$Diag.System = @{
+  OS = (Get-ComputerInfo -Property OsName,OsVersion,WindowsVersion).PSObject.Properties |
+        ForEach-Object { $_.Value } -join ' '
+  Build = (Get-ComputerInfo -Property OsBuildNumber).OsBuildNumber
+  IsAdmin = ([bool](New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator))
+}
+$Diag.Process = @()
+foreach($p in $ProcNames){
+  Get-Process -Name $p -ErrorAction SilentlyContinue | ForEach-Object {
+    $Diag.Process += [ordered]@{
+      Name = $_.ProcessName; Id = $_.Id; CPU = $_.CPU; WS_MB = [math]::Round($_.WS/1MB,1); StartTime = $_.StartTime
+    }
+  }
+}
+# Services
+$Diag.Services = @()
+foreach($s in $ServiceNames){
+  $svc = Get-Service -Name $s -ErrorAction SilentlyContinue
+  if($svc){
+    $Diag.Services += [ordered]@{ Name=$svc.Name; Status=$svc.Status; StartType=(Get-CimInstance Win32_Service -Filter "Name='$($svc.Name)'" -ErrorAction SilentlyContinue).StartMode }
+  }
+}
+
+# App version
+$Diag.App = @()
+foreach($ap in $AppPaths){
+  if(Test-Path $ap){
+    try{
+      $ver = (Get-Item $ap).VersionInfo.ProductVersion
+      $Diag.App += [ordered]@{ Path=$ap; Version=$ver }
+    }catch{
+      $Diag.App += [ordered]@{ Path=$ap; Version="Unknown" }
+    }
+  }
+}
+
+# Network/Proxy
+$proxy = (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction SilentlyContinue)
+$Diag.Network = [ordered]@{
+  ProxyEnabled = $proxy.ProxyEnable
+  ProxyServer  = $proxy.ProxyServer
+}
+
+# Policy checks (common blockers)
+$pol = @{}
+$polKeys = @(
+  'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CurrentVersion\Internet Settings',
+  'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Safer\CodeIdentifiers',
+  'HKLM:\SOFTWARE\Policies\Microsoft\Windows\Installer'
+)
+foreach($k in $polKeys){
+  $exists = Test-Path $k
+  $pol[$k] = $exists
+}
+$Diag.Policies = $pol
+
+# Event Logs (Application) filter for Logi
+$ev = Get-WinEvent -LogName Application -MaxEvents 200 -ErrorAction SilentlyContinue | Where-Object {
+  $_.ProviderName -like "*Logi*" -or $_.Message -like "*Logi*" -or $_.Message -like "*Options+*"
+}
+$Diag.EventsRecent = $ev | Select-Object TimeCreated, ProviderName, Id, LevelDisplayName, Message
+
+# File health & locks
+$FileDiag = @()
+foreach($root in $DataRoots){
+  foreach($path in (Get-ChildItem -Path $root -ErrorAction SilentlyContinue -Force)){
+    $FileDiag += [ordered]@{
+      Path = $path.FullName
+      Exists = (Test-Path $path.FullName)
+      SizeMB = if(Test-Path $path.FullName){ [math]::Round((Get-ChildItem $path.FullName -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Sum Length).Sum/1MB,1) } else { 0 }
+    }
+  }
+}
+$Diag.Files = $FileDiag
+
+# Serialize diagnostics
+$DiagPath = Join-Path $WorkRoot "Diagnostics.json"
+$Diag | ConvertTo-Json -Depth 6 | Out-File -FilePath $DiagPath -Encoding utf8
+Log "Diagnostics captured: $DiagPath"
+
+# ----------- Backup (DataRoots) -----------
+$tempBackup = Join-Path $WorkRoot "Backup"
+New-Dir $tempBackup
+foreach($root in $DataRoots){
+  Get-ChildItem -Path $root -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    try{
+      $relTarget = (Join-Path $tempBackup ($_.FullName -replace "[:\\]","_"))
+      if($_.PSIsContainer){ Copy-Item $_.FullName -Destination $relTarget -Recurse -Force -ErrorAction Stop }
+      else { New-Dir (Split-Path $relTarget); Copy-Item $_.FullName -Destination $relTarget -Force -ErrorAction Stop }
+    }catch{ Log "Backup warn: $($_.FullName) => $($_.Exception.Message)" }
+  }
+}
+try { Zip-Folder -source $tempBackup -zipPath $BackupZip; Log "Backup zip: $BackupZip" } catch { Log "Backup zip failed: $($_.Exception.Message)" }
+
+if($DiagnoseOnly){
+  Log "DiagnoseOnly specified. Skipping fixes."
+  $FixSummary = "진단만 수행. 백업: $BackupZip"
+}else{
+  # ----------- Fix Level 0..3 -----------
+  Log "FixLevel = $FixLevel"
+
+  # Common: stop procs
+  foreach($n in $ProcNames){ Stop-Quiet $n }
+
+  # Stop services (best-effort)
+  foreach($s in $ServiceNames){
+    try{
+      $svc = Get-Service -Name $s -ErrorAction SilentlyContinue
+      if($svc -and $svc.Status -ne 'Stopped'){ Stop-Service -Name $s -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Log "Stopped service: $s" }
+    }catch{}
+  }
+
+  if($FixLevel -ge 1){
+    # L1: prune volatile Electron caches + restart
+    foreach($root in $DataRoots){
+      foreach($cacheName in @('Cache','GPUCache','Code Cache','Network')){
+        Get-ChildItem -Path (Join-Path $root $cacheName) -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+      }
+    }
+    Log "L1: Core caches cleared."
+
+    # Restart services
+    foreach($s in $ServiceNames){
+      try{
+        $svc = Get-Service -Name $s -ErrorAction SilentlyContinue
+        if($svc){ Start-Service -Name $s -ErrorAction SilentlyContinue; Log "Started service: $s" }
+      }catch{}
+    }
+  }
+
+  if($FixLevel -ge 2){
+    # L2: Reset IndexedDB/Local Storage; fix ACL; remove lock files
+    foreach($root in $DataRoots){
+      foreach($name in @('IndexedDB','Local Storage','blob_storage','Session Storage')){
+        $target = Join-Path $root $name
+        if(Test-Path $target){
+          Safe-OwnerAcl $target | Out-Null
+          Get-ChildItem -Path $target -Recurse -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          Log "L2: Reset $target"
+        }
+      }
+      # Remove *.lock files
+      Get-ChildItem -Path $root -Recurse -Force -Filter "*.lock" -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+    }
+    # Clear Roaming app-state json that often corrupts
+    Get-ChildItem -Path "$env:APPDATA\LogiOptionsPlus\*" -Filter "*.json" -ErrorAction SilentlyContinue | ForEach-Object {
+      if($_.Name -match 'state|session|cache|prefs'){ Remove-Item $_.FullName -Force -ErrorAction SilentlyContinue; Log "L2: Remove json state: $($_.Name)" }
+    }
+
+    # Ensure no legacy 'Logitech Options' auto start conflict
+    $runKeys = @(
+      'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run',
+      'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run'
+    )
+    foreach($rk in $runKeys){
+      Get-ItemProperty -Path $rk -ErrorAction SilentlyContinue | ForEach-Object {
+        $_.PSObject.Properties | Where-Object { $_.Name -match 'Logitech Options' } | ForEach-Object {
+          try{ Remove-ItemProperty -Path $rk -Name $_.Name -Force -ErrorAction Stop; Log "Removed legacy autorun: $($_.Name)" }catch{}
+        }
+      }
+    }
+
+    # Network sanity (WinHTTP proxy reset only for current user scope exposure)
+    try{
+      netsh winhttp reset proxy | Out-Null
+      Log "WinHTTP proxy reset (note: user-level proxy unchanged)."
+    }catch{}
+  }
+
+  if($FixLevel -ge 3){
+    # L3: Reinstall via winget if present
+    $winget = Get-Command winget -ErrorAction SilentlyContinue
+    if($winget){
+      try{
+        Log "L3: Attempt winget upgrade/reinstall for Logi Options+ ..."
+        # Try upgrade first
+        winget upgrade --id "Logitech.OptionsPlus" --silent --accept-source-agreements --accept-package-agreements | Tee-Object -FilePath $LogFile -Append
+      }catch{
+        try{
+          winget install --id "Logitech.OptionsPlus" --silent --accept-source-agreements --accept-package-agreements | Tee-Object -FilePath $LogFile -Append
+        }catch{ Log "Winget reinstall failed: $($_.Exception.Message)" }
+      }
+    }else{
+      Log "winget not available; skip reinstall."
+    }
+
+    # Logi Bolt cleanup (optional safe)
+    $boltPaths = @("$env:PROGRAMFILES\Logi\LogiBolt*","$env:PROGRAMFILES(X86)\Logi\LogiBolt*","$env:APPDATA\LogiBolt*","$env:LOCALAPPDATA\LogiBolt*")
+    foreach($bp in $boltPaths){ Get-ChildItem $bp -ErrorAction SilentlyContinue | ForEach-Object { Log "Bolt exists: $($_.FullName)" } }
+  }
+
+  # Relaunch app (best guess path)
+  $exe = $AppPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+  if($exe){ Start-Process -FilePath $exe; Log "App relaunched: $exe" } else { Log "App not found to relaunch." }
+
+  $FixSummary = "FixLevel $FixLevel 완료. 캐시 초기화 및 서비스 재시작 수행" + ($(if($FixLevel -ge 2){" + 심화 초기화"}) + $(if($FixLevel -ge 3){" + 재설치 시도"}))
+}
+
+# ----------- Report -----------
+$md = @"
+# Logi Options+ Endless Loading - Diagnose & Fix Report
+- Session: $SessionId
+- Time: $(Get-Date)
+- Mode: $(if($DiagnoseOnly){"DiagnoseOnly"}else{"Fix"})
+- FixLevel: $FixLevel
+
+## System
+- OS: $($Diag.System.OS)
+- Build: $($Diag.System.Build)
+- Admin: $($Diag.System.IsAdmin)
+
+## App
+$(
+  if($Diag.App.Count -gt 0){
+    ($Diag.App | ForEach-Object { "- Path: $($_.Path)`n  - Version: $($_.Version)" }) -join "`n"
+  } else { "- Not Found" }
+)
+
+## Services
+$(
+  if($Diag.Services.Count -gt 0){
+    ($Diag.Services | ForEach-Object { "- $($_.Name): $($_.Status) (StartType: $($_.StartType))" }) -join "`n"
+  } else { "- None Detected" }
+)
+
+## Network & Policy Hints
+- ProxyEnabled: $($Diag.Network.ProxyEnabled)
+- ProxyServer : $($Diag.Network.ProxyServer)
+$(
+  ($Diag.Policies.GetEnumerator() | ForEach-Object { "- PolicyKey: $($_.Key) => Exists=$($_.Value)" }) -join "`n"
+)
+
+## Recent App Events (Top 10)
+$(
+  ($Diag.EventsRecent | Select-Object -First 10 | ForEach-Object {
+    "- [$($_.TimeCreated)] $($_.ProviderName) #$($_.Id) $($_.LevelDisplayName) : " + ($_.Message -replace "`r|`n"," ")
+  }) -join "`n"
+)
+
+## Data Roots Snapshot
+$(
+  ($Diag.Files | Sort-Object -Property SizeMB -Descending | Select-Object -First 10 | ForEach-Object {
+    "- $($_.Path) (Exists=$($_.Exists)) Size=$($_.SizeMB)MB"
+  }) -join "`n"
+)
+
+## Summary
+- $FixSummary
+- Backup: $BackupZip
+- Logs: $LogFile
+
+## Next Steps (if still looping)
+1) 회사 네트워크/보안 정책 간섭 가능성 점검(프록시/SSL 인스펙션/EDR).  
+2) FixLevel 2로 재시도 후, 3(재설치) 시도.  
+3) 보안팀/IT팀에 다음 키워드 전달:  
+   - 차단 여부: `logi*`, `options+`, Electron 앱 초기화 통신  
+   - 사용자 Proxy/WinHTTP Proxy 차이, SSL MITM 여부  
+4) Windows 이벤트 로그에서 `Options+`, `Logi` 오류ID 상세 제공.
+"@
+$md | Out-File -FilePath $ReportMd -Encoding utf8
+Log "Report written: $ReportMd"
+
+Write-Host "`nDone. Report: $ReportMd`nLog: $LogFile`n"

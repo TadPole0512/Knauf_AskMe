@@ -1,0 +1,870 @@
+{
+   "checksum": "c78f2426b00855825494cbe4a42aff8c",
+   "roots": {
+      "bookmark_bar": {
+         "children": [ {
+            "children": [ {
+               "children": [ {
+                  "date_added": "13361844294773148",
+                  "date_last_used": "13369897429423520",
+                  "guid": "54d11717-db9c-489b-a4ab-dd1901c09ec1",
+                  "id": "8",
+                  "name": "P_원료부문 4차 시스템 개선_고려아연 - 애자일 보드 - Jira",
+                  "show_icon": false,
+                  "source": "sync",
+                  "type": "url",
+                  "url": "https://sorinitsm.atlassian.net/jira/software/c/projects/PRJ0001460/boards/200?assignee=62e23993f6dd8b8b0eabf5f4",
+                  "visit_count": 2
+               }, {
+                  "date_added": "13367301744103095",
+                  "date_last_used": "13369897512717944",
+                  "guid": "507a400d-176a-4819-b5cf-cebe5e89d6f7",
+                  "id": "9",
+                  "meta_info": {
+                     "power_bookmark_meta": ""
+                  },
+                  "name": "[PRJ0001460-97] B02.03 [1차] 연간 Delivery_버전관리_요청사항 개발 - Jira",
+                  "show_icon": false,
+                  "source": "sync",
+                  "type": "url",
+                  "url": "https://sorinitsm.atlassian.net/browse/PRJ0001460-97",
+                  "visit_count": 2
+               }, {
+                  "date_added": "13361844294773484",
+                  "date_last_used": "13369897513366344",
+                  "guid": "e912e881-f4a3-4386-8a4d-90e9abe8e484",
+                  "id": "10",
+                  "name": "GROUP [Jenkins]",
+                  "show_icon": false,
+                  "source": "sync",
+                  "type": "url",
+                  "url": "https://jenkins.sorin.co.kr/",
+                  "visit_count": 2
+               }, {
+                  "date_added": "13354100793121283",
+                  "date_last_used": "13369897495303356",
+                  "guid": "a6bba963-b5c8-4934-a5b9-16ba7807968d",
+                  "id": "11",
+                  "meta_info": {
+                     "power_bookmark_meta": ""
+                  },
+                  "name": "Commits · master · Jong Hwa Lee / KZICMS · GitLab",
+                  "show_icon": false,
+                  "source": "sync",
+                  "type": "url",
+                  "url": "http://gitlab01.sorin.co.kr/leejonghwa/kzicms/-/commits/master",
+                  "visit_count": 2
+               } ],
+               "date_added": "13361844294772562",
+               "date_last_used": "0",
+               "date_modified": "13367301744103095",
+               "guid": "92f0910d-527d-4223-b2f5-46b65804a226",
+               "id": "7",
+               "name": "새 폴더",
+               "source": "unknown",
+               "type": "folder"
+            }, {
+               "date_added": "13361931877089429",
+               "date_last_used": "13365126785910751",
+               "guid": "abbce2f9-9a96-478d-b859-47a028161179",
+               "id": "12",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "ServiceNow Administration Fundamentals On Demand - 지금 학습",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://nowlearning.servicenow.com/lxp/en/now-platform/servicenow-administration-fundamentals-on-demand?id=learning_course_prev&course_id=91e2630b47503d5890542034846d43ac",
+               "visit_count": 0
+            } ],
+            "date_added": "13361844294772133",
+            "date_last_used": "0",
+            "date_modified": "13361931877089429",
+            "guid": "862036e4-24e4-4d78-bcc3-7fd8c15f248e",
+            "id": "6",
+            "name": "출근",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [ {
+               "date_added": "13340852187228346",
+               "date_last_used": "13369998583056797",
+               "guid": "88508e6d-5dc9-458f-b8cf-ee910b583aef",
+               "id": "14",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "LIVE-local",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://localhost:50176/Login.aspx",
+               "visit_count": 26
+            }, {
+               "date_added": "13362805601791549",
+               "date_last_used": "13375859787707286",
+               "guid": "28a92b83-c724-43dc-9c47-310fb848cdb1",
+               "id": "15",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "LIVE_개발",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://172.11.0.93:8080/Index.aspx",
+               "visit_count": 9
+            }, {
+               "date_added": "13300437302017647",
+               "date_last_used": "13375859792287504",
+               "guid": "012d8f72-c95b-4451-9c94-cf071428f2b6",
+               "id": "16",
+               "name": "LIVE - real",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://live.koreazinc.co.kr/Login.aspx",
+               "visit_count": 5
+            }, {
+               "date_added": "13354088044775044",
+               "date_last_used": "13375859739065879",
+               "guid": "308a138b-36af-4cb6-b511-394670b758d6",
+               "id": "17",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "New개발LIVE",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://live-dev.koreazinc.co.kr/Login.aspx",
+               "visit_count": 1
+            }, {
+               "date_added": "13300437290680687",
+               "date_last_used": "13362805558732962",
+               "guid": "8cda0c7e-7e4a-4456-8497-7feb11b7f4c3",
+               "id": "18",
+               "name": "LIVE",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://live.koreazinc.co.kr:8080/Login.aspx",
+               "visit_count": 0
+            } ],
+            "date_added": "13360983672832394",
+            "date_last_used": "0",
+            "date_modified": "13362805601791549",
+            "guid": "2108a156-93b6-4fd2-9781-fe7f3ab38660",
+            "id": "13",
+            "name": "라이브",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [ {
+               "date_added": "13360983970377365",
+               "date_last_used": "0",
+               "guid": "d541c606-99bb-4caf-8505-8be32ad52838",
+               "id": "20",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "P_원료부문 4차 시스템 개선_고려아연 - 애자일 보드 - Jira",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorinitsm.atlassian.net/jira/software/c/projects/PRJ0001460/boards/200?assignee=62e23993f6dd8b8b0eabf5f4",
+               "visit_count": 0
+            }, {
+               "date_added": "13325653524823164",
+               "date_last_used": "13360806833062256",
+               "guid": "1f9c7c2f-1576-4a63-abd9-5652007eacc9",
+               "id": "21",
+               "name": "원료부문 3차 시스템 개선 - 로드맵 - Jira",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorinitsm.atlassian.net/jira/software/c/projects/PRJ0001059/boards/111/roadmap?quickFilter=169&selectedIssue=PRJ0001059-47",
+               "visit_count": 0
+            }, {
+               "date_added": "13360983427713534",
+               "date_last_used": "0",
+               "guid": "04ca9dba-be58-4b21-88bf-7b67a4f14db0",
+               "id": "22",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "[PRJ0001460-55] B02.01 연간 Delivery 고도화_개발[1차] - Jira",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorinitsm.atlassian.net/browse/PRJ0001460-55",
+               "visit_count": 0
+            }, {
+               "date_added": "13356491130380949",
+               "date_last_used": "13360806838240021",
+               "guid": "35a460f7-f3cb-4425-9a90-19a39da5dee4",
+               "id": "23",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "M_고려아연(ITH) - 애자일 보드 - Jira",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorinitsm.atlassian.net/jira/software/c/projects/PRJPE1097/boards/187",
+               "visit_count": 0
+            }, {
+               "date_added": "13357816865997516",
+               "date_last_used": "13360633670441663",
+               "guid": "941aea6d-4173-46ce-a3c6-aa661335340c",
+               "id": "24",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "[PRJPE1097-2] 운영 및 유지보수 - Jira",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorinitsm.atlassian.net/browse/PRJPE1097-2",
+               "visit_count": 0
+            } ],
+            "date_added": "13360983686055607",
+            "date_last_used": "0",
+            "date_modified": "13360983970377365",
+            "guid": "e7dd6ce4-31a3-40e7-9a98-81351fa0a5ed",
+            "id": "19",
+            "name": "JiRa",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [ {
+               "date_added": "13326852050405847",
+               "date_last_used": "13363426785162705",
+               "guid": "c2f521ba-c8e0-4dd3-8ff7-4299711d7e39",
+               "id": "26",
+               "name": "GROUP [Jenkins]",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://jenkins.sorin.co.kr/",
+               "visit_count": 0
+            }, {
+               "date_added": "13361844294773620",
+               "date_last_used": "13367287354350501",
+               "guid": "db0deb20-e980-428f-a094-ed947739df16",
+               "id": "27",
+               "name": "Projects · GitLab",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://gitlab01.sorin.co.kr/",
+               "visit_count": 1
+            }, {
+               "date_added": "13365243538608733",
+               "date_last_used": "13366364890571078",
+               "guid": "5b610286-f3f9-4ae4-abed-8b676429dc8b",
+               "id": "28",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "New merge request · KZ / KZICMS · GitLab",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://gitlab01.sorin.co.kr/kz/kzicms/-/merge_requests/new",
+               "visit_count": 0
+            }, {
+               "date_added": "13302582246901546",
+               "date_last_used": "13363400744873890",
+               "guid": "555af084-1fdf-4edb-9f45-2862729e0db6",
+               "id": "29",
+               "name": "Sign up · GitLab",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://gitlab01.sorin.co.kr/users/sign_up",
+               "visit_count": 0
+            }, {
+               "date_added": "13354070963587276",
+               "date_last_used": "13360633616435452",
+               "guid": "d35c0d3f-48fa-4a71-a1e2-a6a988935475",
+               "id": "30",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "개발 [Jenkins]",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://jenkinsdev.sorin.co.kr/",
+               "visit_count": 0
+            } ],
+            "date_added": "13360983699907783",
+            "date_last_used": "0",
+            "date_modified": "13365243538608733",
+            "guid": "e0533786-2f7e-45be-871d-0a5d043f6a12",
+            "id": "25",
+            "name": "반영",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [ {
+               "date_added": "13369477233321666",
+               "date_last_used": "13369898362760787",
+               "guid": "925ea947-a632-46b8-9541-de1ca5206d05",
+               "id": "32",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "재고관련 이슈 정리 및 확인.xlsx",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorincokr.sharepoint.com/:x:/s/msteams_2c2683_706424/ET2MqxI5Ms9AnMBJwKWzg_MBdDhuocnVza3a1c2yXIbJgQ?e=sxojmm",
+               "visit_count": 10
+            }, {
+               "date_added": "13360983647596524",
+               "date_last_used": "0",
+               "guid": "7689c7f6-9ac2-4dc7-9ed3-b04fe83cb78c",
+               "id": "33",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "재고관리_연간 Delivery_설계서_ver1.0.xlsx",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorincokr.sharepoint.com/:x:/s/msteams_2c2683_706424/EQMMIWucwXhNv-bw7fC8nuYB41qzBBcOHrS0uvx0oF4cMQ?e=Gw4xvn",
+               "visit_count": 0
+            }, {
+               "date_added": "13338542401787870",
+               "date_last_used": "13349512807383139",
+               "guid": "e10c3e02-6e76-4e8f-8ed2-9d7a2e943e6f",
+               "id": "34",
+               "name": "시스템개선_기타기능구현.xlsx",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorincokr.sharepoint.com/:x:/s/msteams_6ca896_420605/EWlnB5FyrVtBvXWEV1GLrCgBNwxVU6nZuVvwuPOSP7JloQ?e=hQiqyF",
+               "visit_count": 0
+            }, {
+               "date_added": "13346995507642256",
+               "date_last_used": "13349769702437583",
+               "guid": "1ee06292-8aca-4480-84a2-5a79037f02c1",
+               "id": "35",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "LIVE 변화관리.xlsx",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorincokr.sharepoint.com/:x:/s/msteams_6ca896_420605/EZ2P_2zLe1ZDo05SX_NS_awB0v2Md87ysdp2RIyzfEn7-A?e=tgJuv9",
+               "visit_count": 0
+            }, {
+               "date_added": "13353994824816122",
+               "date_last_used": "13354074111191589",
+               "guid": "dafff582-90f1-4d59-9bfb-a0324c83f9a8",
+               "id": "36",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "원료일보분석_비교 (version 1).xlsx",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorincokr.sharepoint.com/:x:/s/msteams_6ca896_420605/EZ81PUx8bGVHtESlD8uXBuQBoVRV9phvXc55u-dFC1KO2w?e=6eyerD",
+               "visit_count": 0
+            }, {
+               "date_added": "13349248331795285",
+               "date_last_used": "13357724292891649",
+               "guid": "3c5cd96e-c15d-4f25-be26-6d000156dfe5",
+               "id": "37",
+               "name": "고려아연 Live",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorincokr.sharepoint.com/sites/ITS_PIS__/Shared%20Documents/Forms/AllItems.aspx?RootFolder=%2Fsites%2FITS%5FPIS%5F%5F%2FShared%20Documents%2FITS1%EC%B1%84%EB%84%90%2F01%2E%20WM%ED%8C%8C%ED%8A%B8%2F02%2E%20%EA%B4%80%EB%A6%AC%20Application%2F02%2E%20%EA%B3%A0%EB%A0%A4%EC%95%84%EC%97%B0%2F09%2E%20%EA%B3%A0%EB%A0%A4%EC%95%84%EC%97%B0%20Live&FolderCTID=0x0120000E04AB3EBE409047A75497F6AB7A8D41",
+               "visit_count": 0
+            }, {
+               "date_added": "13363054714633353",
+               "date_last_used": "0",
+               "guid": "75474445-c326-4d02-9294-bff338c201d3",
+               "id": "38",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "Jong Hwa Lee / KZICMS · GitLab",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "http://gitlab01.sorin.co.kr/leejonghwa/kzicms",
+               "visit_count": 0
+            }, {
+               "date_added": "13369794562469466",
+               "date_last_used": "0",
+               "guid": "52e282d6-341b-458f-9688-7b89744a785b",
+               "id": "39",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "LIVE",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://live.koreazinc.co.kr/Index.aspx",
+               "visit_count": 1
+            }, {
+               "date_added": "13370324303982206",
+               "date_last_used": "0",
+               "guid": "b3e6b216-d437-4b44-9b8f-0d2f4babf0ac",
+               "id": "40",
+               "meta_info": {
+                  "power_bookmark_meta": ""
+               },
+               "name": "[PRJ0001460-123] B02.90 [1차] 연간 Delivery_버전관리_추가요청사항 개발 - Jira",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://sorinitsm.atlassian.net/browse/PRJ0001460-123",
+               "visit_count": 1
+            } ],
+            "date_added": "13360984139421230",
+            "date_last_used": "0",
+            "date_modified": "13370324303982206",
+            "guid": "688bd1f4-ba89-4408-a7fa-b1bde3351070",
+            "id": "31",
+            "name": "Teams",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [ {
+               "date_added": "13300434968647054",
+               "date_last_used": "13365732033834918",
+               "guid": "aa0b55f7-b146-408b-be6c-58ba0d5038de",
+               "id": "42",
+               "name": "EAA",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://korea-zinc.login.go.akamai-access.com/#/eaaclient",
+               "visit_count": 0
+            }, {
+               "date_added": "13323142695265098",
+               "date_last_used": "13361846191249983",
+               "guid": "ca81d4aa-558c-4470-a294-9ddcda62e8bb",
+               "id": "43",
+               "name": "https://chat.openai.com/chat",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://chat.openai.com/chat",
+               "visit_count": 0
+            }, {
+               "date_added": "13303184398707547",
+               "date_last_used": "13360806914578204",
+               "guid": "c27c41fc-4d6a-4ff2-8dd3-30acf1974e16",
+               "id": "44",
+               "name": "Built-in Filter Builder (Custom Functions, Operators) - ASP.NET AJAX Data Grid Control Demo | DevExpress",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://demos.devexpress.com/ASPxGridViewDemos/Filtering/FilterBuilderCustomFunctions.aspx",
+               "visit_count": 0
+            } ],
+            "date_added": "13360983736665670",
+            "date_last_used": "0",
+            "date_modified": "13360983736665670",
+            "guid": "aa078de9-2399-465d-ac87-85b042d1f16c",
+            "id": "41",
+            "name": "etc",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [ {
+               "date_added": "13300436843985373",
+               "date_last_used": "13373363714214446",
+               "guid": "709521de-1135-4e32-97f8-87291a0935dd",
+               "id": "46",
+               "name": "셀프 서비스 | ServiceNow - Askme",
+               "show_icon": false,
+               "source": "sync",
+               "type": "url",
+               "url": "https://askme.service-now.com/now/nav/ui/classic/params/target/home.do",
+               "visit_count": 3
+            } ],
+            "date_added": "13360983725459165",
+            "date_last_used": "0",
+            "date_modified": "13360983725459165",
+            "guid": "6cf0aa5b-c8fa-4bef-9f9b-8b4a02a09dd4",
+            "id": "45",
+            "name": "askme",
+            "source": "unknown",
+            "type": "folder"
+         }, {
+            "children": [  ],
+            "date_added": "13372331415370719",
+            "date_last_used": "0",
+            "date_modified": "13372331415370719",
+            "guid": "63b56af3-ace3-46e9-b15d-473354a931bf",
+            "id": "47",
+            "name": "KNAUF",
+            "source": "unknown",
+            "type": "folder"
+         } ],
+         "date_added": "13390021046078390",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "0bc5d13f-2cba-5d74-951f-3f233fe6c908",
+         "id": "1",
+         "name": "즐겨찾기 모음",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "other": {
+         "children": [  ],
+         "date_added": "13390021046078392",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "82b081ec-3dd3-529c-8475-ab6c344590dd",
+         "id": "2",
+         "name": "다른 즐겨찾기",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "synced": {
+         "children": [  ],
+         "date_added": "13390021046078393",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "4cf2e351-0e85-532b-bb37-df045d8f8d0f",
+         "id": "3",
+         "name": "모바일 즐겨찾기",
+         "source": "unknown",
+         "type": "folder"
+      },
+      "workspaces": {
+         "children": [ {
+            "children": [  ],
+            "date_added": "13390021198168070",
+            "date_last_used": "0",
+            "date_modified": "13390021198168070",
+            "guid": "7a1c15e1-c314-4743-a92c-e0e1852eabe6",
+            "id": "51",
+            "name": "라이브",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "79c4dca6-d296-48b1-bea9-10b07b84ab26"
+         }, {
+            "children": [ {
+               "date_added": "13390037261783339",
+               "date_last_used": "0",
+               "guid": "c8eb0f22-91a1-47b4-9180-8f61b8d3b50a",
+               "id": "54",
+               "name": "내 앱 대시보드 | Knauf Dashboard",
+               "show_icon": false,
+               "source": "unknown",
+               "type": "url",
+               "url": "https://knauf.okta.com/app/UserHome?session_hint=AUTHENTICATED",
+               "visit_count": 0
+            }, {
+               "date_added": "13390037261789722",
+               "date_last_used": "0",
+               "guid": "c9d40d1d-e756-4301-a6ce-0c76151d0c93",
+               "id": "55",
+               "name": "neweorder.knaufapac.kr",
+               "show_icon": false,
+               "source": "unknown",
+               "type": "url",
+               "url": "https://neweorder.knaufapac.kr/eorder/admin/login/login.lime",
+               "visit_count": 0
+            }, {
+               "date_added": "13390037261796429",
+               "date_last_used": "0",
+               "guid": "de3c5e91-3e16-4056-b052-5a9e84aeaa6c",
+               "id": "56",
+               "name": "Windows 365",
+               "show_icon": false,
+               "source": "unknown",
+               "type": "url",
+               "url": "https://windows365.microsoft.com/",
+               "visit_count": 0
+            } ],
+            "date_added": "13390037261659131",
+            "date_last_used": "0",
+            "date_modified": "13390037261796429",
+            "guid": "ad2e67ff-9bc2-478a-9d25-43d195530058",
+            "id": "53",
+            "name": "크나우프",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "1643b0ab-bd93-4ea2-a26b-01516050f0cb"
+         }, {
+            "children": [ {
+               "date_added": "13392429324895495",
+               "date_last_used": "0",
+               "guid": "02d374cf-bc40-4d7f-946c-182c19f64e50",
+               "id": "60",
+               "name": "작업 | ServiceNow",
+               "show_icon": false,
+               "source": "unknown",
+               "type": "url",
+               "url": "https://askme.service-now.com/now/nav/ui/classic/params/target/u_work_list.do%3Fsysparm_userpref_module%3D1220077b1b0078108657a64de54bcb8a%26sysparm_query%3Dassigned_toDYNAMIC90d1921e5f510100a9ad2572f2b477fe%255EORopened_byDYNAMIC90d1921e5f510100a9ad2572f2b477fe%255EstateNOT%2BIN3%252C4%255EEQ%26ORDERBYDESCnumber",
+               "visit_count": 0
+            }, {
+               "date_added": "13392429324901489",
+               "date_last_used": "0",
+               "guid": "5ed7bf63-65f9-4d6e-b191-3ddc9761b744",
+               "id": "61",
+               "name": "Login Page",
+               "show_icon": false,
+               "source": "unknown",
+               "type": "url",
+               "url": "https://ehr.sorin.co.kr/",
+               "visit_count": 0
+            }, {
+               "date_added": "13392429324906907",
+               "date_last_used": "0",
+               "guid": "93132e5d-8f5c-428a-afe5-0aad548cb2be",
+               "id": "62",
+               "name": "로그인 | ServiceNow",
+               "show_icon": false,
+               "source": "unknown",
+               "type": "url",
+               "url": "https://askme.service-now.com/navpage.do",
+               "visit_count": 0
+            }, {
+               "date_added": "13392429324912733",
+               "date_last_used": "0",
+               "guid": "a95e7b4b-b77f-4bcd-98af-7a1283003287",
+               "id": "63",
+               "name": "요청 | ServiceNow",
+               "show_icon": false,
+               "source": "unknown",
+               "type": "url",
+               "url": "https://askme.service-now.com/now/nav/ui/classic/params/target/sc_request_list.do%3Fsysparm_userpref_module%3D033464fe1b58f4108657a64de54bcb84%26sysparm_query%3Dactive%253Dtrue%255Eassigned_to%253Djavascript%3AgetMyAssignments()%255EEQ%26active%3Dtrue%5Eassigned_to%3Djavascript%3Ags.user_id()%5EORDERBYDESCnumber",
+               "visit_count": 0
+            } ],
+            "date_added": "13392429324809132",
+            "date_last_used": "0",
+            "date_modified": "13392429324912733",
+            "guid": "d4c891ed-b98e-4674-9ee2-b970739a6d35",
+            "id": "59",
+            "name": "서린정보기술",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "28b6534c-9ff4-40c1-9cc8-3d836c261f9d"
+         }, {
+            "children": [  ],
+            "date_added": "13392783740594034",
+            "date_last_used": "0",
+            "date_modified": "13392783740594035",
+            "guid": "ddad1c22-9bb9-4057-92b5-7b8ef404bc03",
+            "id": "65",
+            "name": "크나우프 서버 테스트",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "7e4ab7d1-1465-4769-869c-ea2dda784824"
+         }, {
+            "children": [ {
+               "date_added": "13397296463000616",
+               "date_last_used": "0",
+               "guid": "a3714cc5-e43a-40e7-8a35-4a9a8f3ffd06",
+               "id": "71",
+               "name": "KNAUF_유지보수 내역 우선순위_250528 (1).xlsx",
+               "show_icon": false,
+               "source": "user_add",
+               "type": "url",
+               "url": "https://sorincokr-my.sharepoint.com/:x:/r/personal/hsg_sorin_co_kr/_layouts/15/Doc.aspx?sourcedoc=%7BF851D4FC-31D2-451C-80C8-43EAD9F9DC05%7D&file=KNAUF_%EC%9C%A0%EC%A7%80%EB%B3%B4%EC%88%98%20%EB%82%B4%EC%97%AD%20%EC%9A%B0%EC%84%A0%EC%88%9C%EC%9C%84_250528%20(1).xlsx&action=default&mobileredirect=true&DefaultItemOpen=1",
+               "visit_count": 1
+            }, {
+               "date_added": "13401509009899060",
+               "date_last_used": "0",
+               "guid": "6eedace0-25d2-44b7-86e9-5d876c78e0f0",
+               "id": "73",
+               "name": "Markdown Editor - 무료 온라인 마크다운 에디터",
+               "show_icon": false,
+               "source": "user_add",
+               "type": "url",
+               "url": "https://markdown.develop-on.co.kr/",
+               "visit_count": 1
+            } ],
+            "date_added": "13395973706524207",
+            "date_last_used": "0",
+            "date_modified": "13401509009899060",
+            "guid": "8b5307cc-48df-4096-9888-c179bc6ba304",
+            "id": "69",
+            "name": "AI",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "1b0dcb0e-d845-4039-b483-10e0689685c2"
+         }, {
+            "children": [  ],
+            "date_added": "13401509178947292",
+            "date_last_used": "0",
+            "date_modified": "13401509178947293",
+            "guid": "2bcc73b6-6995-4786-9f3b-5f11fef02e2e",
+            "id": "74",
+            "name": "마크다운",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "af963993-4e52-442d-a6a8-4018a40df471"
+         }, {
+            "children": [  ],
+            "date_added": "13401851159364613",
+            "date_last_used": "0",
+            "date_modified": "13401851159364614",
+            "guid": "4fcc3eba-aaa3-4ef1-b627-7fd843c2568e",
+            "id": "76",
+            "name": "삼주마린",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "91a71a0f-b6e0-4345-ad32-556aabb63597"
+         }, {
+            "children": [  ],
+            "date_added": "13401878259740826",
+            "date_last_used": "0",
+            "date_modified": "13401878259740828",
+            "guid": "ee848190-f537-4752-aa18-9979b8174845",
+            "id": "77",
+            "name": "CJ4DXP",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "2251ef99-6bf1-4117-89c6-fed85d89bdaa"
+         }, {
+            "children": [  ],
+            "date_added": "13402031030555690",
+            "date_last_used": "0",
+            "date_modified": "13402031030555692",
+            "guid": "e5899996-7fa6-4007-84b0-7b84db982d4c",
+            "id": "80",
+            "name": "AI-최소",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "459f4fbe-0506-4223-9ee7-6b288a6cc621"
+         }, {
+            "children": [  ],
+            "date_added": "13402125274771652",
+            "date_last_used": "0",
+            "date_modified": "13402125274771655",
+            "guid": "66fce7fa-437a-46c8-b91a-dde4c0ffd328",
+            "id": "82",
+            "name": "삼주마린-DOCs",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "ff24d682-eec2-4ffc-8225-08ebfce5aa2b"
+         }, {
+            "children": [  ],
+            "date_added": "13402125395578134",
+            "date_last_used": "0",
+            "date_modified": "13402125395578136",
+            "guid": "5f7a38f8-6e06-4c28-84ba-482f5120d855",
+            "id": "83",
+            "name": "삼주마린-Server",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "8c4c122d-fed8-4ead-bef5-11cc2af677f4"
+         }, {
+            "children": [  ],
+            "date_added": "13402125472289180",
+            "date_last_used": "0",
+            "date_modified": "13402125472289181",
+            "guid": "ba55c7f7-ad1f-4eb1-aa78-1aa25af8db97",
+            "id": "84",
+            "name": "삼주마린-Web",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "80971bfa-9608-4a53-a4c5-8754758488d6"
+         }, {
+            "children": [  ],
+            "date_added": "13402365923592642",
+            "date_last_used": "0",
+            "date_modified": "13402365923592644",
+            "guid": "951a9836-bea9-4f6b-9f0a-ab00f1ba2913",
+            "id": "87",
+            "name": "Claude",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "320b0f20-fdb3-4ab2-8487-95aabaa8df28"
+         }, {
+            "children": [  ],
+            "date_added": "13402366006632489",
+            "date_last_used": "0",
+            "date_modified": "13402366006632492",
+            "guid": "ba902020-042a-45df-be99-66eea73e167e",
+            "id": "88",
+            "name": "ChatGPT",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "bee9f58a-3ea1-4e24-89a1-8ff04bba5fd6"
+         }, {
+            "children": [  ],
+            "date_added": "13402366089241600",
+            "date_last_used": "0",
+            "date_modified": "13402366089241601",
+            "guid": "55e4e8ba-ba58-4746-9e64-e88bb0877a13",
+            "id": "89",
+            "name": "Perplexity",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "6326b09f-1468-41b1-96a1-33ddea3fe2d1"
+         }, {
+            "children": [  ],
+            "date_added": "13402366132047877",
+            "date_last_used": "0",
+            "date_modified": "13402366132047878",
+            "guid": "86fe70d4-09b3-4e70-ae7b-c6686dcdac4d",
+            "id": "90",
+            "name": "Gemini",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "95a3fe95-d5e1-4c98-80fd-cd80498cc7c2"
+         }, {
+            "children": [  ],
+            "date_added": "13402366183248224",
+            "date_last_used": "0",
+            "date_modified": "13402366183248226",
+            "guid": "9731af30-e01e-4ce0-a55e-bff9e31aca4f",
+            "id": "91",
+            "name": "NoteBookLM",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "089539b1-60ef-4900-b5aa-b3edaaf34254"
+         }, {
+            "children": [  ],
+            "date_added": "13402394786663174",
+            "date_last_used": "0",
+            "date_modified": "13402394786663176",
+            "guid": "b3fa4235-113f-4c45-b129-21be75e1232c",
+            "id": "93",
+            "name": "검색",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "a3fe12ae-3ef4-4228-8a5d-e3d06b8bd267"
+         }, {
+            "children": [  ],
+            "date_added": "13402970759865388",
+            "date_last_used": "0",
+            "date_modified": "13402970759865390",
+            "guid": "0afe23c1-2964-4182-9fd1-310839b1f7f1",
+            "id": "95",
+            "name": "SBM-DOCs",
+            "source": "unknown",
+            "type": "workspace",
+            "workspace_id": "d591b39e-3e4a-4781-8293-b4c7a0c4c8a8"
+         } ],
+         "date_added": "13390021046078400",
+         "date_last_used": "0",
+         "date_modified": "0",
+         "guid": "00000000-0000-4000-a000-000000000006",
+         "id": "4",
+         "name": "작업 영역 즐겨찾기",
+         "source": "unknown",
+         "type": "workspace",
+         "workspace_id": ""
+      }
+   },
+   "sync_metadata": "CosBCg4IiIECEggO1f/fmQEAABIAGlh2SXV1NU5KL2tzK0x5bVVWc3FldGNMY3liRUdteHdqL0RUM2F5ZjYwNTd2S0hRWURoeDNja3V2QVozR282djgxd2E1TklsYkVEbEVtNFdCZ0xZV3R1Zz09KhhjUkFCbTdBWk5yZlM1QjZrWmx5eFJBPT1IA6AGDBKtAQgqEqgBChxWQTJJWHdHeDQ1bWVOVGl0NlNTMWFNMzJUMms9EiRhYTBiNTVmNy1iMTQ2LTQwOGItYmU2Yy01OGJhMGQ1MDM4ZGUYACAAKAAw2ofIvd4yONaD9feYMEDWg/X3mDBKHHN4UWNDUDBxaWpUMjNOSldORnJDMlQ2MmxFVT1aHyIdBnVRVWdzbllBVUVnN2piNGI4OUVGTnlnSzRWOD1lmB9zDcI+AmAFEq0BCCsSqAEKHGZMa2M5MFB2ZWVOcHYyNWdEUW1SMER2ckFVVT0SJGNhODFkNGFhLTU1OGMtNDQ3MC1hMjk0LTlkZGNkYTYyZThiYhgAIAAoADDUh8i93jI47eHmw+0wQO3h5sPtMEoccUR4RGxrSWNqQmhLTWRqZDErNkFid2I2U1dNPVofIh0ZTHM3N2VWdms4czhWZjVQTVJBMTIvSk1Uc1VzPWWzpjyRwj4CYAUSrQEIIxKoAQocdWRoZTdFUUdmNDdsMGh4bVh0cnUyaGlWT2owPRIkMWVlMDYyOTItOGFjYS00NDgwLTg0YTItNWE3OTAzN2YwMmMxGAAgACgAMNiHyL3eMji25tqxxjFAtubascYxShwyRE1HRjZoZHNRaXVlR1JWQitONDBkK3JtRTg9Wh8iHQJMVXNNTVNadmtRUVVsV2EyejArSC9tNUtrUzA9ZX4gtu/CPgJgBRKtAQglEqgBChxuTjlyYnFZODBoeEFNdjBpQTJ1RzJlQmRIUnM9EiQzYzVjZDk2ZS1jMTVkLTRmMjUtYmUyNi02ZDAwMDE1NmRmZTUYACABKAEwq+CFxpEzOICv+OPOMUD2zoXGkTNKHENxOVg2b3RtQTI5c2tXMVd2VERqZmxKQlQyaz1aHyIdAzJsMTZqdVpiRVRWOCtneXpHcmlpUk1yWE4vaz1lDvOsisI+AmAFEq8BCC8SqgEKHFM4Z0N0LzBSK1laMk04ekJabHJ6MkhNTi9QVT0SJDYzYjU2YWYzLWFjZTMtNDZlOS1iMTVkLTQ3MzM1NGE5MzFiZhgAIAAoADDh9ce93jI4kIjo4qQyQJCI6OKkMkoccGtaMkp2akhVcHBSRHQ4amhmc3hGVGdBVzFZPVohIh///+1qRmVuUy9GQXhTdkpkUzRFR3hGQWtBL1plbHM9ZQAAAADCPgJgABKvAQgpEqoBChxEcWRFZVRhUTFDWkQwNXF4RVdsbmRqWVE1MjA9EiRhYTA3OGRlOS0yMzk5LTQ2NWQtYWM4Ny04NWIwNDJkMWYxNmMYACAAKAAw3fXHvd4yOMbF6L/6MUDGxei/+jFKHFZMaithSWtEbUNhVmJNRHpLWkticjEvdVdxaz1aISIf///bQXVvWS80TXNNTVdFMlg1MGdjVFF5dHdKdlpRPWUAAAAAwj4CYAASrQEILhKoAQocbVM3cksxOGtFN29XbXQ2SVJxR0hoN3ZWQXA4PRIkNzA5NTIxZGUtMTEzNS00ZTMyLTk3ZjgtODcyOTFhMDkzNWRkGAAgASgBMPekke+OMzixvuf4mDBAyJOR744zShxwSXJ0eHZDaTU2SVB2UGN5SGxLL3RWcUNncEU9Wh8iHRt0TVZnRTcxVXlXd2Z0cEFzLzdXV01xT2N0Umc9ZcsBS9rCPgJgBRKvAQgtEqoBChx6eWtxRDhNa0dtRDNuNTNsZkZIZjZtR2dBSTA9EiQ2Y2YwYWE1Yi1jOGZhLTRiZWYtOWY5Yi04YjRhMDJhMDlkZDQYACAAKAAw3/XHvd4yOKbt57/6MUCm7ee/+jFKHFZrdzdKNGw5V2kybTY3RGFGd0wxbnNEOWVHaz1aISIf///kSVhVT0EzMU1oMWo3YVdJZlBmS0ZlRjVaNEw0PWUAAAAAwj4CYAASrQEIERKoAQocTHZCZy9wYlBmaVNHVDFUbWtQeEtUb0REcUJrPRIkMzA4YTEzOGItMzZhZi00Y2I2LWI1MTEtMzk0NjcwYjc1OGQ2GAAgACgAMN2HyL3eMjiV9tjn4DFAlfbY5+AxShxodGFxZlVhTWI0eUdFZXZIcVBwMUd1TzZUaDA9Wh8iHQtkdGwxbS8rckttWnRsSTJORHNvVGs3M3NPbUE9ZaXdjsHCPgJgBRKtAQgiEqgBChxxcEdtTHkvSUhHdEVMMWlCV2MyWVFxbjNtaUU9EiRlMTBjM2UwMi02ZTc2LTRlOGYtOGVkMi05ZDdhMmU5NDNlNmYYACAAKAAw0YfIvd4yOOCV+vKmMUDglfrypjFKHGhBUnF5ck0zUGpsTms2MUI2U3BTM1lwcURFUT1aHyIdAitHdnVGd05uay9zQ0NTNFF6bDZEYUkvdi9MST1lfiC278I+AmAFEq0BCB4SqAEKHGFoZU1pR3p4SFZRUXVqMGVycHAwb3ZldDlzND0SJGQzNWMwZDNmLTQ4ZmEtNGE3MS1hMWUyLWE2YTk4ODkzNTQ3NRgAIAAoADDTh8i93jI49q3G3+AxQPatxt/gMUocQ3c0OWEvTWpVWkVoQ29DZTFwU3lvT2xEUGFzPVofIh0neWJLOUYrQ09qT2pDRWgrcXV0bTgrVWIzNnQ0PWWhoBeZwj4CYAUSrQEIIBKoAQocK1dwUTZXa3p2dUxrQ0dST2dKZ1VlU1N3cHc0PRIkOTI1ZWE5NDctYTYzMi00NmI4LTk1NDEtZGUxY2E1MjA2ZDA1GAAgASgBMKDD4LuRMzjIuOqRmjJAkLHgu5EzShxWRzExOVY4R1lGaExDeWcwUXh3Uk5OQUpJN2M9Wh8iHQBmbUFOVitBcDMvVy9hanc5YWZQRlpLN3k4bW89Zf09GJ3CPgJgBRKtAQghEqgBChxmVW5BWGthdDl2UnN1MWpwY0hueGdKdU9RQVk9EiQ3Njg5YzdmNi05YWMyLTRkYzctOWVkMy1iMDRmZTgzY2I3OGMYACABKAEwn8Pgu5EzONeN47/6MUCQseC7kTNKHGZCTlF2UmtYenBleWNQSW1sYTJiV3dISEt2ST1aHyIdAVF3ei9mWXJwNDIvbVI4TFp4WkVGeXNseWtFbz1l/T0YncI+AmAFEq8BCB8SqgEKHGRpUFpxSnhudHpMTURGRXJxNzFTMUx2bFVwND0SJDY4OGJkMWY0LWJhODktNDQwOC1hN2ZhLWIxYmRlMzM1MTA3MBgAIAAoADDc9ce93jI445CBwPoxQOOQgcD6MUocVk9wTlhKN204T01aMCszYVlBblp4VFJwSzhRPVohIh///8lzZ3FZRUVvVmhZNHF5am56M3Y0U2xVVmQxVWM9ZQAAAADCPgJgABKtAQgdEqgBChxkRXJQbzFIKzZySzZlSVdmQm9vTlVGaFJDRms9EiQ1NTVhZjA4NC0xZmRmLTRlZGItOWY0NS0yODYyNzI5ZTBkYjYYACAAKAAw1ofIvd4yOJ296PegMECdvej3oDBKHEVkcUJGZnNXL3VJUlF3ZEMrUXhoMEhvT0NKVT1aHyIdGmtqWDV3WWkyaDhraDhXWTF5d2xKN2FKWEZ2QT1luJUt38I+AmAFEq0BCBoSqAEKHEIwMTJBY25HNXlINU0vUVBRVEhwMW1teUdCRT0SJGMyZjUyMWJhLWM4ZTAtNGRkMy04ZmY3LTQyOTk3MTFkN2UzORgAIAAoADDLh8i93jI4gt7HrPswQILex6z7MEocdGlJRUs4OE9McTArTVhuNFNxR296UGJHbmNnPVofIh0NL2QxdDJkUFU0eUxWdit0b05tYW9LYjM1TjVnPWWhoBeZwj4CYAUSrQEIFhKoAQocUVh6MzJlbjcwVC9HcmlTTzQ1azRySkM4U0pZPRIkMDRjYTlkYmEtYmU1OC00YjIxLTg4YmYtN2I2N2E0ZjE0ZGIwGAAgACgAMOCHyL3eMjjj1tW/+jFA49bVv/oxShw3QnQrVzNDY1NKREtuOGpMQVVpbmdma2FNeXc9Wh8iHRRZVnFnbUlSYzZlMGs2OStNeXErT1lWTGNIOEE9ZY0zLzHCPgJgBRKuAQgkEqkBChxYUGt4a3RYUFp5WmZIeUMrNTh4N2cyNHBvSGs9EiRkYWZmZjU4Mi05MGYxLTRkNTktOWJmYi1hMDMyNGM4M2Y5YTgYACABKAEwnsPgu5EzOKqcn7vgMUCRseC7kTNKHDJNaGxHV295bWIzT3ppdGEvYVRlVFMzUG0xbz1aICIeAqY3TkN2RDNQVGR2VFVrSnR2U0t6aUQ3RnN0clE9Zf09GJ3CPgJgBRKsAQgYEqcBChxSUkNmMStDV2lZejIxcy9taTlLMm9zODZ6M289EiQ5NDFhZWE2ZC00MTczLTQ2Y2UtYTNjNi1hYTY2MTMzNTM0MGMYACAAKAAw0IfIvd4yONaU3tnuMUDWlN7Z7jFKHFNRT3pQbHZWSFMxTm5oSmRrYlY3eDVXZW8rND1aHiIcUHJMdk8zVEtXRjFSK3hkWVdnN011NW9FSFRnPWWNMy8xwj4CYAUSrQEICxKoAQocYThJbDhRVWMvdVlSV3U5d2RMZnhVd3loVjdNPRIkYTZiYmE5NjMtYjVjOC00OTM0LWE1YjktMTZiYTc4MDc5NjhkGAAgACgAMMeHyL3eMjihguPt4DFAoYLj7eAxShw1TnpkQzFJT3ZsRGdZTlFOOGZ6T0JVVS9IQnc9Wh8iHfE0dExJZm5DV0lyRjl2QnpWVEJsZzY2Vk1Wc0k9ZbiVLd/CPgJgBRKuAQgNEqkBChxueTlQbWc2eTJ0MDFMVzlJdTBUVnZNSEpPNWc9EiQyMTA4YTE1Ni05M2I2LTRmZDItOTc4MS1mZTdmM2FiMzg2NjAYACAAKAAw4PXHvd4yOL7S5L/6MUC+0uS/+jFKHFdrMHJnL1RsNE5ONFo2aCsyZ2VxUlF0VDQzRT1aICIe//1pZ21RUXUvYnFqYnIyZklLNUVTYXo0TndMSEE9ZQAAAADCPgJgABKuAQgZEqkBChx2dzlPbU5ZZFdqQkFLSG9DWlduVWluejErM2c9EiRlMDUzMzc4Ni0yZjdlLTQ1YmUtODcxZC0wYTVkMDQzZjZhMTIYACAAKAAw4vXHvd4yOPGl5r/6MUDxpea/+jFKHGNpZVJoa3lOekg1Z0pGZDR3T0VnMlJWeFJ4UT1aICIe//9vRzNOdUJkTjhDS29oVGRPVjcraDcyYkZLSEE9ZQAAAADCPgJgABKsAQgmEqcBChx0ZWI1bVo2TGtHOGVnQ1g4VzZCZEJiQklaeTQ9EiQ3NTQ3NDQ0NS1jMzI2LTRkMDItOTI5NC1iZmYzMzhjMjAxZDMYACAAKAAw14fIvd4yOLWBq5uCMkC1gaubgjJKHHlTL2RxdVBjaTVEczBXYXB3YjM0N2xlYXliYz1aHiIca0YrMFU2WHBidE1WWjVTcVN0NURkN1BKazJNPWW4lS3fwj4CYAUSrQEIGxKoAQocL0YyNlQyRlJKbnE5MHM1ZGI2MlFEcXlnUHVrPRIkZGIwZGViMjAtZTk4MC00MjhmLWEwOTQtZWQ5NDc3MzlkZjE2GAAgACgAMNuHyL3eMjiF8JTa/TFAhfCU2v0xShwvellUeXR2NVR1TWF0dGxzMVBDbENVb3M3QWc9Wh8iHRExWUJEUmhWdXMxMU1Nd2NLY1paaGc3c2wzbzA9ZbiVLd/CPgJgBRKtAQgPEqgBChxHbmxicXd1QzdyanprYmpyb2xGMzhFRXIrb3c9EiQyOGE5MmI4My1jNzI0LTQzZGMtOWM0Ny0zMTBmYjg0OGNkYjEYACACKAIwq/Hgu5EzOPytxqSBMkDT3+C7kTNKHFBIN1E5OW5mRUg4WFVVbEliUEVOU1lUVDhsYz1aHyIdBmN6Z0ptd091U1c3ZERiRnZmdkx0c2lLVjI1WT1lL9675cI+AmAFEq0BCBQSqAEKHGVlWDBPMlJyWjZYNjNYZm9OclhkS2RMajFLTT0SJGQ1NDFjNjA2LTk5YmItNGNhZi04NTA1LThiZTMyYWQ1MjgzOBgAIAAoADDDh8i93jI45Of2v/oxQOTn9r/6MUocZGFXQ2htNFNnRDQrMXd1VjViaTJYVnB1ZmIwPVofIh0FMW5TMDF0dzZhSnNtRmxRNTNydXAzeVU3YkpVPWWNMy8xwj4CYAUSrQEIFRKoAQocTU5hM0VwMlRoeThaK2RxOTRXV0kzL1RTMm93PRIkMWY5YzdjMmYtMTU3Ni00YTYzLWFiZDktNTY1MjAwN2VhY2M5GAAgACgAMNWHyL3eMjjg0ofx9jBA4NKH8fYwShw4QkNvbFNOOG5WMlVoazcyNXZ1eUlVSjd5SjA9Wh8iHQo3dVNYSnNhcGtPRDdETHF4SS96WHRDV0EzVnc9ZY0zLzHCPgJgBRKtAQgKEqgBChwyUURqS1lUR3BmYTQrTzQ4L0trSnA5NGFLRXM9EiRlOTEyZTg4MS1mNGEzLTQzODYtOGE0ZC05MGU5YWJlOGU0ODQYACAAKAAwwYfIvd4yOOjvlNr9MUDo75Ta/TFKHGxORTRpSE9ZZkM4ekswRFRyalI4OUFFNFlTST1aHyId7HRxSlhXc0tkY0QzVnFacFhDZnhRclNiU3QrUT1loaAXmcI+AmAFEo4BCAESiQEKHHl4Si82ZnZrZWNyN2twNUVRekI0dFdMcGRiRT0SJGMwYzY4Mzc1LWZlNjEtNTMyOC05OTFjLTRkZDZjYTI0MzYxMBgAIAAoADDSvMv3lzA47b3L95cwQO29y/eXMEocYVJDV0xnaEY5YjVJbnFLSUR2dUovanZRa0ZjPVoAZQAAAADCPgJgABKsAQgGEqcBChxza0lOZVpsV1RFeGZtRGNtTXJXN0I0Qm0yOFk9EiQ4NjIwMzZlNC0yNGU0LTRkNzgtYmNjMy03ZmQ4YzE1ZjI0OGUYACAAKAAwwOPHvd4yOPHtlNr9MUDx7ZTa/TFKHDlMN09ZNGpaVWt2emt1MHU5TkhrL0ZlQkNEaz1aHiIcYkZnRVdaK21vK1pOSGFIbUFHRlcwMk05WW5VPWUAAAAAwj4CYAASrQEICRKoAQocM2M1SlRYcW5LejNHclRibVZNSzEvNzFNblNNPRIkNTA3YTQwMGQtMTc2YS00ODE5LWI1Y2YtY2ViZTVlODlkNmY3GAAgACgAMMaHyL3eMjitjr2EkjJArY69hJIyShxjcFJ5aFJZSjNSQlFTV1g5YXo5dWlvN0YzVXM9Wh8iHc5QK3NLbC9xd01QN1k4NVpEZW56ckFvckxOaGM9ZY0zLzHCPgJgBRKtAQgoEqgBChxQMVRLbGJVU1d0Tm5ZSk14emtqWHZXUTFCeDQ9EiRiM2U2YjIxNi1kNDM3LTRiNDQtOWI4Zi0wZDJmNGJhYmYwYWMYACAAKAAwzIfIvd4yOJDE36WdMkCQxN+lnTJKHFBrTWF5V0xMM25IS3lWRHljOTVqNjZZelVkcz1aHyId2kwxRWZNOHBzUlBjS21LOWRESytHc0NZcWtXND1ljTMvMcI+AmAFEq0BCCcSqAEKHE9pYVdISUhJM0FuSS8xU1J6WnNPejVrS0NaST0SJDUyZTI4MmQ2LTM0MWItNDU4Zi05Njg4LTdiODk3NDRhNzg1YhgAIAAoADDSh8i93jI49taSqZsyQPbWkqmbMkocWHNjaEllUVFsY3NSc2o3WGNERnJWTUs4NXJzPVofIh21K2tVeDBBalFWR25nVlNyVDhmdjRISVh6elhRPWWklpyOwj4CYAUSrAEIDBKnAQoca2dueDROTHFkbWc0Y2RKVE5DZVZvZXZZc0pzPRIkYWJiY2UyZjktOWE5Ni00NzhkLWI4NTktNDdhMDI4MTYxMTc5GAAgACgAMM2HyL3eMjjevfaD/jFA3r32g/4xShxVcnZTS3BvZTJHSmYzT1JtdlM5ZW94UndpVVE9Wh4iHHIxZlhVeEpuckZxNVF5R1FIVS9TbUNvUkpKZz1l9leQGMI+AmAFEq0BCBcSqAEKHFlQVXJ6V0pDNm1kQVB4TFdsc0FKUmwwSzlVUT0SJDM1YTQ2MGY3LWYzY2ItNDQyNS05YTkwLTE5YTM5ZGE1ZGVlNBgAIAAoADDCh8i93jI4ls/J4ekxQJbPyeHpMUocbFhEcDJpNStPNE9OODVqclFZOXIySGhEaGVRPVofIh0oV0t4UE4ySVlJZXpHMXZncUdVR0l1QyswOElJPWWNMy8xwj4CYAUSrQEICBKoAQocbzNjOGdUNlJWTHNLTCsyaTR4U3JDUCtPNXpJPRIkNTRkMTE3MTctZGI5Yy00ODliLWE0YWItZGQxOTAxYzA5ZWMxGAAgACgAMMWHyL3eMjid75Ta/TFAne+U2v0xShxQemlRRmd5VnovdjRJT0dybmVTT2Y1WDhaTEU9Wh8iHbFDelRjVkorQzByeXd2Tm9qVEluR1VkUDlWUWM9ZY0zLzHCPgJgBRKtAQgcEqgBChxUS2gra0kwMHhrZ3MrRlQ0YzdHL296YUsycVU9EiQ1YjYxMDI4Ni1mM2Y5LTRhZTQtYWJlZC04YjY3NjQyOWRjOGIYACAAKAAwyIfIvd4yOLWbhq+KMkC1m4avijJKHDFIRVlUMGdVM0xLbk1IVUlZejF6TlErT1JqZz1aHyIdFkw5eG5zTDEzTERKelFBVnZISVRPdlN6UVdPdz1luJUt38I+AmAFEo4BCAISiQEKHFljU1RvbnZFU1B3cUNzNEwyY3JWaHY2OEw5OD0SJDYwNWZlYzhhLTI1OTUtNTAxOC1hNDBmLWVhMjE5NGM3ZDgxNxgAIAAoADDSvMv3lzA4jL7L95cwQIy+y/eXMEocb1BWa2h3QlJiVjY1S0NXUjIrSU9OSFdvT3U4PVoAZQAAAADCPgJgABKsAQgHEqcBChxBL0VqYkh3cUJ6Q0pCV0Q1NVN4NzNKSjZDOTQ9EiQ5MmYwOTEwZC01MjdkLTQyMjMtYjJmNS00NmI2NTgwNGEyMjYYACAAKAAwwePHvd4yOMPulNr9MUDD7pTa/TFKHC9ic3BzcmlkWHhqZ3g2V1dPMDJSd25menoxWT1aHiIcK3lZdU54NE9OdzJvY1FKZ0VZL2U1aXExbk44PWUAAAAAwj4CYAASrgEIExKpAQocMy9IWTU0dllhamMzTkdGRGl1R1k5NnNyc2NjPRIkZTdkZDZjZTQtMzFhMy00MGU3LTlhOTgtODEzNTFmYTBhNWVkGAAgACgAMN71x73eMji8vuW/+jFAvL7lv/oxShxZUEJpWXpBM2RxN2tlc1RReVczNFgvOEp2eVU9WiAiHv/+OXhjYUhtZEI4Tml3ZE1VTWFheVJwUmRqU0I0PWUAAAAAwj4CYAASrAEILBKnAQoceXhubmQrbTZjVVFqeXJmRDFQK0VkQ0NrOFR3PRIkYzI3YzQxZmMtNGQ2YS00ZmYyLThkZDMtMzBhY2YxOTc0ZTE2GAAgACgAMN+HyL3eMjjLgPmWozBAy4D5lqMwShwvQ1l0M1hZK0pWYjRJV3lzL1RQenI2MHRtU0E9Wh4iHDN0UjlRSHNyMjMzN24vRUJlMHBYMnIwdlRPMD1lPsJzM8I+AmAFEo4BCAMSiQEKHG5qZ0R1ODhlQ3J2WHA4NnBEN2ZIR2NxRnA4OD0SJDVkZjQ5OTcyLWVjMTUtNWE1NS1iYzhlLTYwZjg2ZTA5ZTEzZhgAIAAoADDSvMv3lzA4+b7L95cwQPm+y/eXMEoceXpOQjAxY241NEE3Y1JVMHVUKy9QZ21UdFVvPVoAZQAAAADCPgJgABKtAQgQEqgBChx3eG1sT1hVblM3L3l1bjkydStCemxFK2laRDg9EiQwMTJkOGY3Mi1jOTViLTQ0NTEtOWM5NC1jZjA3MTQyOGYyYjYYACAAKAAw2YfIvd4yOJW3g/mYMECVt4P5mDBKHE83d3BGcEIvZnkwd3N3cDE0dk0waHorQnBoTT1aHyIdB2RWOWhZKzNMQXNDVis1UWd1R2pVUHRIeVJFOD1lpJacjsI+AmAFEqwBCBISpwEKHFczMGdLaytjbFBSS3BzVkhZYktqai9KQ200MD0SJDhjZGEwYzdlLTdlNGEtNDQ1Ni04NDk3LTdmZWIxMWI3ZjRjMxgAIAAoADDJh8i93jI4rOmC+ZgwQKzpgvmYMEocbTg4bkJiUHcxTEdyR1NXY2dqNzQzeXdHTVBRPVoeIhxYaHFPRy8yWVhnalNKdXV5RlZnSlBpNFc3dTA9ZaSWnI7CPgJgBRKtAQgOEqgBChxhUC9qY0xlb3JQMTh3MnhZNXp2SmNzVUVLWTg9EiQ4ODUwOGU2ZC01ZGM5LTQ1OGYtYjhjZi1lZTkxMGI1ODNhZWYYACACKAIwqvHgu5EzOPiirMCvMUDT3+C7kTNKHHk3ZU5zMUU5QzM5TUsvemJsUHhvTThROUR1OD1aHyIdA2x6TktjTVl5UGJ6ZnQwb0xYSXhzOEUvZzdJcz1lL9675cI+AmAFMAA4AA==",
+   "version": 1
+}
